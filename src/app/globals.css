@@ -24,7 +24,11 @@
   --color-blue: #1565d8;
 
   /* gray */
-  --color-gray: #6c6c6c;
+  --color-gray: #737373;
+
+  /* white */
+  --color-white: #ffffff;
+  --color-white-50: #fafafa;
 }
 
 body {

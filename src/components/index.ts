@@ -7,3 +7,6 @@ export * from "./error-message";
 export * from "./button";
 export * from "./otp-input";
 export * from "./resend-code";
+export * from "./select";
+export * from "./logo-upload";
+export * from "./shared";

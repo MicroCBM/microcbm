@@ -6,14 +6,13 @@ import EndQuote from "../../../public/assets/svg/end_quote.svg";
 import Link from "next/link";
 import { ROUTES } from "@/utils";
 
-export default function HomeLayout({
+export default function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <div className="flex min-h-screen">
-      {/* <Navbar /> */}
       <div
         style={{ backgroundImage: `url(${BgImage.src})` }}
         className="flex-1 p-10 flex flex-col min-h-screen"

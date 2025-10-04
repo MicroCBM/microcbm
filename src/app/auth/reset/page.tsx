@@ -10,6 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ROUTES } from "@/utils";
 import OTPVerification from "../components/OTPVerification";
 import { Icon } from "@/libs";
+import { useRouter } from "next/navigation";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -24,6 +25,7 @@ export default function ResetPassword() {
   const [step, setStep] = React.useState<"reset-password" | "otp">(
     "reset-password"
   );
+  const router = useRouter();
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -34,14 +36,20 @@ export default function ResetPassword() {
   });
 
   const onSubmit = async (data: FormData) => {
-    const { email, password } = data;
+    // const { email, password } = data;
+    console.log("reset password data", data);
     setStep("otp");
   };
   return (
     <div className="w-full p-10 flex flex-col justify-between min-h-screen">
       {step === "reset-password" && (
         <div className="flex flex-col justify-center max-w-[580px] mx-auto w-full gap-10 flex-1">
-          <Icon icon="hugeicons:arrow-left-02" className="size-6" />
+          <div
+            className="flex items-center gap-2 bg-gray-100 p-2 rounded-full cursor-pointer w-fit"
+            onClick={() => router.push(ROUTES.AUTH.LOGIN)}
+          >
+            <Icon icon="hugeicons:arrow-left-02" />
+          </div>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-1 text-center">
               <Text variant="h6">Reset Password</Text>

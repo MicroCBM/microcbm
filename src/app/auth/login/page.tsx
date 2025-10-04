@@ -1,5 +1,6 @@
 import React from "react";
+import Login from "../components/Login";
 
 export default function page() {
-  return <main>Home</main>;
+  return <Login />;
 }
