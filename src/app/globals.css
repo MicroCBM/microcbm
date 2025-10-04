@@ -25,10 +25,12 @@
 
   /* gray */
   --color-gray: #737373;
+  --color-gray-100: #e7e7e7;
 
   /* white */
   --color-white: #ffffff;
   --color-white-50: #fafafa;
+  --color-white-200: #f4f4f4;
 }
 
 body {

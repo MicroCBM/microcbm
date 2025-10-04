@@ -14,6 +14,7 @@
     "@iconify/react": "^6.0.2",
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-select": "^2.1.5",
+    "@radix-ui/react-tabs": "^1.1.13",
     "@svgr/webpack": "^8.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -22,6 +23,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.63.0",
+    "recharts": "^3.2.1",
     "sass": "^1.93.2",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.1.11"
