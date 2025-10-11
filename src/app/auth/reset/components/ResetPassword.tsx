@@ -10,6 +10,8 @@ import { ROUTES } from "@/utils";
 import { Icon } from "@/libs";
 import { useRouter } from "next/navigation";
 import { SPECIAL_CHARACTERS } from "@/helpers";
+import { resetPasswordService } from "@/app/actions/auth";
+import { toast } from "sonner";
 
 const schema = z
   .object({
@@ -27,8 +29,10 @@ const schema = z
 
 type FormData = z.infer<typeof schema>;
 
-export default function ChangePassword() {
+export default function ResetPassword() {
   const router = useRouter();
+  const [errorMessage, setErrorMessage] = React.useState<string>("");
+
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -48,8 +52,28 @@ export default function ChangePassword() {
   const hasSpecialChar = /[!@#$%^&*()]/.test(password);
 
   const onSubmit = async (data: FormData) => {
-    // const { email, password } = data;
-    console.log("reset password data", data);
+    setErrorMessage("");
+
+    const response = await resetPasswordService(
+      data.password,
+      data.confirmPassword
+    );
+
+    if (response.success) {
+      toast.success("Password reset successfully", {
+        description: response.data?.message,
+      });
+      setTimeout(() => {
+        router.push(ROUTES.AUTH.LOGIN);
+      }, 1500);
+    } else {
+      setErrorMessage(
+        response.message || "Failed to reset password. Please try again."
+      );
+      toast.error(
+        response.message || "Failed to reset password. Please try again."
+      );
+    }
   };
   return (
     <div className="w-full p-10 flex flex-col justify-between min-h-screen">
@@ -67,6 +91,12 @@ export default function ChangePassword() {
               Enter a new password for your account below
             </Text>
           </div>
+
+          {errorMessage && (
+            <div className="text-red-500 text-sm bg-red-50 p-3 rounded">
+              {errorMessage}
+            </div>
+          )}
 
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">

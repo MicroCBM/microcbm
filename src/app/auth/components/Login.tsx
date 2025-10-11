@@ -9,6 +9,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ROUTES } from "@/utils";
 import OTPVerification from "./OTPVerification";
+import { loginService } from "@/app/actions/auth";
+import { toast } from "sonner";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -21,6 +23,8 @@ type FormData = z.infer<typeof schema>;
 
 export default function Login() {
   const [step, setStep] = React.useState<"login" | "otp">("login");
+  const [errorMessage, setErrorMessage] = React.useState<string>("");
+  const [userEmail, setUserEmail] = React.useState<string>("");
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -32,10 +36,29 @@ export default function Login() {
 
   const onSubmit = async (data: FormData) => {
     const { email, password } = data;
-    setStep("otp");
+    setErrorMessage(""); // Clear previous errors
+
+    const response = await loginService({
+      email,
+      password,
+    });
+
+    if (response.success) {
+      toast.success("OTP sent", { description: `${response.data?.message}` });
+      setUserEmail(email);
+      setStep("otp");
+    } else {
+      setErrorMessage(response.message || "Login failed. Please try again.");
+    }
   };
   return (
     <div className="w-full p-10 flex flex-col justify-between min-h-screen">
+      {errorMessage && (
+        <div className="text-red-500 text-sm bg-red-50 p-3 rounded">
+          {errorMessage}
+        </div>
+      )}
+
       {step === "login" && (
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -74,7 +97,7 @@ export default function Login() {
           </section>
         </form>
       )}
-      {step === "otp" && <OTPVerification />}
+      {step === "otp" && <OTPVerification email={userEmail} />}
       <div className="flex gap-2 text-sm text-blue">
         <Link href={ROUTES.HELP}>Help</Link>
         <span className="text-gray">|</span>

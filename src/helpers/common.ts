@@ -10,7 +10,7 @@ export const INDUSTRIES = [
 ];
 
 export const TEAM_SIZES = [
-  "1-10",
+  "1",
   "11-50",
   "51-100",
   "101-500",

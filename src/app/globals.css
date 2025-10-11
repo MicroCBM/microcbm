@@ -3,6 +3,11 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Popover/Toast colors */
+  --popover: #ffffff;
+  --popover-foreground: #17181a;
+  --border: #e7e7e7;
 }
 
 .wrapper {

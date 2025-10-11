@@ -16,3 +16,4 @@ export * from "./area-chart";
 export * from "./data-table";
 export * from "./severity-card";
 export * from "./pie-chart";
+export * from "./ui";

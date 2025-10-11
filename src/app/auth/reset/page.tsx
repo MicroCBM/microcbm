@@ -8,23 +8,25 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ROUTES } from "@/utils";
-import OTPVerification from "../components/OTPVerification";
 import { Icon } from "@/libs";
 import { useRouter } from "next/navigation";
+import { requestPasswordResetService } from "@/app/actions/auth";
+import { toast } from "sonner";
+import OTPResetVerification from "./components/OTPResetVerification";
+import ResetPassword from "./components/ResetPassword";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters" }),
 });
 
 type FormData = z.infer<typeof schema>;
 
-export default function ResetPassword() {
-  const [step, setStep] = React.useState<"reset-password" | "otp">(
+export default function ResetPasswordRequest() {
+  const [step, setStep] = React.useState<"reset-password" | "otp" | "reset">(
     "reset-password"
   );
+  const [userEmail, setUserEmail] = React.useState<string>("");
+  const [errorMessage, setErrorMessage] = React.useState<string>("");
   const router = useRouter();
   const {
     handleSubmit,
@@ -36,9 +38,20 @@ export default function ResetPassword() {
   });
 
   const onSubmit = async (data: FormData) => {
-    // const { email, password } = data;
-    console.log("reset password data", data);
-    setStep("otp");
+    const { email } = data;
+    setErrorMessage("");
+
+    const response = await requestPasswordResetService(email);
+
+    if (response.success) {
+      toast.success("OTP sent", { description: `${response.data?.message}` });
+      setUserEmail(email);
+      setStep("otp");
+    } else {
+      setErrorMessage(
+        response.message || "Failed to send OTP. Please try again."
+      );
+    }
   };
   return (
     <div className="w-full p-10 flex flex-col justify-between min-h-screen">
@@ -50,7 +63,10 @@ export default function ResetPassword() {
           >
             <Icon icon="hugeicons:arrow-left-02" />
           </div>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-6"
+          >
             <div className="flex flex-col gap-1 text-center">
               <Text variant="h6">Reset Password</Text>
               <Text variant="p" className="text-gray">
@@ -58,6 +74,12 @@ export default function ResetPassword() {
               </Text>
             </div>
             <section className="flex flex-col gap-6">
+              {errorMessage && (
+                <div className="text-red-500 text-sm bg-red-50 p-3 rounded">
+                  {errorMessage}
+                </div>
+              )}
+
               <Input
                 label="Email"
                 placeholder="Enter your email"
@@ -72,7 +94,10 @@ export default function ResetPassword() {
           </form>
         </div>
       )}
-      {step === "otp" && <OTPVerification />}
+      {step === "otp" && (
+        <OTPResetVerification email={userEmail} setStep={setStep} />
+      )}
+      {step === "reset" && <ResetPassword />}
       <div className="flex gap-2 text-sm text-blue">
         <Link href={ROUTES.HELP}>Help</Link>
         <span className="text-gray">|</span>

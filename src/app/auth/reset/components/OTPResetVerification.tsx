@@ -4,9 +4,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import ResendCode from "@/components/resend-code/ResendCode";
-import { verifyOTPService } from "@/app/actions/auth";
-import { useRouter } from "next/navigation";
-import { ROUTES } from "@/utils";
+import { verifyPasswordResetOTPService } from "@/app/actions/auth";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -15,14 +13,17 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-interface OTPVerificationProps {
+interface OTPResetVerificationProps {
   email: string;
+  setStep: (step: "reset-password" | "otp" | "reset") => void;
 }
 
-export default function OTPVerification({ email }: OTPVerificationProps) {
+export default function OTPResetVerification({
+  setStep,
+  email,
+}: OTPResetVerificationProps) {
   const [errorMessage, setErrorMessage] = React.useState<string>("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const router = useRouter();
 
   const { control, handleSubmit } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -33,17 +34,17 @@ export default function OTPVerification({ email }: OTPVerificationProps) {
     setIsLoading(true);
 
     try {
-      const response = await verifyOTPService({
-        email,
-        otp: data.otp,
-      });
+      const response = await verifyPasswordResetOTPService(email, data.otp);
 
       if (response.success) {
+        setStep("reset");
         toast.success("OTP verified", {
-          description: response.data?.message,
+          description: `${response.data?.message}`,
         });
-        router.push(ROUTES.HOME);
       } else {
+        setErrorMessage(
+          response.message || "OTP verification failed. Please try again."
+        );
         toast.error(
           response.message || "OTP verification failed. Please try again."
         );

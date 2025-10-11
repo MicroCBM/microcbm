@@ -136,7 +136,7 @@ export default function RecommendationPage() {
   const [timePeriod, setTimePeriod] = React.useState("last-3-months");
 
   return (
-    <main className="flex flex-col gap-6 p-6">
+    <main className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Text variant="h4" className="font-bold text-gray-900">
