@@ -120,40 +120,46 @@ export default function Sidebar() {
     const isExpanded = expandedItems.has(item.label);
     const isActive = isRouteActive(item.href, item.children);
 
-    return (
-      <div key={item.label}>
-        <div
-          className={`
-            flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-colors
-            ${
-              isActive
-                ? "bg-black text-white"
-                : "text-gray-700 hover:bg-gray-100"
-            }
-            ${level > 0 ? "ml-4 text-sm" : ""}
-          `}
-          onClick={() => hasChildren && toggleExpanded(item.label)}
-        >
-          <div className="flex items-center gap-3">
-            {item.icon && (
-              <Icon
-                icon={item.icon}
-                className={`w-5 h-5 ${
-                  isActive ? "text-white" : "text-gray-600"
-                }`}
-              />
-            )}
-            <span className="font-medium">{item.label}</span>
-          </div>
-          {hasChildren && (
+    const content = (
+      <div
+        className={`
+          flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-colors
+          ${
+            isActive ? "bg-black text-white" : "text-gray-700 hover:bg-gray-100"
+          }
+          ${level > 0 ? "ml-4 text-sm" : ""}
+        `}
+        onClick={() => hasChildren && toggleExpanded(item.label)}
+      >
+        <div className="flex items-center gap-3">
+          {item.icon && (
             <Icon
-              icon="solar:alt-arrow-down-bold-duotone"
-              className={`w-4 h-4 transition-transform ${
-                isExpanded ? "rotate-180" : ""
-              } ${isActive ? "text-white" : "text-gray-400"}`}
+              icon={item.icon}
+              className={`w-5 h-5 ${isActive ? "text-white" : "text-gray-600"}`}
             />
           )}
+          <span className="font-medium">{item.label}</span>
         </div>
+        {hasChildren && (
+          <Icon
+            icon="solar:alt-arrow-down-bold-duotone"
+            className={`w-4 h-4 transition-transform ${
+              isExpanded ? "rotate-180" : ""
+            } ${isActive ? "text-white" : "text-gray-400"}`}
+          />
+        )}
+      </div>
+    );
+
+    return (
+      <div key={item.label}>
+        {hasChildren ? (
+          content
+        ) : item.href ? (
+          <Link href={item.href}>{content}</Link>
+        ) : (
+          content
+        )}
 
         {hasChildren && isExpanded && (
           <div className="mt-1 space-y-1">

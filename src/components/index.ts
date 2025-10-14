@@ -17,3 +17,8 @@ export * from "./data-table";
 export * from "./severity-card";
 export * from "./pie-chart";
 export * from "./ui";
+export * from "./search";
+export * from "./status-badge";
+export * from "./user-avatar";
+export * from "./country-select";
+export * from "./phone-input";

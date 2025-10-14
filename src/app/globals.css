@@ -24,6 +24,12 @@
 
   /* green */
   --color-green: #08ad36;
+  --color-green-100: #016630;
+  --color-green-200: #f0fdf4;
+
+  /* orange */
+  --color-orange: #ff8904;
+  --color-orange-100: #fff7ed;
 
   /* blue */
   --color-blue: #1565d8;
@@ -36,6 +42,10 @@
   --color-white: #ffffff;
   --color-white-50: #fafafa;
   --color-white-200: #f4f4f4;
+
+  /* red */
+  --color-red: #ff6467;
+  --color-red-100: #fef2f2;
 }
 
 body {

@@ -3,6 +3,7 @@
 import React from "react";
 import { Icon } from "@/libs";
 import { cn } from "@/libs";
+import { StatusBadge } from "../status-badge";
 
 interface TableData {
   siteName: string;
@@ -93,9 +94,9 @@ export function DataTable({ data, className }: DataTableProps) {
                       {row.assetCount}
                     </td>
                     <td className="px-4 py-3 text-sm text-[#616161] border-r border-gray-200">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {row.status}
-                      </span>
+                      <StatusBadge
+                        status={row.status as "Active" | "Inactive" | "Pending"}
+                      />
                     </td>
                     <td className="px-4 py-3 text-center border-r border-gray-200">
                       <button className="p-1 hover:bg-gray-200 rounded transition-colors">

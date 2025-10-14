@@ -1,3 +1,4 @@
+"use client";
 import React, { type KeyboardEvent, useEffect, useRef } from "react";
 
 import { ErrorText } from "@/components";
