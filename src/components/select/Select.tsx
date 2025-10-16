@@ -6,6 +6,7 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "@/libs";
 import { Icon } from "@/libs/icon";
 import { ErrorText } from "../error-text";
+import { Label } from "../label";
 
 function Select({
   ...props
@@ -30,13 +31,16 @@ function SelectTrigger({
   size = "default",
   error,
   children,
+  label,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default";
   error?: string | boolean;
+  label?: string;
 }) {
   return (
-    <>
+    <div className={cn("", label && "flex flex-col gap-[6px]", className)}>
+      {label ? <Label className="font-normal">{label}</Label> : null}
       <SelectPrimitive.Trigger
         data-slot="select-trigger"
         data-size={size}
@@ -53,7 +57,7 @@ function SelectTrigger({
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
       <ErrorText error={error} />
-    </>
+    </div>
   );
 }
 

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/libs";
+import { SessionUser } from "@/types";
 
 interface NavItem {
   label: string;
@@ -13,7 +14,7 @@ interface NavItem {
   isActive?: boolean;
 }
 
-export default function Sidebar() {
+export default function Sidebar({ user }: { user: SessionUser }) {
   const pathname = usePathname();
 
   const mainNavItems: NavItem[] = [
@@ -23,7 +24,7 @@ export default function Sidebar() {
       href: "/",
     },
     {
-      label: "Assets",
+      label: "Inventory",
       icon: "solar:database-bold-duotone",
       children: [
         { label: "Assets", href: "/assets" },
@@ -201,14 +202,16 @@ export default function Sidebar() {
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-semibold">RD</span>
+            <span className="text-white text-sm font-semibold">
+              {user ? user.email : "N/A"}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">
-              Robbi Darwis
+              {user ? user.email : "SDN"}
             </p>
             <p className="text-xs text-gray-500 truncate">
-              flowforgestd@gmail.com
+              {user ? user.role : "SDN"}
             </p>
           </div>
           <Icon

@@ -29,7 +29,7 @@ const schema = z
 
 type FormData = z.infer<typeof schema>;
 
-export default function ResetPassword() {
+export default function ResetPassword({ email }: { email: string }) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = React.useState<string>("");
 
@@ -54,10 +54,12 @@ export default function ResetPassword() {
   const onSubmit = async (data: FormData) => {
     setErrorMessage("");
 
-    const response = await resetPasswordService(
-      data.password,
-      data.confirmPassword
-    );
+    const { password } = data;
+
+    const response = await resetPasswordService({
+      email,
+      password,
+    });
 
     if (response.success) {
       toast.success("Password reset successfully", {

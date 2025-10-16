@@ -5,14 +5,11 @@ import { handleApiRequest, type ApiResponse } from "./helpers";
 
 const commonEndpoint = "/api/v1/auth";
 
-export async function loginService(formData: {
+export async function loginService(payload: {
   email: string;
   password: string;
 }): Promise<ApiResponse> {
-  return handleApiRequest(`${commonEndpoint}/login`, {
-    email: formData.email,
-    password: formData.password,
-  });
+  return handleApiRequest(`${commonEndpoint}/login`, payload);
 }
 
 export async function signupService(formData: {
@@ -53,7 +50,6 @@ export async function verifyOTPService(formData: {
       response.data?.access_token;
 
     if (token && typeof token === "string") {
-      console.log("Saving token from OTP verification");
       await createUserSession(token);
     } else {
       console.error("No token found in response:", response.data);
@@ -81,14 +77,11 @@ export async function verifyPasswordResetOTPService(
   });
 }
 
-export async function resetPasswordService(
-  password: string,
-  confirmPassword: string
-): Promise<ApiResponse> {
-  return handleApiRequest(`${commonEndpoint}/reset-password`, {
-    password: password,
-    confirmPassword: confirmPassword,
-  });
+export async function resetPasswordService(payload: {
+  email: string;
+  password: string;
+}): Promise<ApiResponse> {
+  return handleApiRequest(`${commonEndpoint}/reset-password`, payload);
 }
 
 export async function logout() {

@@ -15,7 +15,7 @@ export default function AuthLayout({
     <div className="flex min-h-screen">
       <div
         style={{ backgroundImage: `url(${BgImage.src})` }}
-        className="flex-1 p-10 flex flex-col min-h-screen"
+        className="flex-1 p-10  flex-col min-h-screen hidden md:flex"
       >
         <Logo className="h-[69px] w-40" />
         <div className="text-white flex flex-col gap-10 font-medium justify-center flex-1">
@@ -46,7 +46,7 @@ export default function AuthLayout({
         </div>
       </div>
       <section className="flex-1">
-        <div className="flex flex-col justify-center items-center border min-h-screen">
+        <div className="flex flex-col justify-center items-center min-h-screen">
           {children}
         </div>
       </section>

@@ -9,4 +9,15 @@ interface Region {
   shortCode: string;
 }
 
-export type { CountryRegion, Region };
+interface SessionUser {
+  user_id: string;
+  email: string;
+  role: string;
+  role_id: string;
+  permissions: string[];
+  org_id: string;
+  exp: number;
+  iat: number;
+}
+
+export type { CountryRegion, Region, SessionUser };

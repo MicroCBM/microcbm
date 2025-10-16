@@ -75,6 +75,12 @@ export async function handleApiRequest(
   method: "POST" | "GET" | "PUT" | "DELETE" = "POST"
 ): Promise<ApiResponse> {
   try {
+    console.log("API Request body:", body);
+    console.log(
+      "JSON stringified body:",
+      body ? JSON.stringify(body) : undefined
+    );
+
     const res = await requestWithAuth(endpoint, {
       method,
       body: body ? JSON.stringify(body) : undefined,

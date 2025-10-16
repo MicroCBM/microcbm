@@ -97,7 +97,7 @@ export default function ResetPasswordRequest() {
       {step === "otp" && (
         <OTPResetVerification email={userEmail} setStep={setStep} />
       )}
-      {step === "reset" && <ResetPassword />}
+      {step === "reset" && <ResetPassword email={userEmail} />}
       <div className="flex gap-2 text-sm text-blue">
         <Link href={ROUTES.HELP}>Help</Link>
         <span className="text-gray">|</span>

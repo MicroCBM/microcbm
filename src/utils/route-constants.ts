@@ -8,7 +8,7 @@ export const ROUTES = {
   TERMS: "/terms",
   AUTH: {
     LOGIN: "/auth/login",
-    REGISTER: "/auth/register",
+    REGISTER: "/auth/sign-up",
     RESET_PASSWORD: "/auth/reset",
   },
 };

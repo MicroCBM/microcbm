@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components";
+import { Button, Text } from "@/components";
 import Input from "@/components/input/Input";
 
 import Link from "next/link";
@@ -36,7 +36,7 @@ export default function Login() {
 
   const onSubmit = async (data: FormData) => {
     const { email, password } = data;
-    setErrorMessage(""); // Clear previous errors
+    setErrorMessage("");
 
     const response = await loginService({
       email,
@@ -60,42 +60,54 @@ export default function Login() {
       )}
 
       {step === "login" && (
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col justify-center max-w-[580px] mx-auto w-full gap-2 flex-1"
-        >
-          <section className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4">
-              <Input
-                label="Email"
-                placeholder="Enter your email"
-                {...register("email")}
-                error={errors.email?.message as string}
-              />
+        <section className="flex flex-col gap-6 max-w-[580px] m-auto w-full">
+          <div className="flex flex-col gap-1 text-center">
+            <Text variant="h6">Welcome back!</Text>
+            <Text variant="p" className="text-gray">
+              Don&apos;t have an account?
+              <Link href={ROUTES.AUTH.REGISTER} className="text-blue">
+                Sign up
+              </Link>
+            </Text>
+          </div>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col  gap-2 flex-1"
+          >
+            <section className="flex flex-col gap-6">
+              <div className="flex flex-col gap-4">
+                <Input
+                  label="Email"
+                  placeholder="Enter your email"
+                  {...register("email")}
+                  error={errors.email?.message as string}
+                />
 
-              <Input
-                label="Password"
-                type="password"
-                placeholder="Password"
-                {...register("password")}
-                error={errors.password?.message as string}
-              />
-            </div>
+                <Input
+                  label="Password"
+                  type="password"
+                  placeholder="Password"
+                  {...register("password")}
+                  error={errors.password?.message as string}
+                />
+              </div>
 
-            <div className="flex flex-col gap-2">
-              <Button loading={isSubmitting} disabled={isSubmitting}>
-                Login
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button loading={isSubmitting} disabled={isSubmitting}>
+                  Login
+                </Button>
 
-              <p className="text-sm text-gray flex justify-end">
-                Forgot password?{" "}
-                <Link href={ROUTES.AUTH.RESET_PASSWORD} className="text-blue">
-                  Reset password
-                </Link>
-              </p>
-            </div>
-          </section>
-        </form>
+                <p className="text-sm text-gray flex justify-end">
+                  Forgot password?
+                  <Link href={ROUTES.AUTH.RESET_PASSWORD} className="text-blue">
+                    {" "}
+                    Reset password
+                  </Link>
+                </p>
+              </div>
+            </section>
+          </form>
+        </section>
       )}
       {step === "otp" && <OTPVerification email={userEmail} />}
       <div className="flex gap-2 text-sm text-blue">

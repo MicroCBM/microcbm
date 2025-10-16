@@ -17,39 +17,35 @@ import {
   PopoverTrigger,
   StatusBadge,
   Text,
-  UserAvatar,
 } from "@/components";
-import { User } from "@/types";
-import { ViewUserModal } from "./ViewUserModal";
+import { Asset } from "@/types";
+import { ViewAssetModal } from "./ViewAssetModal";
 
-interface UserTableProps {
-  data: User[];
+interface AssetTableProps {
+  data: Asset[];
   className?: string;
 }
 
-export function UserTable({ data, className }: UserTableProps) {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+export function AssetTable({ data, className }: AssetTableProps) {
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  const handleViewUser = (user: User) => {
-    setSelectedUser(user);
+  const handleViewAsset = (asset: Asset) => {
+    setSelectedAsset(asset);
     setIsViewModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsViewModalOpen(false);
-    setSelectedUser(null);
+    setSelectedAsset(null);
   };
 
-  const columns: ColumnDef<User>[] = [
+  const columns: ColumnDef<Asset>[] = [
     {
       id: "name",
       header: "Name",
-      cell: ({ row }) => (
-        <UserAvatar
-          firstName={row.original.first_name}
-          lastName={row.original.last_name}
-        />
+      cell: ({ getValue }) => (
+        <span className="text-sm text-gray-900">{getValue() as string}</span>
       ),
       size: 200,
     },
@@ -92,13 +88,7 @@ export function UserTable({ data, className }: UserTableProps) {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ getValue }) => (
-        <StatusBadge
-          status={
-            getValue() as User["status"] as "Active" | "Inactive" | "Pending"
-          }
-        />
-      ),
+      cell: ({ getValue }) => <StatusBadge status={getValue() as string} />,
       size: 100,
     },
     {
@@ -123,7 +113,7 @@ export function UserTable({ data, className }: UserTableProps) {
               <div className="flex flex-col gap-1">
                 <button
                   className="flex items-center gap-2 px-3 py-2 rounded text-sm border-b border-gray-200 hover:bg-gray-100"
-                  onClick={() => handleViewUser(row.original)}
+                  onClick={() => handleViewAsset(row.original)}
                 >
                   View User
                 </button>
@@ -151,8 +141,8 @@ export function UserTable({ data, className }: UserTableProps) {
   });
 
   // Group data by created_at date
-  const groupedData = data.reduce((acc, user) => {
-    const createdDate = dayjs(user.created_at_datetime);
+  const groupedData = data.reduce((acc, asset) => {
+    const createdDate = dayjs(asset.created_at_datetime);
     const today = dayjs().startOf("day");
     const yesterday = today.subtract(1, "day");
 
@@ -169,9 +159,9 @@ export function UserTable({ data, className }: UserTableProps) {
     if (!acc[key]) {
       acc[key] = [];
     }
-    acc[key].push(user);
+    acc[key].push(asset);
     return acc;
-  }, {} as Record<string, User[]>);
+  }, {} as Record<string, Asset[]>);
 
   // Sort groups: TODAY, YESTERDAY, then dates in descending order
   const groupOrder = Object.keys(groupedData).sort((a, b) => {
@@ -260,8 +250,8 @@ export function UserTable({ data, className }: UserTableProps) {
         </table>
       </div>
 
-      <ViewUserModal
-        user={selectedUser}
+      <ViewAssetModal
+        asset={selectedAsset as Asset}
         isOpen={isViewModalOpen}
         onClose={handleCloseModal}
       />

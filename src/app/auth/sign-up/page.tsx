@@ -319,13 +319,13 @@ export default function SignUp() {
               />
 
               <div className="flex flex-col gap-[6px]">
-                <label className="text-sm">Industry</label>
                 <Controller
                   name="organization.industry"
                   control={control}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger
+                        label="Industry"
                         error={errors.organization?.industry?.message}
                       >
                         <SelectValue placeholder="Select an industry" />
@@ -348,13 +348,13 @@ export default function SignUp() {
               </div>
 
               <div className="flex flex-col gap-[6px]">
-                <label className="text-sm">Team Size</label>
                 <Controller
                   name="organization.team_strength"
                   control={control}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger
+                        label="Team Size"
                         error={errors.organization?.team_strength?.message}
                       >
                         <SelectValue placeholder="Select a team size" />

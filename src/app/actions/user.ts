@@ -70,3 +70,25 @@ export async function viewUserService(id: string): Promise<User> {
     throw error;
   }
 }
+
+export async function getUserByIdService(id: string): Promise<User> {
+  try {
+    const response = await requestWithAuth(`${commonEndpoint}/${id}`, {
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error response:", errorText);
+      throw new Error(
+        `Failed to get user by id: ${response.status} ${response.statusText} - ${errorText}`
+      );
+    }
+
+    const data = await response.json();
+    return data?.data;
+  } catch (error) {
+    console.error("Error getting user by id:", error);
+    throw error;
+  }
+}

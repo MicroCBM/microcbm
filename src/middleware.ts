@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ROUTES } from "./utils";
+import { isTokenExpired } from "./libs/jwt";
 
 const protectedRoutes = [ROUTES.HOME];
 const publicRoutes = [ROUTES.AUTH.LOGIN, ROUTES.AUTH.REGISTER];
@@ -17,8 +18,19 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL(ROUTES.AUTH.LOGIN, req.nextUrl));
   }
 
-  // If it's a public route and user has token, redirect to home
-  if (isPublicRoute && token) {
+  // If token exists, check if it's expired
+  if (token && isTokenExpired(token)) {
+    // Clear expired cookies and redirect to login
+    const response = NextResponse.redirect(
+      new URL(ROUTES.AUTH.LOGIN, req.nextUrl)
+    );
+    response.cookies.delete("token");
+    response.cookies.delete("userData");
+    return response;
+  }
+
+  // If it's a public route and user has valid token, redirect to home
+  if (isPublicRoute && token && !isTokenExpired(token)) {
     return NextResponse.redirect(new URL(ROUTES.HOME, req.nextUrl));
   }
 

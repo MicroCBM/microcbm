@@ -12,21 +12,21 @@ import {
   Text,
 } from "@/components";
 
-import { User } from "@/types";
+import { Asset } from "@/types";
 import dayjs from "dayjs";
 
-interface ViewUserModalProps {
-  user: User | null;
+interface ViewAssetModalProps {
+  asset: Asset | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const ViewUserModal = ({
-  user,
+export const ViewAssetModal = ({
+  asset,
   isOpen,
   onClose,
-}: ViewUserModalProps) => {
-  if (!user) return null;
+}: ViewAssetModalProps) => {
+  if (!asset) return null;
 
   const formatDate = (dateString: string) => {
     return dayjs(dateString).format("DD-MM-YYYY");
@@ -36,14 +36,14 @@ export const ViewUserModal = ({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="md:max-w-[540px]">
         <SheetHeader>
-          <SheetTitle>View User</SheetTitle>
+          <SheetTitle>View Asset</SheetTitle>
         </SheetHeader>
 
         <div className="p-6 flex flex-col gap-4">
           {/* Profile Section */}
           <div className="flex flex-col items-center space-y-4">
             <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center font-medium text-gray-600 text-xl">
-              {`${user.first_name[0]}${user.last_name[0]}`.toUpperCase()}
+              {`${asset.name[0]}`.toUpperCase()}
             </div>
           </div>
 

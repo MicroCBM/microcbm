@@ -2,6 +2,7 @@
 export * from "./auth";
 export * from "./user";
 export * from "./roles";
+export * from "./inventory";
 
 // Re-export types only
 export type { ApiResponse } from "./helpers";
