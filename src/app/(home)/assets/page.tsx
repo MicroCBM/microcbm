@@ -5,7 +5,6 @@ import { getAssetsService } from "@/app/actions";
 
 export default async function AssetsPage() {
   const assets = await getAssetsService();
-  console.log("assets", assets);
 
   return (
     <main className="flex flex-col gap-4">

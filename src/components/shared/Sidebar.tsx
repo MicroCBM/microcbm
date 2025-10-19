@@ -14,7 +14,13 @@ interface NavItem {
   isActive?: boolean;
 }
 
-export default function Sidebar({ user }: { user: SessionUser }) {
+export default function Sidebar({
+  user,
+}: // handleLogout,
+{
+  user: SessionUser;
+  // handleLogout: () => void;
+}) {
   const pathname = usePathname();
 
   const mainNavItems: NavItem[] = [
@@ -56,6 +62,11 @@ export default function Sidebar({ user }: { user: SessionUser }) {
       label: "Scheduling",
       icon: "solar:calendar-add-bold-duotone",
       href: "/scheduling",
+    },
+    {
+      label: "Organizations",
+      icon: "solar:buildings-2-bold-duotone",
+      href: "/organizations",
     },
     {
       label: "User Management",
@@ -200,7 +211,10 @@ export default function Sidebar({ user }: { user: SessionUser }) {
 
       {/* User Profile */}
       <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+        <div
+          className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+          // onClick={handleLogout}
+        >
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-semibold">
               {user ? user.email : "N/A"}
@@ -215,7 +229,7 @@ export default function Sidebar({ user }: { user: SessionUser }) {
             </p>
           </div>
           <Icon
-            icon="solar:external-link-bold-duotone"
+            icon="solar:logout-3-bold-duotone"
             className="w-4 h-4 text-gray-400"
           />
         </div>

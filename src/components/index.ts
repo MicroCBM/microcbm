@@ -22,3 +22,4 @@ export * from "./status-badge";
 export * from "./user-avatar";
 export * from "./country-select";
 export * from "./phone-input";
+export * from "./combo-select";

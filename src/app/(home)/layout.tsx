@@ -1,7 +1,9 @@
+"use server";
 import Navbar from "@/components/shared/Navbar";
 import Sidebar from "@/components/shared/Sidebar";
 import { cookies } from "next/headers";
 import { SessionUser } from "@/types";
+// import { logoutUserSession } from "@/libs/session";
 
 export default async function HomeLayout({
   children,

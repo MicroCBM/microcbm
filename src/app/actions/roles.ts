@@ -1,10 +1,11 @@
 "use server";
 
 import { requestWithAuth } from "./helpers";
+import { Role } from "@/types";
 
 const commonEndpoint = "/api/v1/";
 
-export async function getRolesService(): Promise<unknown> {
+export async function getRolesService(): Promise<Role[]> {
   try {
     const response = await requestWithAuth(`${commonEndpoint}/roles`, {
       method: "GET",

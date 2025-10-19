@@ -12,7 +12,7 @@ export const ADD_ASSET_SCHEMA = z.object({
   is_modified: z.boolean().optional(),
   model_number: z.string().min(1, "Model number is required"),
   serial_number: z.string().min(1, "Serial number is required"),
-  critical_level: z.string().min(1, "Critical level is required"),
+  criticality_level: z.string().min(1, "Critical level is required"),
   operating_hours: z.string().min(1, "Operating hours is required"),
   commissioned_date: z.string().min(1, "Commissioned date is required"),
   status: z.string().min(1, "Status is required"),

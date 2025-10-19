@@ -30,7 +30,6 @@ export async function requestWithAuth(
   const requestInit: RequestInit = { ...init, headers };
   const url = `${process.env.NEXT_PUBLIC_API_URL}${input}`;
 
-  console.log("Request URL:", url);
   console.log("Has Authorization header:", headers.has("Authorization"));
 
   return fetch(url, requestInit);

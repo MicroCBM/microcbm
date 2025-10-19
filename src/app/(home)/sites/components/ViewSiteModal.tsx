@@ -2,104 +2,71 @@
 
 import React from "react";
 import {
-  Button,
   Sheet,
   SheetContent,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
-  StatusBadge,
   Text,
 } from "@/components";
 
-import { User } from "@/types";
-import dayjs from "dayjs";
+import { Sites } from "@/types";
 
-interface ViewUserModalProps {
-  user: User | null;
+interface ViewSiteModalProps {
+  site: Sites | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const ViewUserModal = ({
-  user,
+export const ViewSiteModal = ({
+  site,
   isOpen,
   onClose,
-}: ViewUserModalProps) => {
-  if (!user) return null;
-
-  const formatDate = (dateString: string) => {
-    return dayjs(dateString).format("DD-MM-YYYY");
-  };
+}: ViewSiteModalProps) => {
+  if (!site) return null;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="md:max-w-[540px]">
         <SheetHeader>
-          <SheetTitle>View User</SheetTitle>
+          <SheetTitle>View Site</SheetTitle>
         </SheetHeader>
 
         <div className="p-6 flex flex-col gap-4">
-          {/* Profile Section */}
-          <div className="flex flex-col items-center space-y-4">
-            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center font-medium text-gray-600 text-xl">
-              {`${user.first_name[0]}${user.last_name[0]}`.toUpperCase()}
-            </div>
-          </div>
-
-          {/* User Details */}
+          {/* Site Details */}
           <div className="p-4 border border-gray-100">
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
               <Text variant="span" className="text-gray-600 font-medium">
-                First name:
+                Site Name:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {user.first_name}
+                {site.name}
               </Text>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
               <Text variant="span" className="text-gray-600 font-medium">
-                Last name:
+                Site Tag:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {user.last_name}
+                {site.tag}
               </Text>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
               <Text variant="span" className="text-gray-600 font-medium">
-                Date of birth:
+                Description:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {formatDate(user.date_of_birth) || "N/A"}
+                {site.description}
               </Text>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
               <Text variant="span" className="text-gray-600 font-medium">
-                Email address:
+                Installation Environment:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {user.email}
-              </Text>
-            </div>
-
-            <div className="flex justify-between items-center py-2 border-b border-gray-200">
-              <Text variant="span" className="text-gray-600 font-medium">
-                Phone number:
-              </Text>
-              <Text variant="span" className="text-gray-900">
-                {user.phone || "N/A"}
-              </Text>
-            </div>
-
-            <div className="flex justify-between items-center py-2 border-b border-gray-200">
-              <Text variant="span" className="text-gray-600 font-medium">
-                Role:
-              </Text>
-              <Text variant="span" className="text-gray-900">
-                {user.role}
+                {site.installation_environment || "N/A"}
               </Text>
             </div>
 
@@ -108,74 +75,74 @@ export const ViewUserModal = ({
                 Country:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {user.country || "N/A"}
+                {site.country}
               </Text>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
               <Text variant="span" className="text-gray-600 font-medium">
-                Site:
+                City:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {user.site?.name || "N/A"}
+                {site.city}
               </Text>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
               <Text variant="span" className="text-gray-600 font-medium">
-                Date added:
+                Address:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {formatDate(user.created_at_datetime)}
+                {site.address}
               </Text>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-200">
               <Text variant="span" className="text-gray-600 font-medium">
-                Status:
-              </Text>
-
-              <StatusBadge
-                status={
-                  (user.status.charAt(0).toUpperCase() +
-                    user.status.slice(1).toLowerCase()) as
-                    | "Active"
-                    | "Inactive"
-                    | "Pending"
-                }
-              />
-            </div>
-
-            <div className="flex justify-between items-center py-2 border-b border-gray-200">
-              <Text variant="span" className="text-gray-600 font-medium">
-                Organization:
+                Regulations and Standards:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {user.organization.name || "N/A"}
+                {site.regulations_and_standards.join(", ")}
               </Text>
             </div>
 
             <div className="flex justify-between items-center pt-2">
               <Text variant="span" className="text-gray-600 font-medium">
-                Deactivate:
+                Site Manager:
               </Text>
-              <div className="flex items-center">
-                <div className="relative inline-block w-10 h-6 bg-gray-300 rounded-full transition-colors">
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    defaultChecked={user.status === "Inactive"}
-                  />
-                  <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform"></div>
-                </div>
-              </div>
+              <Text variant="span" className="text-gray-900">
+                {site.manager_name}
+              </Text>
+            </div>
+
+            <div className="flex justify-between items-center pt-2">
+              <Text variant="span" className="text-gray-600 font-medium">
+                Site Manager Email:
+              </Text>
+              <Text variant="span" className="text-gray-900">
+                {site.manager_email}
+              </Text>
+            </div>
+
+            <div className="flex justify-between items-center pt-2">
+              <Text variant="span" className="text-gray-600 font-medium">
+                Site Manager Phone Number:
+              </Text>
+              <Text variant="span" className="text-gray-900">
+                {site.manager_phone_number}
+              </Text>
+            </div>
+
+            <div className="flex justify-between items-center pt-2">
+              <Text variant="span" className="text-gray-600 font-medium">
+                Site Manager Location:
+              </Text>
+              <Text variant="span" className="text-gray-900">
+                {site.manager_location}
+              </Text>
             </div>
           </div>
         </div>
-
-        <SheetFooter>
-          <Button variant="outline">Edit {user.role}</Button>
-        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

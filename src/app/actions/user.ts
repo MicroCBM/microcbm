@@ -1,6 +1,6 @@
 "use server";
 
-import { AddUserPayload, User } from "@/types";
+import { AddUserPayload, EditUserPayload, User } from "@/types";
 import { ApiResponse, handleApiRequest, requestWithAuth } from "./helpers";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -49,6 +49,13 @@ export async function addUserService(
   return handleApiRequest(`${commonEndpoint}`, payload, "POST");
 }
 
+export async function editUserService(
+  id: string,
+  payload: EditUserPayload
+): Promise<ApiResponse> {
+  return handleApiRequest(`${commonEndpoint}/${id}`, payload, "PUT");
+}
+
 export async function viewUserService(id: string): Promise<User> {
   try {
     const response = await requestWithAuth(`${commonEndpoint}/${id}`, {
@@ -91,4 +98,12 @@ export async function getUserByIdService(id: string): Promise<User> {
     console.error("Error getting user by id:", error);
     throw error;
   }
+}
+
+export async function activateUserService(id: string): Promise<ApiResponse> {
+  return handleApiRequest(`${commonEndpoint}/${id}/activate`, {}, "PUT");
+}
+
+export async function deleteUserService(id: string): Promise<ApiResponse> {
+  return handleApiRequest(`${commonEndpoint}/${id}`, {}, "DELETE");
 }

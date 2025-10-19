@@ -7,7 +7,7 @@ import {
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
-import dayjs from "dayjs";
+
 import { Icon } from "@/libs";
 import { cn } from "@/libs";
 import {
@@ -15,84 +15,126 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  StatusBadge,
   Text,
 } from "@/components";
-import { Asset } from "@/types";
-import { ViewAssetModal } from "./ViewAssetModal";
+import { Organization, Sites } from "@/types";
+import { ViewSiteModal } from "./ViewSiteModal";
+import dayjs from "dayjs";
+import { EditSite } from "./EditSite";
+import { deleteSiteService } from "@/app/actions";
+import { toast } from "sonner";
 
-interface AssetTableProps {
-  data: Asset[];
+interface SiteTableProps {
+  sites: Sites[];
   className?: string;
+  organizations: Organization[];
 }
 
-export function AssetTable({ data, className }: AssetTableProps) {
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+export function SiteTable({ sites, className, organizations }: SiteTableProps) {
+  const [selectedSite, setSelectedSite] = useState<Sites | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-
-  const handleViewAsset = (asset: Asset) => {
-    setSelectedAsset(asset);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const handleViewSite = (site: Sites) => {
+    setSelectedSite(site);
     setIsViewModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsViewModalOpen(false);
-    setSelectedAsset(null);
+    setSelectedSite(null);
   };
 
-  const columns: ColumnDef<Asset>[] = [
+  const handleEditSite = (site: Sites) => {
+    setSelectedSite(site);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteSite = async (id: string) => {
+    try {
+      const result = await deleteSiteService(id);
+      if (result.success) {
+        toast.success("Site deleted successfully!");
+        // Optionally refresh the page or update the sites data
+        window.location.reload();
+      } else {
+        toast.error(result.message || "Failed to delete site");
+      }
+    } catch (error) {
+      console.error("Error deleting site:", error);
+      toast.error("An error occurred while deleting the site");
+    }
+  };
+
+  const columns: ColumnDef<Sites>[] = [
     {
-      id: "name",
+      accessorKey: "name",
       header: "Name",
-      cell: ({ getValue }) => (
-        <span className="text-sm text-gray-900">{getValue() as string}</span>
-      ),
+      cell: ({ getValue }) => {
+        return (
+          <span className="text-sm text-gray-900">{getValue() as string}</span>
+        );
+      },
       size: 200,
     },
     {
-      accessorKey: "role",
-      header: "Role",
+      accessorKey: "tag",
+      header: "Site Tag",
       cell: ({ getValue }) => (
         <span className="text-sm text-gray-900">{getValue() as string}</span>
       ),
-      size: 120,
-    },
-    {
-      accessorKey: "site",
-      header: "Site Assigned",
-      cell: ({ getValue }) => (
-        <span className="text-sm text-gray-900">
-          {(getValue() as string) || "N/A"}
-        </span>
-      ),
-      size: 250,
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-      cell: ({ getValue }) => (
-        <span className="text-sm text-gray-900">{getValue() as string}</span>
-      ),
-      size: 200,
-    },
-    {
-      accessorKey: "country",
-      header: "Country",
-      cell: ({ getValue }) => (
-        <span className="text-sm text-gray-900">
-          {(getValue() as string) || "N/A"}
-        </span>
-      ),
-      size: 120,
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ getValue }) => <StatusBadge status={getValue() as string} />,
       size: 100,
     },
     {
-      id: "actions",
+      accessorKey: "installation_environment",
+      header: "Installation Environment",
+      cell: ({ getValue }) => (
+        <span className="text-sm text-gray-900">
+          {(getValue() as string) || "N/A"}
+        </span>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "regulations_and_standards",
+      header: "Regulations and Standards",
+      cell: ({ getValue }) => {
+        const regulations = getValue() as string[];
+        return (
+          <span className="text-sm text-gray-900">
+            {regulations && regulations.length > 0
+              ? regulations.join(", ")
+              : "N/A"}
+          </span>
+        );
+      },
+      size: 100,
+    },
+    {
+      accessorKey: "manager_name",
+      header: "Manager Name",
+      cell: ({ getValue }) => (
+        <span className="text-sm text-gray-900">{getValue() as string}</span>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "manager_email",
+      header: "Manager Email",
+      cell: ({ getValue }) => (
+        <span className="text-sm text-gray-900">{getValue() as string}</span>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "manager_phone_number",
+      header: "Manager Phone Number",
+      cell: ({ getValue }) => (
+        <span className="text-sm text-gray-900">{getValue() as string}</span>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => (
         <div className="flex justify-center">
@@ -113,18 +155,21 @@ export function AssetTable({ data, className }: AssetTableProps) {
               <div className="flex flex-col gap-1">
                 <button
                   className="flex items-center gap-2 px-3 py-2 rounded text-sm border-b border-gray-200 hover:bg-gray-100"
-                  onClick={() => handleViewAsset(row.original)}
+                  onClick={() => handleViewSite(row.original)}
                 >
-                  View User
+                  View Site
                 </button>
-                <button className="flex items-center gap-2 px-3 py-2  rounded text-sm border-b border-gray-200 hover:bg-gray-100">
-                  Approve User
+                <button
+                  onClick={() => handleEditSite(row.original)}
+                  className="flex items-center gap-2 px-3 py-2  rounded text-sm border-b border-gray-200 hover:bg-gray-100"
+                >
+                  Edit Site
                 </button>
-                <button className="flex items-center gap-2 px-3 py-2  rounded text-sm border-b border-gray-200 hover:bg-gray-100">
-                  Edit User
-                </button>
-                <button className="flex items-center gap-2 px-3 py-2 hover:bg-red-50 text-red-600 rounded text-sm">
-                  Delete User
+                <button
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-red-50 text-red-600 rounded text-sm"
+                  onClick={() => handleDeleteSite(row.original.id)}
+                >
+                  Delete Site
                 </button>
               </div>
             </PopoverContent>
@@ -135,27 +180,26 @@ export function AssetTable({ data, className }: AssetTableProps) {
     },
   ];
   const table = useReactTable({
-    data,
+    data: sites,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
   // If no sites data, show empty state
-  if (!data || data.length === 0) {
+  if (!sites || sites.length === 0) {
     return (
       <div className={cn("border border-gray-200 overflow-hidden", className)}>
         <div className="p-8 text-center">
           <p className="text-gray-500">
-            No assets found. Create your first asset to get started.
+            No sites found. Create your first site to get started.
           </p>
         </div>
       </div>
     );
   }
 
-  // Group data by created_at date
-  const groupedData = data.reduce((acc, asset) => {
-    const createdDate = dayjs(asset.created_at_datetime);
+  const groupedData = sites.reduce((acc, site) => {
+    const createdDate = dayjs(site.created_at_datetime);
     const today = dayjs().startOf("day");
     const yesterday = today.subtract(1, "day");
 
@@ -172,9 +216,9 @@ export function AssetTable({ data, className }: AssetTableProps) {
     if (!acc[key]) {
       acc[key] = [];
     }
-    acc[key].push(asset);
+    acc[key].push(site);
     return acc;
-  }, {} as Record<string, Asset[]>);
+  }, {} as Record<string, Sites[]>);
 
   // Sort groups: TODAY, YESTERDAY, then dates in descending order
   const groupOrder = Object.keys(groupedData).sort((a, b) => {
@@ -263,10 +307,17 @@ export function AssetTable({ data, className }: AssetTableProps) {
         </table>
       </div>
 
-      <ViewAssetModal
-        asset={selectedAsset as Asset}
+      <ViewSiteModal
+        site={selectedSite}
         isOpen={isViewModalOpen}
         onClose={handleCloseModal}
+      />
+
+      <EditSite
+        site={selectedSite}
+        isOpen={isEditModalOpen}
+        onClose={handleCloseModal}
+        organizations={organizations}
       />
     </div>
   );

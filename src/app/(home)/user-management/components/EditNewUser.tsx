@@ -1,7 +1,8 @@
 "use client";
-import { addUserService } from "@/app/actions";
+import { editUserService } from "@/app/actions";
 import {
   Button,
+  Label,
   PhoneInput,
   Select,
   SelectContent,
@@ -13,100 +14,106 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components";
 import CountrySelect from "@/components/country-select/CountrySelect";
 import Input from "@/components/input/Input";
-import { Icon } from "@/libs";
-import { ADD_USER_SCHEMA } from "@/schema";
-import { AddUserPayload, Sites, Role, Organization } from "@/types";
+import { EDIT_USER_SCHEMA } from "@/schema";
+import { EditUserPayload, Organization, Role, Sites, User } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import * as RPNInput from "react-phone-number-input";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import dayjs from "dayjs";
 
-export const AddNewUser = ({
+export const EditNewUser = ({
+  sites,
+  user,
+  isOpen,
+  onClose,
   rolesData,
   organizations,
-  sites,
 }: {
+  sites: Sites[];
+  user: User | null;
+  isOpen: boolean;
+  onClose: () => void;
   rolesData: Role[];
   organizations: Organization[];
-  sites: Sites[];
 }) => {
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
     register,
     control,
-  } = useForm<z.infer<typeof ADD_USER_SCHEMA>>({
-    resolver: zodResolver(ADD_USER_SCHEMA),
+    reset,
+  } = useForm<EditUserPayload>({
+    resolver: zodResolver(EDIT_USER_SCHEMA),
     mode: "onSubmit",
-    defaultValues: {
-      user: {
-        status: "active",
-      },
-    },
   });
 
-  console.log("errors", errors);
-
-  const onSubmit = async (data: z.infer<typeof ADD_USER_SCHEMA>) => {
-    console.log("submit data", data);
-    const { user, password } = data;
-    const roleId = rolesData.find((role) => role.name === user.role)?.id;
-
-    const organizationId = organizations.find(
-      (organization) => organization.id === user.organization.id
-    )?.id;
-    const siteId = sites.find((site) => site.id === user.site.id)?.id;
-
-    const payload = {
-      password,
+  React.useEffect(() => {
+    if (!user) return;
+    reset({
       user: {
-        ...user,
-        role_id: roleId as string,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        phone: user.phone,
+        country: user.country,
+        date_of_birth: dayjs(user.date_of_birth).format("YYYY-MM-DD"),
+        role_id: user.role_id || "",
         organization: {
-          id: organizationId as string,
+          id: user.organization.id,
         },
         site: {
-          id: siteId as string,
+          id: user.site?.id,
         },
+      },
+      password: user.password_hash,
+    });
+  }, [user, reset]);
+
+  const onSubmit = async (data: EditUserPayload) => {
+    const roleId = rolesData.find((role) => role.name === data.user.role)?.id;
+
+    const payload = {
+      ...data,
+      user: {
+        ...data.user,
+        role_id: roleId as string,
       },
     };
 
-    const response = await addUserService(payload);
-
-    if (response.success) {
-      toast.success("User added successfully", {
-        description: `${response.data?.message}`,
-      });
-    } else {
-      toast.error(
-        response.message || "User addition failed. Please try again."
-      );
+    try {
+      const result = await editUserService(user?.id as string, payload);
+      if (result.success) {
+        toast.success("User updated successfully!");
+        onClose();
+      } else {
+        toast.error(result.message || "Failed to update user");
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
+      toast.error("An error occurred while updating the user");
     }
   };
 
+  if (!user) return null;
+
   return (
     <>
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button size="medium" className="rounded-full">
-            <Icon icon="mdi:plus-circle" className="text-white size-5" />
-            Add New User
-          </Button>
-        </SheetTrigger>
+      <Sheet open={isOpen} onOpenChange={onClose}>
         <SheetContent className="!max-w-[540px]">
           <SheetHeader>
-            <SheetTitle>Add User</SheetTitle>
+            <SheetTitle>Edit User</SheetTitle>
           </SheetHeader>
           <form
             id="add-user-form"
             onSubmit={handleSubmit(onSubmit)}
-            className="p-6 grid grid-cols-2 gap-4"
+            className="p-6 grid grid-cols-2 gap-4 overflow-y-auto max-h-[80vh]"
           >
             <Input
               label="First Name"
@@ -153,29 +160,29 @@ export const AddNewUser = ({
               error={errors.user?.date_of_birth}
             />
 
-            <Controller
-              control={control}
-              name="user.phone"
-              render={({ field }) => (
-                <PhoneInput
-                  className="col-span-full"
-                  defaultCountry="GH"
-                  placeholder="(123) 456-7890"
-                  value={field.value as RPNInput.Value}
-                  onChange={field.onChange}
-                  error={errors.user?.phone?.message}
-                />
-              )}
-            />
+            <div className="flex flex-col gap-[6px] col-span-full">
+              <Label className="font-normal">Phone</Label>
+              <Controller
+                control={control}
+                name="user.phone"
+                render={({ field }) => (
+                  <PhoneInput
+                    defaultCountry="GH"
+                    placeholder="(123) 456-7890"
+                    value={field.value as RPNInput.Value}
+                    onChange={field.onChange}
+                    error={errors.user?.phone?.message}
+                  />
+                )}
+              />
+            </div>
+
             <Controller
               name="user.site.id"
               control={control}
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger
-                    className="col-span-full"
-                    label="Site Assigned"
-                  >
+                  <SelectTrigger className="col-span-full" label="Site">
                     <SelectValue placeholder="Select a site" />
                   </SelectTrigger>
                   <SelectContent>
@@ -236,21 +243,12 @@ export const AddNewUser = ({
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
                   </SelectContent>
                 </Select>
               )}
-            />
-
-            <Input
-              label="Password"
-              className="col-span-full"
-              type="password"
-              placeholder="Password"
-              {...register("password")}
-              error={errors.password}
             />
           </form>
           <SheetFooter>
@@ -258,7 +256,7 @@ export const AddNewUser = ({
               Discard
             </Button>
             <Button type="submit" form="add-user-form" loading={isSubmitting}>
-              Add User
+              Update User
             </Button>
           </SheetFooter>
         </SheetContent>
