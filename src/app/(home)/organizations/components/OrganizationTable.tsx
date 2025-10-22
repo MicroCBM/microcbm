@@ -15,144 +15,149 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  StatusBadge,
   Text,
 } from "@/components";
-import { Asset } from "@/types";
-import { ViewAssetModal, DeleteAssetModal } from "./";
+import { Organization } from "@/types";
+import { ViewOrganizationModal } from "./ViewOrganizationModal";
+import { DeleteOrganizationModal } from "./DeleteOrganizationModal";
 import { useRouter } from "next/navigation";
-import { deleteAssetService } from "@/app/actions";
+import { deleteOrganizationService } from "@/app/actions";
 import { toast } from "sonner";
-interface AssetTableProps {
-  data: Asset[];
+import { EditOrganizationModal } from "./EditOrganizationModal";
+
+interface OrganizationTableProps {
+  data: Organization[];
   className?: string;
-  onAssetDeleted?: () => void;
 }
 
-export function AssetTable({
-  data,
-  className,
-  onAssetDeleted,
-}: AssetTableProps) {
+export function OrganizationTable({ data, className }: OrganizationTableProps) {
   const router = useRouter();
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [selectedOrganization, setSelectedOrganization] =
+    useState<Organization | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const handleViewAsset = (asset: Asset) => {
-    setSelectedAsset(asset);
+
+  const handleViewOrganization = (organization: Organization) => {
+    setSelectedOrganization(organization);
     setIsViewModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsViewModalOpen(false);
-    setSelectedAsset(null);
+    setSelectedOrganization(null);
   };
 
-  const handleEditAsset = (asset: Asset) => {
-    setSelectedAsset(asset);
-    router.push(`/assets/edit/${asset.id}`);
+  const handleEditOrganization = (organization: Organization) => {
+    setSelectedOrganization(organization);
+    setIsEditModalOpen(true);
   };
 
-  const handleDeleteAsset = (asset: Asset) => {
-    setSelectedAsset(asset);
+  const handleDeleteOrganization = (organization: Organization) => {
+    setSelectedOrganization(organization);
     setIsDeleteModalOpen(true);
   };
 
   const handleCloseDeleteModal = () => {
     setIsDeleteModalOpen(false);
-    setSelectedAsset(null);
+    setSelectedOrganization(null);
   };
 
-  const handleConfirmDelete = async (assetId: string) => {
+  const handleConfirmDelete = async (organizationId: string) => {
     setIsDeleting(true);
     try {
-      const response = await deleteAssetService(assetId);
+      const response = await deleteOrganizationService(organizationId);
       if (response.success) {
-        toast.success("Asset deleted successfully", {
-          description: "The asset has been permanently removed.",
+        toast.success("Organization deleted successfully", {
+          description: "The organization has been permanently removed.",
         });
-        onAssetDeleted?.();
         handleCloseDeleteModal();
+        // Refresh the page to show updated data
+        window.location.reload();
       } else {
         toast.error(
-          response.message || "Failed to delete asset. Please try again."
+          response.message || "Failed to delete organization. Please try again."
         );
       }
     } catch (error) {
       toast.error(
-        (error as Error).message || "Failed to delete asset. Please try again."
+        (error as Error).message ||
+          "Failed to delete organization. Please try again."
       );
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const columns: ColumnDef<Asset>[] = [
+  const columns: ColumnDef<Organization>[] = [
     {
       id: "name",
-      header: "Asset Name",
+      header: "Organization Name",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-900">{row.original.name}</span>
-      ),
-      size: 200,
-    },
-    {
-      accessorKey: "parent_site.name",
-      header: "Parent Site",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
-          {row.original.parent_site.name}
-        </span>
-      ),
-      size: 120,
-    },
-    {
-      accessorKey: "type",
-      header: "Asset Type",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900 capitalize">
-          {row.original.type}
-        </span>
+        <div className="flex items-center gap-3">
+          {/* {row.original.logo_url && (
+            <img
+              src={row.original.logo_url}
+              alt={row.original.name}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          )} */}
+          <span className="text-sm text-gray-900">{row.original.name}</span>
+        </div>
       ),
       size: 250,
     },
     {
-      accessorKey: "tag",
-      header: "Asset Tag",
+      accessorKey: "industry",
+      header: "Industry",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-900">{row.original.tag}</span>
+        <span className="text-sm text-gray-900 capitalize">
+          {row.original.industry}
+        </span>
       ),
-      size: 200,
+      size: 150,
     },
     {
-      accessorKey: "assignee.first_name",
-      header: "Assignee",
+      accessorKey: "team_strength",
+      header: "Team Size",
       cell: ({ row }) => (
         <span className="text-sm text-gray-900">
-          {row.original.assignee.first_name} {row.original.assignee.last_name}
+          {row.original.team_strength}
         </span>
       ),
       size: 120,
     },
     {
-      accessorKey: "criticality_level",
-      header: "Severity Level",
+      accessorKey: "description",
+      header: "Description",
       cell: ({ row }) => (
-        <StatusBadge
-          status={
-            (row.original.criticality_level.charAt(0).toUpperCase() +
-              row.original.criticality_level.slice(1).toLowerCase()) as
-              | "Active"
-              | "Inactive"
-              | "Pending"
-              | "Low"
-              | "Medium"
-              | "High"
-          }
-        />
+        <span className="text-sm text-gray-900 truncate max-w-[200px] block">
+          {row.original.description || "-"}
+        </span>
       ),
-      size: 100,
+      size: 200,
+    },
+    {
+      accessorKey: "owner",
+      header: "Owner Name",
+      cell: ({ row }) => (
+        <span className="text-sm text-gray-900 truncate max-w-xs">
+          {row.original.owner?.first_name || "-"}{" "}
+          {row.original.owner?.last_name || "-"}
+        </span>
+      ),
+      size: 300,
+    },
+    {
+      accessorKey: "sites",
+      header: "Number of Sites",
+      cell: ({ row }) => (
+        <span className="text-sm text-gray-900 truncate max-w-xs">
+          {row.original.sites?.length || 0}
+        </span>
+      ),
+      size: 300,
     },
     {
       id: "actions",
@@ -176,21 +181,21 @@ export function AssetTable({
               <div className="flex flex-col gap-1">
                 <button
                   className="flex items-center gap-2 px-3 py-2 rounded text-sm border-b border-gray-200 hover:bg-gray-100"
-                  onClick={() => handleViewAsset(row.original)}
+                  onClick={() => handleViewOrganization(row.original)}
                 >
-                  View Asset
+                  View Organization
                 </button>
                 <button
-                  onClick={() => handleEditAsset(row.original)}
+                  onClick={() => handleEditOrganization(row.original)}
                   className="flex items-center gap-2 px-3 py-2  rounded text-sm border-b border-gray-200 hover:bg-gray-100"
                 >
-                  Edit Asset
+                  Edit Organization
                 </button>
                 <button
                   className="flex items-center gap-2 px-3 py-2 hover:bg-red-50 text-red-600 rounded text-sm"
-                  onClick={() => handleDeleteAsset(row.original)}
+                  onClick={() => handleDeleteOrganization(row.original)}
                 >
-                  Delete Asset
+                  Delete Organization
                 </button>
               </div>
             </PopoverContent>
@@ -200,19 +205,21 @@ export function AssetTable({
       size: 80,
     },
   ];
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
-  // If no sites data, show empty state
+  // If no organizations data, show empty state
   if (!data || data.length === 0) {
     return (
       <div className={cn("border border-gray-200 overflow-hidden", className)}>
         <div className="p-8 text-center">
           <p className="text-gray-500">
-            No assets found. Create your first asset to get started.
+            No organizations found. Create your first organization to get
+            started.
           </p>
         </div>
       </div>
@@ -220,8 +227,8 @@ export function AssetTable({
   }
 
   // Group data by created_at date
-  const groupedData = data.reduce((acc, asset) => {
-    const createdDate = dayjs(asset.created_at_datetime);
+  const groupedData = data.reduce((acc, organization) => {
+    const createdDate = dayjs(organization.created_at_datetime);
     const today = dayjs().startOf("day");
     const yesterday = today.subtract(1, "day");
 
@@ -238,9 +245,9 @@ export function AssetTable({
     if (!acc[key]) {
       acc[key] = [];
     }
-    acc[key].push(asset);
+    acc[key].push(organization);
     return acc;
-  }, {} as Record<string, Asset[]>);
+  }, {} as Record<string, Organization[]>);
 
   // Sort groups: TODAY, YESTERDAY, then dates in descending order
   const groupOrder = Object.keys(groupedData).sort((a, b) => {
@@ -296,15 +303,15 @@ export function AssetTable({
                   </tr>
 
                   {/* Group Data Rows */}
-                  {groupData.map((user) => {
+                  {groupData.map((organization) => {
                     const row = table
                       .getRowModel()
-                      .rows.find((r) => r.original.id === user.id);
+                      .rows.find((r) => r.original.id === organization.id);
                     if (!row) return null;
 
                     return (
                       <tr
-                        key={user.id}
+                        key={organization.id}
                         className="border-t border-gray-200 hover:bg-gray-50 transition-colors"
                       >
                         {row.getVisibleCells().map((cell) => (
@@ -329,18 +336,25 @@ export function AssetTable({
         </table>
       </div>
 
-      <ViewAssetModal
-        asset={selectedAsset as Asset}
+      <ViewOrganizationModal
+        organization={selectedOrganization as Organization}
         isOpen={isViewModalOpen}
         onClose={handleCloseModal}
       />
 
-      <DeleteAssetModal
-        asset={selectedAsset}
+      <DeleteOrganizationModal
+        organization={selectedOrganization}
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
         isDeleting={isDeleting}
+      />
+
+      <EditOrganizationModal
+        organization={selectedOrganization as Organization}
+        organizationId={selectedOrganization?.id || ""}
+        isEditModalOpen={isEditModalOpen}
+        setIsEditModalOpen={setIsEditModalOpen}
       />
     </div>
   );

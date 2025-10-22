@@ -1,6 +1,6 @@
 "use server";
 import {
-  getAllOrganizationsService,
+  getOrganizationsService,
   getRolesService,
   getSitesService,
   getUsersService,
@@ -12,7 +12,7 @@ export default async function UserManagementPage() {
   const users = await getUsersService();
   const roles = await getRolesService();
   const sites = await getSitesService();
-  const organizations = await getAllOrganizationsService();
+  const organizations = await getOrganizationsService();
 
   return (
     <main className="flex flex-col gap-4">

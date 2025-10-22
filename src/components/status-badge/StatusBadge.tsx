@@ -1,7 +1,7 @@
 import { cn } from "@/libs";
 
 export interface StatusBadgeProps {
-  status: "Active" | "Inactive" | "Pending";
+  status: "Active" | "Inactive" | "Pending" | "Low" | "Medium" | "High";
   className?: string;
 }
 
@@ -10,6 +10,9 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     Active: "border border-green-100 bg-green-200 text-green-100",
     Inactive: "border border-red bg-red-100 text-red",
     Pending: "border border-orange bg-orange-100 text-orange",
+    Low: "border border-green-100 bg-green-200 text-green-100",
+    Medium: "border border-orange bg-orange-100 text-orange",
+    High: "border border-red bg-red-100 text-red",
   };
 
   return (

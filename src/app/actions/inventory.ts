@@ -25,6 +25,17 @@ async function addAssetService(payload: AddAssetPayload): Promise<ApiResponse> {
   return handleApiRequest(`${commonEndpoint}assets`, payload, "POST");
 }
 
+async function editAssetService(
+  id: string,
+  payload: AddAssetPayload
+): Promise<ApiResponse> {
+  return handleApiRequest(`${commonEndpoint}assets/${id}`, payload, "PUT");
+}
+
+async function deleteAssetService(id: string): Promise<ApiResponse> {
+  return handleApiRequest(`${commonEndpoint}assets/${id}`, {}, "DELETE");
+}
+
 async function addSiteService(payload: AddSitesPayload): Promise<ApiResponse> {
   return handleApiRequest(`${commonEndpoint}sites`, payload, "POST");
 }
@@ -63,6 +74,21 @@ async function getSitesService(): Promise<Sites[]> {
   }
 }
 
+async function getAssetService(id: string): Promise<Asset> {
+  try {
+    const response = await requestWithAuth(`${commonEndpoint}assets/${id}`, {
+      method: "GET",
+    });
+
+    const data = await response.json();
+
+    return data?.data;
+  } catch (error) {
+    console.error("Error fetching asset by id:", error);
+    throw error;
+  }
+}
+
 export {
   getAssetsService,
   addAssetService,
@@ -70,4 +96,7 @@ export {
   addSiteService,
   editSiteService,
   deleteSiteService,
+  getAssetService,
+  editAssetService,
+  deleteAssetService,
 };

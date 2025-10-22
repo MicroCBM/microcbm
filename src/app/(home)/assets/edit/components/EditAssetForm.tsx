@@ -20,18 +20,23 @@ import Input from "@/components/input/Input";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addAssetService } from "@/app/actions";
 import { Icon } from "@/libs";
-import { Sites, User } from "@/types";
+import { Asset, Sites, User } from "@/types";
+import { editAssetService } from "@/app/actions";
+import dayjs from "dayjs";
 
 type FormData = z.infer<typeof ADD_ASSET_SCHEMA>;
 
-export const AddAssetForm = ({
+export const EditAssetForm = ({
   sites,
   users,
+  assetId,
+  asset,
 }: {
   sites: Sites[];
   users: User[];
+  assetId?: string;
+  asset?: Asset;
 }) => {
   const router = useRouter();
 
@@ -40,27 +45,78 @@ export const AddAssetForm = ({
     control,
     formState: { errors, isSubmitting },
     register,
+    reset,
   } = useForm<FormData>({
     resolver: zodResolver(ADD_ASSET_SCHEMA),
     mode: "onSubmit",
   });
 
+  React.useEffect(() => {
+    if (asset && assetId) {
+      reset({
+        name: asset?.name || "",
+        tag: asset?.tag || "",
+        parent_site: { id: asset?.parent_site?.id || "" },
+        type: asset?.type || "",
+        equipment_class: asset?.equipment_class || "",
+        manufacturer: asset?.manufacturer || "",
+        is_modified: asset?.is_modified,
+        model_number: asset?.model_number || "",
+        serial_number: asset?.serial_number || "",
+        criticality_level: asset?.criticality_level || "",
+        operating_hours: asset?.operating_hours || "",
+        commissioned_date:
+          dayjs(asset?.commissioned_date).format("YYYY-MM-DD") || "",
+        status: asset?.status || "",
+        maintenance_strategy: asset?.maintenance_strategy || "",
+        last_performed_maintenance:
+          dayjs(asset?.last_performed_maintenance).format("YYYY-MM-DD") || "",
+        major_overhaul: dayjs(asset?.major_overhaul).format("YYYY-MM-DD") || "",
+        last_date_overhaul:
+          dayjs(asset?.last_date_overhaul).format("YYYY-MM-DD") || "",
+        assignee: { id: asset?.assignee?.id || "" },
+        power_rating: asset?.power_rating || "",
+        speed: asset?.speed || "",
+        capacity: asset?.capacity || "",
+        datasheet: asset?.datasheet
+          ? {
+              file_url: asset.datasheet.file_url || "",
+              file_name: asset.datasheet.file_name || "",
+              uploaded_at: asset.datasheet.uploaded_at || "",
+            }
+          : undefined,
+      });
+    }
+  }, [asset, assetId]);
+
   const onSubmit = async (data: AddAssetPayload) => {
     console.log("submit data", data);
-    const response = await addAssetService(data);
+
+    // Clean up the data before submission
+    const cleanedData = {
+      ...data,
+      // Only include datasheet if it has valid data, otherwise omit it entirely
+      ...(data.datasheet && data.datasheet.file_name
+        ? { datasheet: data.datasheet }
+        : {}),
+    };
+
+    // Remove datasheet from the object if it's empty or invalid
+    if (!data.datasheet || !data.datasheet.file_name) {
+      delete cleanedData.datasheet;
+    }
+
+    const response = await editAssetService(assetId as string, cleanedData);
     try {
       if (response.success) {
-        toast.success("Asset added successfully", {
+        toast.success("Asset updated successfully", {
           description: `${response.data?.message}`,
         });
-      } else {
-        toast.error(
-          response.message || "Asset addition failed. Please try again."
-        );
+        router.push("/assets");
       }
     } catch (error) {
       toast.error(
-        (error as Error).message || "Asset addition failed. Please try again."
+        (error as Error).message || "Asset update failed. Please try again."
       );
     }
   };
@@ -80,7 +136,7 @@ export const AddAssetForm = ({
             <Icon icon="mdi:chevron-left" className=" size-5" />
           </button>
 
-          <Text variant="h6">Add Asset</Text>
+          <Text variant="h6">Edit Asset</Text>
         </div>
 
         <div className="flex items-center gap-2">
@@ -90,7 +146,7 @@ export const AddAssetForm = ({
           <Button size="medium" variant="outline">
             Save Draft
           </Button>
-          <Button size="medium">Create Asset</Button>
+          <Button size="medium">Update Asset</Button>
         </div>
       </section>
       <form
@@ -141,7 +197,7 @@ export const AddAssetForm = ({
               name="type"
               render={({ field }) => (
                 <Select
-                  value={field.value as string}
+                  value={field.value || ""}
                   onValueChange={field.onChange}
                 >
                   <SelectTrigger label="Asset Type">
@@ -228,7 +284,10 @@ export const AddAssetForm = ({
               control={control}
               name="criticality_level"
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select
+                  value={field.value || ""}
+                  onValueChange={field.onChange}
+                >
                   <SelectTrigger label="Critical Level">
                     <SelectValue placeholder="Select a critical level" />
                   </SelectTrigger>
@@ -268,7 +327,7 @@ export const AddAssetForm = ({
               name="status"
               render={({ field }) => (
                 <Select
-                  value={field.value as string}
+                  value={field.value || ""}
                   onValueChange={field.onChange}
                 >
                   <SelectTrigger className="col-span-full" label="Asset Status">
@@ -324,10 +383,7 @@ export const AddAssetForm = ({
             control={control}
             name="assignee.id"
             render={({ field }) => (
-              <Select
-                value={field.value as string}
-                onValueChange={field.onChange}
-              >
+              <Select value={field.value || ""} onValueChange={field.onChange}>
                 <SelectTrigger className="col-span-full" label="Assignee">
                   <SelectValue placeholder="Select a assignee" />
                 </SelectTrigger>
@@ -380,7 +436,7 @@ export const AddAssetForm = ({
             Cancel
           </Button>
           <Button type="submit" loading={isSubmitting}>
-            Create Asset
+            Update Asset
           </Button>
         </div>
       </form>

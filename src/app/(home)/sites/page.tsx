@@ -1,11 +1,11 @@
 "use server";
 import React from "react";
-import { getAllOrganizationsService, getSitesService } from "@/app/actions";
+import { getOrganizationsService, getSitesService } from "@/app/actions";
 import { SiteContent, SiteTable } from "./components";
 
 export default async function SitesPage() {
   const sites = await getSitesService();
-  const organizations = await getAllOrganizationsService();
+  const organizations = await getOrganizationsService();
 
   console.log("sites", sites);
 

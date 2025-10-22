@@ -66,7 +66,10 @@ export default function Sidebar({
     {
       label: "Organizations",
       icon: "solar:buildings-2-bold-duotone",
-      href: "/organizations",
+      children: [
+        { label: "Organizations", href: "/organizations" },
+        { label: "Departments", href: "/departments" },
+      ],
     },
     {
       label: "User Management",

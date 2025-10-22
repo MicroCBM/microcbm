@@ -6,7 +6,11 @@ export const INDUSTRIES = [
   "Education",
   "Finance",
   "Healthcare",
+  "Manufacturing",
+  "Retail",
   "Technology",
+  "Transportation",
+  "Other",
 ];
 
 export const TEAM_SIZES = [

@@ -1,1 +1,1 @@
-export { AddAssetForm } from "./AddAssetForm";
+export * from "./AddAssetForm";
