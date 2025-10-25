@@ -74,7 +74,11 @@ export default function Sidebar({
     {
       label: "User Management",
       icon: "solar:users-group-two-rounded-bold-duotone",
-      href: "/user-management",
+      children: [
+        { label: "Users", href: "/user-management" },
+        { label: "Roles", href: "/roles" },
+        { label: "Permissions", href: "/permissions" },
+      ],
     },
   ];
 

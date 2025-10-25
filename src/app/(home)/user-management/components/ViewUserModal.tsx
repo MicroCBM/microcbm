@@ -151,7 +151,7 @@ export const ViewUserModal = ({
                 Organization:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {user.organization.name || "N/A"}
+                {user.organization?.name || "N/A"}
               </Text>
             </div>
 

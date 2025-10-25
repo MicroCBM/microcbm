@@ -1,67 +1,3 @@
-interface Organization {
-  created_at: number;
-  created_at_datetime: string;
-  description: string;
-  id: string;
-  industry: string;
-  logo_url: string;
-  members: {
-    country: string;
-    created_at: number;
-    created_at_datetime: string;
-    date_of_birth: string;
-    email: string;
-    first_name: string;
-    id: string;
-    last_name: string;
-    organization: unknown;
-    password_hash: string;
-    phone: string;
-    role: string;
-    role_id: string;
-    role_obj: unknown;
-    site: unknown;
-    status: string;
-    updated_at: number;
-    updated_at_datetime: string;
-  }[];
-  name: string;
-  owner: {
-    country: string;
-    created_at: number;
-    created_at_datetime: string;
-    date_of_birth: string;
-    email: string;
-    first_name: string;
-    id: string;
-    last_name: string;
-    organization: unknown;
-    password_hash: string;
-    phone: string;
-    role: string;
-    role_id: string;
-    role_obj: unknown;
-    site: unknown;
-    status: string;
-    updated_at: number;
-    updated_at_datetime: string;
-  };
-  sites: {
-    id: string;
-    name: string;
-    tag: string;
-    installation_environment: string;
-    regulations_and_standards: string[];
-    created_at: number;
-    created_at_datetime: string;
-    updated_at: number;
-    updated_at_datetime: string;
-  }[];
-  team_strength: string;
-  updated_at: number;
-  updated_at_datetime: string;
-}
-
 interface User {
   country: string;
   created_at: number;
@@ -159,4 +95,4 @@ interface EditUserPayload {
   password?: string;
 }
 
-export type { User, Organization, AddUserPayload, EditUserPayload };
+export type { User, AddUserPayload, EditUserPayload };

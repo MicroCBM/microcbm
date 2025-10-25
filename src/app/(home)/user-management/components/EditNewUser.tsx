@@ -52,6 +52,8 @@ export const EditNewUser = ({
     mode: "onSubmit",
   });
 
+  console.log("user in edit new user", user);
+
   React.useEffect(() => {
     if (!user) return;
     reset({
@@ -66,7 +68,7 @@ export const EditNewUser = ({
         date_of_birth: dayjs(user.date_of_birth).format("YYYY-MM-DD"),
         role_id: user.role_id || "",
         organization: {
-          id: user.organization.id,
+          id: user.organization?.id || "",
         },
         site: {
           id: user.site?.id,

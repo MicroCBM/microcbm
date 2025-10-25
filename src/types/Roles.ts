@@ -1,10 +1,19 @@
 interface Role {
+  id: string;
+  name: string;
+  permissions: Permission[];
+  level: number;
   created_at: number;
   created_at_datetime: string;
-  id: string;
-  level: number;
-  name: string;
-  permissions: string[];
 }
 
-export type { Role };
+interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  created_at: number;
+  created_at_datetime: string;
+}
+
+export type { Role, Permission };

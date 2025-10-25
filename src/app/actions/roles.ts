@@ -1,28 +1,87 @@
 "use server";
 
-import { requestWithAuth } from "./helpers";
-import { Role } from "@/types";
+import { Role, Permission } from "@/types";
+import { ApiResponse, handleApiRequest, requestWithAuth } from "./helpers";
+import { AddRolePayload, EditRolePayload } from "@/schema";
 
 const commonEndpoint = "/api/v1/";
 
-export async function getRolesService(): Promise<Role[]> {
+async function getRolesService(): Promise<Role[]> {
   try {
-    const response = await requestWithAuth(`${commonEndpoint}/roles`, {
+    const response = await requestWithAuth(`${commonEndpoint}roles`, {
       method: "GET",
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Error response:", errorText);
-      throw new Error(
-        `Failed to fetch roles: ${response.status} ${response.statusText} - ${errorText}`
-      );
-    }
-
     const data = await response.json();
-    return data?.data;
+
+    console.log("data", data);
+    return data?.data || [];
   } catch (error) {
     console.error("Error fetching roles:", error);
     throw error;
   }
 }
+
+async function getRoleService(id: string): Promise<Role> {
+  try {
+    const response = await requestWithAuth(`${commonEndpoint}roles/${id}`, {
+      method: "GET",
+    });
+
+    const data = await response.json();
+    return data?.data;
+  } catch (error) {
+    console.error("Error fetching role by id:", error);
+    throw error;
+  }
+}
+
+async function addRoleService(payload: AddRolePayload): Promise<ApiResponse> {
+  return handleApiRequest(`${commonEndpoint}roles`, payload, "POST");
+}
+
+async function editRoleService(
+  id: string,
+  payload: EditRolePayload
+): Promise<ApiResponse> {
+  return handleApiRequest(`${commonEndpoint}roles/${id}`, payload, "PUT");
+}
+
+async function deleteRoleService(id: string): Promise<ApiResponse> {
+  return handleApiRequest(`${commonEndpoint}roles/${id}`, {}, "DELETE");
+}
+
+async function getPermissionsService(): Promise<Permission[]> {
+  try {
+    const response = await requestWithAuth(`${commonEndpoint}permissions`, {
+      method: "GET",
+    });
+
+    const data = await response.json();
+    return data?.data || [];
+  } catch (error) {
+    console.error("Error fetching permissions:", error);
+    throw error;
+  }
+}
+
+async function addRolePermissionsToRoleService(
+  role_id: string,
+  permission_id: string
+): Promise<ApiResponse> {
+  return handleApiRequest(
+    `${commonEndpoint}roles/${role_id}/permissions`,
+    { permission_id },
+    "POST"
+  );
+}
+
+export {
+  getRolesService,
+  getRoleService,
+  addRoleService,
+  editRoleService,
+  deleteRoleService,
+  getPermissionsService,
+  addRolePermissionsToRoleService,
+};

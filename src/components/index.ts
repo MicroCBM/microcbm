@@ -13,7 +13,6 @@ export * from "./shared";
 export * from "./magic-bento";
 export * from "./custom-tabs";
 export * from "./area-chart";
-export * from "./data-table";
 export * from "./severity-card";
 export * from "./pie-chart";
 export * from "./ui";

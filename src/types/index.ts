@@ -3,3 +3,8 @@ export * from "./inventory";
 export * from "./user";
 export * from "./roles";
 export * from "./organizations";
+export * from "./departments";
+export * from "./alarms";
+export * from "./recommendations";
+export * from "./sampling-points";
+export * from "./samples";

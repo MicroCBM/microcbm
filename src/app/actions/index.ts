@@ -4,5 +4,11 @@ export * from "./user";
 export * from "./roles";
 export * from "./inventory";
 export * from "./organizations";
+export * from "./departments";
+export * from "./alarms";
+export * from "./recommendations";
+export * from "./sampling-points";
+export * from "./samples";
+
 // Re-export types only
 export type { ApiResponse } from "./helpers";
