@@ -1,4 +1,4 @@
-export interface Role {
+interface Role {
   id: string;
   name: string;
   permissions: Permission[];
@@ -16,4 +16,4 @@ interface Permission {
   created_at_datetime: string;
 }
 
-export type { Permission };
+export type { Role, Permission };
