@@ -16,7 +16,15 @@ import { AddRolePayload, ADD_ROLE_SCHEMA } from "@/schema";
 import { addRolePermissionsToRoleService, addRoleService } from "@/app/actions";
 import Input from "@/components/input/Input";
 import { useRouter } from "next/navigation";
-import { Permission } from "@/types";
+
+interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  created_at: number;
+  created_at_datetime: string;
+}
 
 export function AddRoleModal({
   permissionsData,
