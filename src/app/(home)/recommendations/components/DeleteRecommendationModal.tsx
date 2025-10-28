@@ -50,7 +50,10 @@ export function DeleteRecommendationModal({
 
           <Text variant="p" className="text-gray-700">
             Are you sure you want to delete the recommendation{" "}
-            <span className="font-medium">"{recommendation.title}"</span>?
+            <span className="font-medium">
+              &quot;{recommendation.title}&quot;
+            </span>
+            ?
           </Text>
 
           <Text variant="span" className="text-sm text-gray-500">
@@ -63,11 +66,7 @@ export function DeleteRecommendationModal({
           <Button variant="outline" onClick={onClose} disabled={isDeleting}>
             Cancel
           </Button>
-          <Button
-            variant="destructive"
-            onClick={handleConfirm}
-            loading={isDeleting}
-          >
+          <Button variant="danger" onClick={handleConfirm} loading={isDeleting}>
             {isDeleting ? "Deleting..." : "Delete Recommendation"}
           </Button>
         </div>

@@ -4,11 +4,12 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button, Text, Input, Select, Label } from "@/components";
+import { Button, Text, Select, Label } from "@/components";
 import { Icon } from "@/libs";
 import { AddSamplingPointPayload, ADD_SAMPLING_POINT_SCHEMA } from "@/schema";
 import { editSamplingPointService, getAssetsService } from "@/app/actions";
 import { SamplingPoint, Asset } from "@/types";
+import Input from "@/components/input/Input";
 
 const CIRCUIT_TYPES = [
   "Circulating Oil (Recirculation System)",
@@ -178,7 +179,7 @@ export function EditSamplingPointForm({
             <div className="space-y-2">
               <Label htmlFor="name">Sampling Point Name *</Label>
               <Input
-                id="name"
+                label="Sampling Point Name"
                 placeholder="e.g., Main Gearbox Oil Sampling Point"
                 {...register("name")}
                 error={errors.name?.message}
@@ -188,7 +189,7 @@ export function EditSamplingPointForm({
             <div className="space-y-2">
               <Label htmlFor="tag">Tag *</Label>
               <Input
-                id="tag"
+                label="Tag"
                 placeholder="e.g., GBX-001-OIL"
                 {...register("tag")}
                 error={errors.tag?.message}
@@ -202,7 +203,6 @@ export function EditSamplingPointForm({
                 onValueChange={(value) => {
                   setValue("parent_asset.id", value);
                 }}
-                error={errors.parent_asset?.id?.message}
               >
                 <option value="">Select an asset</option>
                 {assets.map((asset) => (
@@ -220,7 +220,6 @@ export function EditSamplingPointForm({
                 onValueChange={(value) => {
                   setValue("component_type", value);
                 }}
-                error={errors.component_type?.message}
               >
                 <option value="">Select component type</option>
                 {COMPONENT_TYPES.map((type) => (
@@ -246,7 +245,6 @@ export function EditSamplingPointForm({
                 onValueChange={(value) => {
                   setValue("circuit_type", value);
                 }}
-                error={errors.circuit_type?.message}
               >
                 <option value="">Select circuit type</option>
                 {CIRCUIT_TYPES.map((type) => (
@@ -264,7 +262,6 @@ export function EditSamplingPointForm({
                 onValueChange={(value) => {
                   setValue("sample_frequency", value);
                 }}
-                error={errors.sample_frequency?.message}
               >
                 <option value="">Select sample frequency</option>
                 {SAMPLE_FREQUENCIES.map((frequency) => (
@@ -282,7 +279,6 @@ export function EditSamplingPointForm({
                 onValueChange={(value) => {
                   setValue("system_capacity", value);
                 }}
-                error={errors.system_capacity?.message}
               >
                 <option value="">Select system capacity</option>
                 {SYSTEM_CAPACITIES.map((capacity) => (
@@ -300,7 +296,6 @@ export function EditSamplingPointForm({
                 onValueChange={(value) => {
                   setValue("current_oil_grade", value);
                 }}
-                error={errors.current_oil_grade?.message}
               >
                 <option value="">Select oil grade</option>
                 {OIL_GRADES.map((grade) => (
@@ -326,7 +321,6 @@ export function EditSamplingPointForm({
                 onValueChange={(value) => {
                   setValue("status", value);
                 }}
-                error={errors.status?.message}
               >
                 <option value="">Select status</option>
                 {STATUS_OPTIONS.map((option) => (
@@ -344,7 +338,6 @@ export function EditSamplingPointForm({
                 onValueChange={(value) => {
                   setValue("severity", value);
                 }}
-                error={errors.severity?.message}
               >
                 <option value="">Select severity</option>
                 {SEVERITY_OPTIONS.map((option) => (

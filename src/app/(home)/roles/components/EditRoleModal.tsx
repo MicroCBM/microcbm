@@ -1,12 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
   Button,
   Text,
-  Input,
   Select,
   SelectItem,
   SelectContent,
@@ -23,6 +22,7 @@ import { Icon } from "@/libs";
 import { EditRolePayload, EDIT_ROLE_SCHEMA } from "@/schema";
 import { editRoleService, getPermissionsService } from "@/app/actions";
 import { Role, Permission } from "@/types";
+import Input from "@/components/input/Input";
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Active" },
@@ -55,9 +55,9 @@ export function EditRoleModal({
     resolver: zodResolver(EDIT_ROLE_SCHEMA),
     defaultValues: {
       name: role?.name || "",
-      description: role?.description || "",
-      status: role?.status || "active",
-      permissions: role?.permissions || [],
+      description: "",
+      status: "active",
+      permissions: [],
     },
   });
 
@@ -65,9 +65,9 @@ export function EditRoleModal({
     if (isOpen && role) {
       reset({
         name: role.name,
-        description: role.description,
-        status: role.status,
-        permissions: role.permissions || [],
+        description: "",
+        status: "active",
+        permissions: [],
       });
 
       const fetchPermissions = async () => {
@@ -124,7 +124,10 @@ export function EditRoleModal({
           <DialogTitle>Edit Role</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit as SubmitHandler<EditRolePayload>)}
+          className="space-y-6"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Basic Information */}
             <div className="space-y-4">
@@ -138,7 +141,7 @@ export function EditRoleModal({
               />
 
               <div className="space-y-2">
-                <Text variant="label">Description</Text>
+                <Text variant="h6">Description</Text>
                 <textarea
                   {...register("description")}
                   placeholder="Describe the role's responsibilities and scope..."
@@ -193,9 +196,7 @@ export function EditRoleModal({
                         type="checkbox"
                         value={permission.id}
                         {...register("permissions")}
-                        defaultChecked={role.permissions?.includes(
-                          permission.id
-                        )}
+                        defaultChecked={role.permissions?.includes(permission)}
                         className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
                       <div className="flex-1">
@@ -209,7 +210,7 @@ export function EditRoleModal({
                           variant="span"
                           className="text-sm text-gray-500 block"
                         >
-                          {permission.description}
+                          {permission.name}
                         </Text>
                       </div>
                     </label>

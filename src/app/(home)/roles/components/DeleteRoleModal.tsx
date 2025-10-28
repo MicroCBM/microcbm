@@ -40,8 +40,10 @@ export function DeleteRoleModal({
         <div className="space-y-4">
           <Text variant="span" className="text-gray-600">
             Are you sure you want to delete the role{" "}
-            <span className="font-semibold text-gray-900">"{role.name}"</span>?
-            This action cannot be undone.
+            <span className="font-semibold text-gray-900">
+              &quot;{role.name}&quot;
+            </span>
+            ? This action cannot be undone.
           </Text>
 
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
@@ -61,7 +63,7 @@ export function DeleteRoleModal({
               Cancel
             </Button>
             <Button
-              variant="destructive"
+              variant="danger"
               onClick={handleConfirm}
               disabled={isDeleting}
               className="px-6"

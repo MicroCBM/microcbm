@@ -41,7 +41,7 @@ export function DeleteSamplingPointModal({
           <Text variant="span" className="text-gray-600">
             Are you sure you want to delete the sampling point{" "}
             <span className="font-semibold text-gray-900">
-              "{samplingPoint.name}"
+              &quot;{samplingPoint.name}&quot;
             </span>
             ? This action cannot be undone.
           </Text>
@@ -63,7 +63,7 @@ export function DeleteSamplingPointModal({
               Cancel
             </Button>
             <Button
-              variant="destructive"
+              variant="danger"
               onClick={handleConfirm}
               disabled={isDeleting}
               className="px-6"
