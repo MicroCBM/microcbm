@@ -2,12 +2,29 @@
 import React, { useState } from "react";
 import { Text, Button, StatusBadge } from "@/components";
 import { Icon } from "@/libs";
-import { Role } from "@/types";
+
 import { deleteRoleService } from "@/app/actions";
 import { toast } from "sonner";
 import { EditRoleModal } from "./EditRoleModal";
 import { DeleteRoleModal } from "./DeleteRoleModal";
 
+interface Role {
+  id: string;
+  name: string;
+  permissions: Permission[];
+  level: number;
+  created_at: number;
+  created_at_datetime: string;
+}
+
+interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  created_at: number;
+  created_at_datetime: string;
+}
 interface RoleCardsProps {
   data: Role[];
   onRoleDeleted?: () => void;

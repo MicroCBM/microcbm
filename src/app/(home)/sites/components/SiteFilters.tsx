@@ -7,15 +7,10 @@ import {
   Text,
 } from "@/components";
 import { Icon } from "@/libs";
-import { Organization } from "@/types";
 import { ROLES, SITE_ASSIGNED, STATUSES } from "@/utils";
 import React from "react";
 
-export function SiteFilters({
-  organizations,
-}: {
-  organizations: Organization[];
-}) {
+export function SiteFilters() {
   const [search, setSearch] = React.useState("");
   return (
     <div className="flex items-center gap-2">

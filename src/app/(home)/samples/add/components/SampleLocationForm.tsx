@@ -26,7 +26,7 @@ export default function SampleLocationForm({
 }: SampleLocationFormProps) {
   const {
     control,
-    formState: { errors },
+    // formState: { errors },
   } = useFormContext();
   return (
     <section className="flex flex-col gap-6">
