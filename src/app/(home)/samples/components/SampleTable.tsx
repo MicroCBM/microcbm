@@ -18,21 +18,18 @@ import {
   StatusBadge,
   Text,
 } from "@/components";
-import { Sample, Sites } from "@/types";
+import { Sample } from "@/types";
 import { ViewSampleModal } from "./ViewSampleModal";
 import { DeleteSampleModal } from "./DeleteSampleModal";
-import { useRouter } from "next/navigation";
 import { deleteSampleService } from "@/app/actions";
 import { toast } from "sonner";
 
 interface SampleTableProps {
   data: Sample[];
   className?: string;
-  sites?: Sites[];
 }
 
-export function SampleTable({ data, className, sites = [] }: SampleTableProps) {
-  const router = useRouter();
+export function SampleTable({ data, className }: SampleTableProps) {
   const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -48,8 +45,9 @@ export function SampleTable({ data, className, sites = [] }: SampleTableProps) {
     setSelectedSample(null);
   };
 
-  const handleEditSample = (sample: Sample) => {
-    router.push(`/samples/edit/${sample.id}`);
+  const handleEditSample = (id: string) => {
+    console.log(id);
+    // router.push(`/samples/edit/${sample.id}`);
   };
 
   const handleDeleteSample = (sample: Sample) => {
@@ -186,7 +184,7 @@ export function SampleTable({ data, className, sites = [] }: SampleTableProps) {
                   View Sample
                 </button>
                 <button
-                  onClick={() => handleEditSample(row.original)}
+                  onClick={() => handleEditSample(row.original.id)}
                   className="flex items-center gap-2 px-3 py-2 rounded text-sm border-b border-gray-200 hover:bg-gray-100"
                 >
                   Edit Sample

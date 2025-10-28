@@ -14,12 +14,9 @@ interface EditRecommendationModalProps {
 }
 
 export function EditRecommendationModal({
-  recommendation,
   recommendationId,
   isEditModalOpen,
   setIsEditModalOpen,
-  sites,
-  assets,
 }: EditRecommendationModalProps) {
   const router = useRouter();
 

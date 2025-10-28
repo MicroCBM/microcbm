@@ -20,7 +20,6 @@ import {
 import { Recommendation, Sites, Asset } from "@/types";
 import { ViewRecommendationModal } from "./ViewRecommendationModal";
 import { DeleteRecommendationModal } from "./DeleteRecommendationModal";
-import { useRouter } from "next/navigation";
 import { deleteRecommendationService } from "@/app/actions";
 import { toast } from "sonner";
 import { EditRecommendationModal } from "./EditRecommendationModal";
@@ -38,7 +37,6 @@ export function RecommendationTable({
   sites = [],
   assets = [],
 }: RecommendationTableProps) {
-  const router = useRouter();
   const [selectedRecommendation, setSelectedRecommendation] =
     useState<Recommendation | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);

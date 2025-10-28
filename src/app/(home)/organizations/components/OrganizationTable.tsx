@@ -20,7 +20,6 @@ import {
 import { Organization } from "@/types";
 import { ViewOrganizationModal } from "./ViewOrganizationModal";
 import { DeleteOrganizationModal } from "./DeleteOrganizationModal";
-import { useRouter } from "next/navigation";
 import { deleteOrganizationService } from "@/app/actions";
 import { toast } from "sonner";
 import { EditOrganizationModal } from "./EditOrganizationModal";
@@ -31,7 +30,6 @@ interface OrganizationTableProps {
 }
 
 export function OrganizationTable({ data, className }: OrganizationTableProps) {
-  const router = useRouter();
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);

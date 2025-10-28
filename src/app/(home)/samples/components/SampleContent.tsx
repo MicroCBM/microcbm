@@ -4,19 +4,8 @@ import React from "react";
 import { Button, Text } from "@/components";
 import { Icon } from "@/libs";
 import Link from "next/link";
-import { Sites, Asset, SamplingPoint } from "@/types";
 
-interface SampleContentProps {
-  sites: Sites[];
-  assets: Asset[];
-  samplingPoints: SamplingPoint[];
-}
-
-export function SampleContent({
-  sites,
-  assets,
-  samplingPoints,
-}: SampleContentProps) {
+export function SampleContent() {
   return (
     <div className="flex items-center justify-between">
       <div>

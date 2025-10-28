@@ -20,7 +20,6 @@ import {
 import { Alarm, Sites } from "@/types";
 import { ViewAlarmModal } from "./ViewAlarmModal";
 import { DeleteAlarmModal } from "./DeleteAlarmModal";
-import { useRouter } from "next/navigation";
 import { deleteAlarmService } from "@/app/actions";
 import { toast } from "sonner";
 import { EditAlarmModal } from "./EditAlarmModal";
@@ -32,7 +31,6 @@ interface AlarmTableProps {
 }
 
 export function AlarmTable({ data, className, sites = [] }: AlarmTableProps) {
-  const router = useRouter();
   const [selectedAlarm, setSelectedAlarm] = useState<Alarm | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

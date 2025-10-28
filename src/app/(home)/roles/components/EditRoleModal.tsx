@@ -21,13 +21,30 @@ import {
 import { Icon } from "@/libs";
 import { EditRolePayload, EDIT_ROLE_SCHEMA } from "@/schema";
 import { editRoleService, getPermissionsService } from "@/app/actions";
-import { Role, Permission } from "@/types";
 import Input from "@/components/input/Input";
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Active" },
   { value: "inactive", label: "Inactive" },
 ];
+
+interface Role {
+  id: string;
+  name: string;
+  permissions: Permission[];
+  level: number;
+  created_at: number;
+  created_at_datetime: string;
+}
+
+interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  created_at: number;
+  created_at_datetime: string;
+}
 
 interface EditRoleModalProps {
   role: Role | null;

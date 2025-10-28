@@ -22,13 +22,13 @@ export function OrganizationFilters() {
     setFilters({ ...filters, search: value });
   };
 
-  const handleIndustryChange = (value: string) => {
-    setFilters({ ...filters, industry: value });
-  };
+  // const handleIndustryChange = (value: string) => {
+  //   setFilters({ ...filters, industry: value });
+  // };
 
-  const handleTeamStrengthChange = (value: string) => {
-    setFilters({ ...filters, team_strength: value });
-  };
+  // const handleTeamStrengthChange = (value: string) => {
+  //   setFilters({ ...filters, team_strength: value });
+  // };
 
   return (
     <div className="flex items-center gap-2">
