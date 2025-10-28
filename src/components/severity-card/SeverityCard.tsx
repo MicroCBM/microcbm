@@ -66,8 +66,8 @@ export function SeverityCard({ data, className }: SeverityCardProps) {
 
       {/* Severity Levels */}
       <div className="space-y-4 mb-6">
-        {data.severityLevels.map((level, index) => (
-          <div key={level.label} className="flex items-center justify-between">
+        {data.severityLevels.map((level) => (
+          <div key={level.value} className="flex items-center justify-between">
             <Text variant="span" className="text-sm text-gray-700 min-w-[80px]">
               {level.label}
             </Text>
