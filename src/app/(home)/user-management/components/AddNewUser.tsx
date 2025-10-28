@@ -19,7 +19,7 @@ import CountrySelect from "@/components/country-select/CountrySelect";
 import Input from "@/components/input/Input";
 import { Icon } from "@/libs";
 import { ADD_USER_SCHEMA } from "@/schema";
-import { AddUserPayload, Sites, Role, Organization } from "@/types";
+import { Sites, Role, Organization } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import * as RPNInput from "react-phone-number-input";
