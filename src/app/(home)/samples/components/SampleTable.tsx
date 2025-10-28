@@ -18,7 +18,7 @@ import {
   StatusBadge,
   Text,
 } from "@/components";
-import { Sample } from "@/types";
+import { Sample, Sites } from "@/types";
 import { ViewSampleModal } from "./ViewSampleModal";
 import { DeleteSampleModal } from "./DeleteSampleModal";
 import { deleteSampleService } from "@/app/actions";
@@ -27,6 +27,7 @@ import { toast } from "sonner";
 interface SampleTableProps {
   data: Sample[];
   className?: string;
+  sites: Sites[];
 }
 
 export function SampleTable({ data, className }: SampleTableProps) {

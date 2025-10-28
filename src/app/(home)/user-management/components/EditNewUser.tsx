@@ -18,7 +18,7 @@ import {
 import CountrySelect from "@/components/country-select/CountrySelect";
 import Input from "@/components/input/Input";
 import { EDIT_USER_SCHEMA } from "@/schema";
-import { EditUserPayload, Organization, Role, Sites, User } from "@/types";
+import { EditUserPayload, Organization, Sites, User } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import * as RPNInput from "react-phone-number-input";
@@ -26,6 +26,23 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import dayjs from "dayjs";
 
+interface Role {
+  id: string;
+  name: string;
+  permissions: Permission[];
+  level: number;
+  created_at: number;
+  created_at_datetime: string;
+}
+
+interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  created_at: number;
+  created_at_datetime: string;
+}
 export const EditNewUser = ({
   sites,
   user,

@@ -19,12 +19,29 @@ import {
   Text,
   UserAvatar,
 } from "@/components";
-import { Organization, Role, Sites, User } from "@/types";
+import { Organization, Sites, User } from "@/types";
 import { ViewUserModal } from "./ViewUserModal";
 import { activateUserService, deleteUserService } from "@/app/actions/user";
 import { toast } from "sonner";
 import { EditNewUser } from "./EditNewUser";
 
+interface Role {
+  id: string;
+  name: string;
+  permissions: Permission[];
+  level: number;
+  created_at: number;
+  created_at_datetime: string;
+}
+
+interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  created_at: number;
+  created_at_datetime: string;
+}
 interface UserTableProps {
   data: User[];
   className?: string;

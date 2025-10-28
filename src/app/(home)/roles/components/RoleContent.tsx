@@ -10,7 +10,15 @@ import {
 } from "@/components";
 import { cn, Icon } from "@/libs";
 import { AddRoleModal } from "./AddRoleModal";
-import { Permission } from "@/types";
+
+interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  created_at: number;
+  created_at_datetime: string;
+}
 
 export function RoleContent({
   permissionsData,

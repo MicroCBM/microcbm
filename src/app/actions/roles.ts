@@ -1,11 +1,27 @@
 "use server";
 
-import { Role, Permission } from "@/types";
 import { ApiResponse, handleApiRequest, requestWithAuth } from "./helpers";
 import { AddRolePayload, EditRolePayload } from "@/schema";
 
 const commonEndpoint = "/api/v1/";
 
+interface Role {
+  id: string;
+  name: string;
+  permissions: Permission[];
+  level: number;
+  created_at: number;
+  created_at_datetime: string;
+}
+
+interface Permission {
+  id: string;
+  name: string;
+  resource: string;
+  action: string;
+  created_at: number;
+  created_at_datetime: string;
+}
 async function getRolesService(): Promise<Role[]> {
   try {
     const response = await requestWithAuth(`${commonEndpoint}roles`, {
