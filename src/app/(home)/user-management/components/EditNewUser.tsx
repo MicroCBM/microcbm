@@ -100,7 +100,6 @@ interface EditUserPayload {
       id: string;
     };
   };
-  password?: string;
 }
 
 interface Role {
@@ -168,7 +167,6 @@ export const EditNewUser = ({
           id: user.site?.id,
         },
       },
-      password: user.password_hash,
     });
   }, [user, reset]);
 
