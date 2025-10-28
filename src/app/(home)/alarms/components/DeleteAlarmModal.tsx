@@ -76,7 +76,7 @@ export const DeleteAlarmModal = ({
           </Button>
           <Button
             type="button"
-            variant="destructive"
+            variant="danger"
             onClick={handleConfirm}
             loading={isDeleting}
           >

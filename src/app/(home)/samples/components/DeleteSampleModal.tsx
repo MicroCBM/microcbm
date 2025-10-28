@@ -76,7 +76,7 @@ export const DeleteSampleModal = ({
           </Button>
           <Button
             type="button"
-            variant="destructive"
+            variant="danger"
             onClick={handleConfirm}
             loading={isDeleting}
           >
