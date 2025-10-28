@@ -7,24 +7,20 @@ import {
 import { EditAssetForm } from "../components";
 
 interface EditAssetPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditAssetPage({ params }: EditAssetPageProps) {
+  const { id } = await params;
   const sites = await getSitesService();
   const users = await getUsersService();
-  const asset = await getAssetService(params.id);
+  const asset = await getAssetService(id);
 
   return (
     <main className="flex flex-col gap-4">
-      <EditAssetForm
-        sites={sites}
-        users={users}
-        assetId={params.id}
-        asset={asset}
-      />
+      <EditAssetForm sites={sites} users={users} assetId={id} asset={asset} />
     </main>
   );
 }
