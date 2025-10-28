@@ -19,11 +19,67 @@ import {
   Text,
   UserAvatar,
 } from "@/components";
-import { Organization, Sites, User } from "@/types";
+import { Organization, Sites } from "@/types";
 import { ViewUserModal } from "./ViewUserModal";
 import { activateUserService, deleteUserService } from "@/app/actions/user";
 import { toast } from "sonner";
 import { EditNewUser } from "./EditNewUser";
+
+interface USER_TYPE {
+  country: string;
+  created_at: number;
+  created_at_datetime: string;
+  date_of_birth: string;
+  email: string;
+  first_name: string;
+  id: string;
+  last_name: string;
+  organization: {
+    created_at: number;
+    created_at_datetime: string;
+    description: string;
+    id: string;
+    industry: string;
+    logo_url: string;
+    members: unknown;
+    name: string;
+    owner: unknown;
+    sites: unknown;
+    team_strength: string;
+    updated_at: number;
+    updated_at_datetime: string;
+  };
+  password_hash: string;
+  phone: string;
+  role: string;
+  role_id: string | null;
+  role_obj: unknown;
+  site: {
+    address: string;
+    attachments: null;
+    city: string;
+    country: string;
+    created_at: number;
+    created_at_datetime: string;
+    description: string;
+    id: string;
+    installation_environment: string;
+    manager_email: string;
+    manager_location: string;
+    manager_name: string;
+    manager_phone_number: string;
+    members: unknown;
+    name: string;
+    organization: unknown;
+    regulations_and_standards: unknown;
+    tag: string;
+    updated_at: number;
+    updated_at_datetime: string;
+  };
+  status: string;
+  updated_at: number;
+  updated_at_datetime: string;
+}
 
 interface Role {
   id: string;
@@ -43,7 +99,7 @@ interface Permission {
   created_at_datetime: string;
 }
 interface UserTableProps {
-  data: User[];
+  data: USER_TYPE[];
   className?: string;
   rolesData: Role[];
   organizations: Organization[];
@@ -57,10 +113,10 @@ export function UserTable({
   organizations,
   sites,
 }: UserTableProps) {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<USER_TYPE | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const handleViewUser = (user: User) => {
+  const handleViewUser = (user: USER_TYPE) => {
     setSelectedUser(user);
     setIsViewModalOpen(true);
   };
@@ -92,12 +148,12 @@ export function UserTable({
     }
   };
 
-  const handleEditUser = (user: User) => {
+  const handleEditUser = (user: USER_TYPE) => {
     setSelectedUser(user);
     setIsEditModalOpen(true);
   };
 
-  const columns: ColumnDef<User>[] = [
+  const columns: ColumnDef<USER_TYPE>[] = [
     {
       id: "name",
       header: "Name",
@@ -251,7 +307,7 @@ export function UserTable({
     }
     acc[key].push(user);
     return acc;
-  }, {} as Record<string, User[]>);
+  }, {} as Record<string, USER_TYPE[]>);
 
   // Sort groups: TODAY, YESTERDAY, then dates in descending order
   const groupOrder = Object.keys(groupedData).sort((a, b) => {
