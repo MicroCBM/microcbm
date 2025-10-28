@@ -18,13 +18,34 @@ import {
 import CountrySelect from "@/components/country-select/CountrySelect";
 import Input from "@/components/input/Input";
 import { EDIT_USER_SCHEMA } from "@/schema";
-import { EditUserPayload, Organization, Sites, User } from "@/types";
+import { Organization, Sites, User } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import * as RPNInput from "react-phone-number-input";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import dayjs from "dayjs";
+
+interface EditUserPayload {
+  user: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    role: string;
+    status: string;
+    phone: string;
+    country: string;
+    date_of_birth: string;
+    role_id: string;
+    organization: {
+      id: string;
+    };
+    site: {
+      id: string;
+    };
+  };
+  password?: string;
+}
 
 interface Role {
   id: string;
