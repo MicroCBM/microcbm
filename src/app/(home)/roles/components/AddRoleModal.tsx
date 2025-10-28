@@ -14,9 +14,9 @@ import {
 import { Icon } from "@/libs";
 import { AddRolePayload, ADD_ROLE_SCHEMA } from "@/schema";
 import { addRolePermissionsToRoleService, addRoleService } from "@/app/actions";
-import { Permission } from "@/types";
 import Input from "@/components/input/Input";
 import { useRouter } from "next/navigation";
+import { Permission } from "@/types";
 
 export function AddRoleModal({
   permissionsData,
