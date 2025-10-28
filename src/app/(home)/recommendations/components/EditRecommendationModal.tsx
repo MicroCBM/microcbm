@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Recommendation, Sites, Assets } from "@/types";
+import { Recommendation, Sites, Asset } from "@/types";
 
 interface EditRecommendationModalProps {
   recommendation: Recommendation | null;
@@ -10,7 +10,7 @@ interface EditRecommendationModalProps {
   isEditModalOpen: boolean;
   setIsEditModalOpen: (open: boolean) => void;
   sites: Sites[];
-  assets: Assets[];
+  assets: Asset[];
 }
 
 export function EditRecommendationModal({

@@ -13,6 +13,7 @@ export interface Organization {
     first_name: string;
     last_name: string;
   } | null;
+  sites?: unknown[];
   created_at_datetime: string;
   updated_at_datetime: string;
 }

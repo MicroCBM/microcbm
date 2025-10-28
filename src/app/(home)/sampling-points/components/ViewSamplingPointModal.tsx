@@ -34,7 +34,7 @@ export function ViewSamplingPointModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   Sampling Point Name
                 </Text>
                 <Text variant="span" className="text-gray-900">
@@ -43,7 +43,7 @@ export function ViewSamplingPointModal({
               </div>
 
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   Tag
                 </Text>
                 <Text variant="span" className="text-gray-900">
@@ -52,7 +52,7 @@ export function ViewSamplingPointModal({
               </div>
 
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   Component Type
                 </Text>
                 <Text variant="span" className="text-gray-900">
@@ -61,7 +61,7 @@ export function ViewSamplingPointModal({
               </div>
 
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   Circuit Type
                 </Text>
                 <Text variant="span" className="text-gray-900">
@@ -72,7 +72,7 @@ export function ViewSamplingPointModal({
 
             <div className="space-y-4">
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   Sample Frequency
                 </Text>
                 <Text variant="span" className="text-gray-900">
@@ -81,7 +81,7 @@ export function ViewSamplingPointModal({
               </div>
 
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   System Capacity
                 </Text>
                 <Text variant="span" className="text-gray-900">
@@ -90,7 +90,7 @@ export function ViewSamplingPointModal({
               </div>
 
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   Current Oil Grade
                 </Text>
                 <Text variant="span" className="text-gray-900">
@@ -99,7 +99,7 @@ export function ViewSamplingPointModal({
               </div>
 
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   Status
                 </Text>
                 <StatusBadge
@@ -114,7 +114,7 @@ export function ViewSamplingPointModal({
               </div>
 
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   Severity
                 </Text>
                 <StatusBadge
@@ -138,7 +138,7 @@ export function ViewSamplingPointModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <Text variant="label" className="text-gray-600">
+                  <Text variant="h6" className="text-gray-600">
                     Asset Name
                   </Text>
                   <Text variant="span" className="text-gray-900">
@@ -147,7 +147,7 @@ export function ViewSamplingPointModal({
                 </div>
 
                 <div>
-                  <Text variant="label" className="text-gray-600">
+                  <Text variant="h6" className="text-gray-600">
                     Asset Tag
                   </Text>
                   <Text variant="span" className="text-gray-900">
@@ -156,7 +156,7 @@ export function ViewSamplingPointModal({
                 </div>
 
                 <div>
-                  <Text variant="label" className="text-gray-600">
+                  <Text variant="h6" className="text-gray-600">
                     Asset Type
                   </Text>
                   <Text variant="span" className="text-gray-900">
@@ -165,7 +165,7 @@ export function ViewSamplingPointModal({
                 </div>
 
                 <div>
-                  <Text variant="label" className="text-gray-600">
+                  <Text variant="h6" className="text-gray-600">
                     Equipment Class
                   </Text>
                   <Text variant="span" className="text-gray-900">
@@ -176,7 +176,7 @@ export function ViewSamplingPointModal({
 
               <div className="space-y-4">
                 <div>
-                  <Text variant="label" className="text-gray-600">
+                  <Text variant="h6" className="text-gray-600">
                     Manufacturer
                   </Text>
                   <Text variant="span" className="text-gray-900">
@@ -185,7 +185,7 @@ export function ViewSamplingPointModal({
                 </div>
 
                 <div>
-                  <Text variant="label" className="text-gray-600">
+                  <Text variant="h6" className="text-gray-600">
                     Model Number
                   </Text>
                   <Text variant="span" className="text-gray-900">
@@ -194,7 +194,7 @@ export function ViewSamplingPointModal({
                 </div>
 
                 <div>
-                  <Text variant="label" className="text-gray-600">
+                  <Text variant="h6" className="text-gray-600">
                     Serial Number
                   </Text>
                   <Text variant="span" className="text-gray-900">
@@ -203,7 +203,7 @@ export function ViewSamplingPointModal({
                 </div>
 
                 <div>
-                  <Text variant="label" className="text-gray-600">
+                  <Text variant="h6" className="text-gray-600">
                     Criticality Level
                   </Text>
                   <StatusBadge
@@ -228,7 +228,7 @@ export function ViewSamplingPointModal({
             </Text>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   Created At
                 </Text>
                 <Text variant="span" className="text-gray-900">
@@ -237,7 +237,7 @@ export function ViewSamplingPointModal({
               </div>
 
               <div>
-                <Text variant="label" className="text-gray-600">
+                <Text variant="h6" className="text-gray-600">
                   Updated At
                 </Text>
                 <Text variant="span" className="text-gray-900">

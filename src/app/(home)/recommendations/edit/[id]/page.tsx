@@ -18,7 +18,7 @@ import {
   EDIT_RECOMMENDATION_SCHEMA,
   EditRecommendationPayload,
 } from "@/schema";
-import { Sites, Assets, Recommendation } from "@/types";
+import { Sites, Asset, Recommendation } from "@/types";
 import {
   editRecommendationService,
   getRecommendationService,
@@ -33,7 +33,7 @@ export default function EditRecommendationPage() {
   const recommendationId = params.id as string;
 
   const [sites, setSites] = React.useState<Sites[]>([]);
-  const [assets, setAssets] = React.useState<Assets[]>([]);
+  const [assets, setAssets] = React.useState<Asset[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [recommendation, setRecommendation] =
     React.useState<Recommendation | null>(null);

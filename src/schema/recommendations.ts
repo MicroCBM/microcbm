@@ -8,9 +8,7 @@ const attachmentSchema = z.object({
 
 export const ADD_RECOMMENDATION_SCHEMA = z.object({
   title: z.string().min(1, "Title is required"),
-  severity: z.enum(["low", "medium", "high", "critical"], {
-    required_error: "Severity is required",
-  }),
+  severity: z.enum(["low", "medium", "high", "critical"]),
   description: z.string().min(1, "Description is required"),
   attachments: z.array(attachmentSchema).optional(),
   site: z.object({
@@ -29,9 +27,7 @@ export const ADD_RECOMMENDATION_SCHEMA = z.object({
 
 export const EDIT_RECOMMENDATION_SCHEMA = z.object({
   title: z.string().min(1, "Title is required"),
-  severity: z.enum(["low", "medium", "high", "critical"], {
-    required_error: "Severity is required",
-  }),
+  severity: z.enum(["low", "medium", "high", "critical"]),
   description: z.string().min(1, "Description is required"),
   attachments: z.array(attachmentSchema).optional(),
   site: z.object({

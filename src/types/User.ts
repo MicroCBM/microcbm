@@ -1,4 +1,4 @@
-interface User {
+export interface User {
   country: string;
   created_at: number;
   created_at_datetime: string;
@@ -53,6 +53,7 @@ interface User {
   updated_at: number;
   updated_at_datetime: string;
 }
+
 interface AddUserPayload {
   user: {
     first_name: string;
@@ -95,4 +96,4 @@ interface EditUserPayload {
   password?: string;
 }
 
-export type { User, AddUserPayload, EditUserPayload };
+export type { AddUserPayload, EditUserPayload };

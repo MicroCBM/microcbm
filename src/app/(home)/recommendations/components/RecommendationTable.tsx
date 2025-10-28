@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
   Text,
 } from "@/components";
-import { Recommendation, Sites, Assets } from "@/types";
+import { Recommendation, Sites, Asset } from "@/types";
 import { ViewRecommendationModal } from "./ViewRecommendationModal";
 import { DeleteRecommendationModal } from "./DeleteRecommendationModal";
 import { useRouter } from "next/navigation";
@@ -29,7 +29,7 @@ interface RecommendationTableProps {
   data: Recommendation[];
   className?: string;
   sites?: Sites[];
-  assets?: Assets[];
+  assets?: Asset[];
 }
 
 export function RecommendationTable({

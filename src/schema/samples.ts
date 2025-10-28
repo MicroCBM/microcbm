@@ -19,7 +19,7 @@ export const ADD_SAMPLE_SCHEMA = z.object({
   filter_changed: z.string().min(1, "Filter changed is required"),
   oil_drained: z.string().min(1, "Oil drained is required"),
   severity: z.string().min(1, "Severity is required"),
-  wear_metals: z.record(z.string()).optional(),
+  wear_metals: z.record(z.string(), z.string()).optional(),
   contaminants: z
     .array(
       z.object({
@@ -68,7 +68,7 @@ export const EDIT_SAMPLE_SCHEMA = z.object({
   filter_changed: z.string().min(1, "Filter changed is required"),
   oil_drained: z.string().min(1, "Oil drained is required"),
   severity: z.string().min(1, "Severity is required"),
-  wear_metals: z.record(z.string()).optional(),
+  wear_metals: z.record(z.string(), z.string()).optional(),
   contaminants: z
     .array(
       z.object({
