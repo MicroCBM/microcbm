@@ -22,9 +22,6 @@ export function RecommendationsSummary({
   const mediumRecommendations = recommendations.filter(
     (r) => r.severity === "medium"
   ).length;
-  const lowRecommendations = recommendations.filter(
-    (r) => r.severity === "low"
-  ).length;
 
   const summaryCards = [
     {

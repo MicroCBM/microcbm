@@ -143,7 +143,7 @@ export const EditAssetForm = ({
           : undefined,
       });
     }
-  }, [asset, assetId]);
+  }, [asset, assetId, reset]);
 
   const onSubmit = async (data: AddAssetPayload) => {
     console.log("submit data", data);

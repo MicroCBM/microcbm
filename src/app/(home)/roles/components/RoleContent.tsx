@@ -28,6 +28,7 @@ export function RoleContent({
   console.log("permissionsData", permissionsData);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  console.log("statusFilter", statusFilter);
 
   const [tab, setTab] = useState("roles");
 
