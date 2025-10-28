@@ -88,13 +88,13 @@ export function AddSampleForm({
         }
       });
 
-      const payload: any = {
+      const payload: unknown = {
         ...data,
         date_sampled: dateSampled,
         wear_metals: wearMetalsArray.length > 0 ? wearMetalsArray : undefined,
       };
 
-      const response = await addSampleService(payload);
+      const response = await addSampleService(payload as AddSamplePayload);
       if (response.success) {
         toast.success("Sample created successfully", {
           description: "The sample has been added to your system.",

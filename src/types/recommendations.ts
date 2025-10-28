@@ -31,16 +31,6 @@ export interface Recommendation {
   updated_at_datetime: string;
 }
 
-export interface RecommendationFilters {
-  search?: string;
-  title?: string;
-  severity?: string;
-  status?: string;
-  site?: string;
-  asset?: string;
-  recommender?: string;
-}
-
 export interface AddRecommendationPayload {
   title: string;
   severity: "low" | "medium" | "high" | "critical";
