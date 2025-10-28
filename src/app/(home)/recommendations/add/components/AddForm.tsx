@@ -14,16 +14,72 @@ import { ADD_RECOMMENDATION_SCHEMA, AddRecommendationPayload } from "@/schema";
 import { addRecommendationService } from "@/app/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Sites, Asset, User } from "@/types";
+import { Sites, Asset } from "@/types";
 import Input from "@/components/input/Input";
 import { Icon } from "@/libs";
+
+interface USER_TYPE {
+  country: string;
+  created_at: number;
+  created_at_datetime: string;
+  date_of_birth: string;
+  email: string;
+  first_name: string;
+  id: string;
+  last_name: string;
+  organization: {
+    created_at: number;
+    created_at_datetime: string;
+    description: string;
+    id: string;
+    industry: string;
+    logo_url: string;
+    members: unknown;
+    name: string;
+    owner: unknown;
+    sites: unknown;
+    team_strength: string;
+    updated_at: number;
+    updated_at_datetime: string;
+  };
+  password_hash: string;
+  phone: string;
+  role: string;
+  role_id: string | null;
+  role_obj: unknown;
+  site: {
+    address: string;
+    attachments: null;
+    city: string;
+    country: string;
+    created_at: number;
+    created_at_datetime: string;
+    description: string;
+    id: string;
+    installation_environment: string;
+    manager_email: string;
+    manager_location: string;
+    manager_name: string;
+    manager_phone_number: string;
+    members: unknown;
+    name: string;
+    organization: unknown;
+    regulations_and_standards: unknown;
+    tag: string;
+    updated_at: number;
+    updated_at_datetime: string;
+  };
+  status: string;
+  updated_at: number;
+  updated_at_datetime: string;
+}
 
 type FormData = AddRecommendationPayload;
 
 interface AddFormProps {
   sites: Sites[];
   assets: Asset[];
-  users: User[];
+  users: USER_TYPE[];
 }
 
 export const AddForm = ({ sites, assets, users }: AddFormProps) => {
