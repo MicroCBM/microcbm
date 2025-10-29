@@ -1,6 +1,5 @@
 export * from "./common";
 export * from "./inventory";
-export * from "./user";
 export * from "./organizations";
 export * from "./departments";
 export * from "./alarms";
