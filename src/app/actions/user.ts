@@ -1,6 +1,5 @@
 "use server";
 
-import { AddUserPayload } from "@/types";
 import { ApiResponse, handleApiRequest, requestWithAuth } from "./helpers";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -80,6 +79,27 @@ interface EditUserPayload {
       id: string;
     };
   };
+}
+
+interface AddUserPayload {
+  user: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    role: string;
+    status: string;
+    phone: string;
+    country: string;
+    date_of_birth: string;
+    role_id: string;
+    organization: {
+      id: string;
+    };
+    site: {
+      id: string;
+    };
+  };
+  password: string;
 }
 
 const commonEndpoint = "/api/v1/users";
