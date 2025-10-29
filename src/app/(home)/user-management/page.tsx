@@ -14,6 +14,8 @@ export default async function UserManagementPage() {
   const sites = await getSitesService();
   const organizations = await getOrganizationsService();
 
+  console.log("users table", users);
+
   return (
     <main className="flex flex-col gap-4">
       <UserContent

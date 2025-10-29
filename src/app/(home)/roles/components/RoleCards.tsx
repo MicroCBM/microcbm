@@ -13,8 +13,10 @@ interface Role {
   name: string;
   permissions: Permission[];
   level: number;
+  description: string;
   created_at: number;
   created_at_datetime: string;
+  active: boolean;
 }
 
 interface Permission {
@@ -119,20 +121,19 @@ export function RoleCards({
                     className="w-5 h-5 text-gray-600"
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Text variant="span" className="text-gray-900">
-                    {role.name}
-                  </Text>
-                  <StatusBadge
-                    status={
-                      role.level === 1
-                        ? "Low"
-                        : role.level === 2
-                        ? "Medium"
-                        : "High"
-                    }
-                  />
-                </div>
+                <section className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Text variant="span" className="text-gray-900">
+                      {role.name}
+                    </Text>
+                    <StatusBadge status={role.active ? "Active" : "Inactive"} />
+                  </div>
+
+                  {/* should span 2 lines */}
+                  <p className="text-[#807f94] text-xs line-clamp-2">
+                    {role.description || "No description"}
+                  </p>
+                </section>
               </div>
               <div className="relative">
                 <button

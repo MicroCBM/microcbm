@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,12 +12,70 @@ import {
   SelectContent,
   SelectTrigger,
   SelectValue,
+  ErrorText,
 } from "@/components";
 import { Icon } from "@/libs";
 import { AddSamplingPointPayload, ADD_SAMPLING_POINT_SCHEMA } from "@/schema";
-import { addSamplingPointService, getAssetsService } from "@/app/actions";
+import { addSamplingPointService } from "@/app/actions";
 import { Asset } from "@/types";
 import Input from "@/components/input/Input";
+import { SamplingRoute } from "@/types";
+
+interface USER_TYPE {
+  country: string;
+  created_at: number;
+  created_at_datetime: string;
+  date_of_birth: string;
+  email: string;
+  first_name: string;
+  id: string;
+  last_name: string;
+  organization: {
+    created_at: number;
+    created_at_datetime: string;
+    description: string;
+    id: string;
+    industry: string;
+    logo_url: string;
+    members: unknown;
+    name: string;
+    owner: unknown;
+    sites: unknown;
+    team_strength: string;
+    updated_at: number;
+    updated_at_datetime: string;
+  };
+  password_hash: string;
+  phone: string;
+  role: string;
+  role_id: string | null;
+  role_obj: unknown;
+  site: {
+    address: string;
+    attachments: null;
+    city: string;
+    country: string;
+    created_at: number;
+    created_at_datetime: string;
+    description: string;
+    id: string;
+    installation_environment: string;
+    manager_email: string;
+    manager_location: string;
+    manager_name: string;
+    manager_phone_number: string;
+    members: unknown;
+    name: string;
+    organization: unknown;
+    regulations_and_standards: unknown;
+    tag: string;
+    updated_at: number;
+    updated_at_datetime: string;
+  };
+  status: string;
+  updated_at: number;
+  updated_at_datetime: string;
+}
 
 const CIRCUIT_TYPES = [
   "Circulating Oil (Recirculation System)",
@@ -59,16 +117,6 @@ const SYSTEM_CAPACITIES = [
   "Very Large (> 500 L / > 132 Gal)",
 ];
 
-const OIL_GRADES = [
-  "Mineral Oil (R&O)",
-  "Synthetic Oil (PAO)",
-  "Synthetic Oil (PAG)",
-  "Synthetic Oil (Esters)",
-  "Biodegradable Oil",
-  "Fire-resistant Oil",
-  "Other",
-];
-
 const STATUS_OPTIONS = [
   { value: "active", label: "Active" },
   { value: "inactive", label: "Inactive" },
@@ -82,18 +130,23 @@ const SEVERITY_OPTIONS = [
   { value: "critical", label: "Critical" },
 ];
 
-export function AddSamplingPointForm() {
+export function AddSamplingPointForm({
+  users,
+  sampling_routes,
+  assets,
+}: {
+  users: USER_TYPE[];
+  sampling_routes: SamplingRoute[];
+  assets: Asset[];
+}) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [assets, setAssets] = useState<Asset[]>([]);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const {
     register,
     control,
     handleSubmit,
     formState: { errors },
-    setValue,
-    watch,
   } = useForm<AddSamplingPointPayload>({
     resolver: zodResolver(ADD_SAMPLING_POINT_SCHEMA),
     defaultValues: {
@@ -102,21 +155,7 @@ export function AddSamplingPointForm() {
     },
   });
 
-  const selectedParentAsset = watch("parent_asset");
-
-  useEffect(() => {
-    const fetchAssets = async () => {
-      try {
-        const data = await getAssetsService();
-        setAssets(data);
-      } catch (error) {
-        console.error("Error fetching assets:", error);
-        toast.error("Failed to fetch assets");
-      }
-    };
-
-    fetchAssets();
-  }, []);
+  console.log("errors", errors);
 
   const onSubmit = async (data: AddSamplingPointPayload) => {
     console.log("submit data", data);
@@ -185,14 +224,14 @@ export function AddSamplingPointForm() {
                   error={errors.tag?.message}
                 />
 
-                <Controller
-                  control={control}
-                  name="parent_asset.id"
-                  render={({ field }) => (
-                    <div>
+                <div>
+                  <Controller
+                    control={control}
+                    name="parent_asset"
+                    render={({ field }) => (
                       <Select
-                        value={field.value || ""}
-                        onValueChange={field.onChange}
+                        value={field.value?.id || ""}
+                        onValueChange={(value) => field.onChange({ id: value })}
                       >
                         <SelectTrigger label="Parent Asset">
                           <SelectValue placeholder="Select an asset" />
@@ -205,16 +244,19 @@ export function AddSamplingPointForm() {
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
+                    )}
+                  />
+                  {errors.parent_asset?.id && (
+                    <ErrorText error={errors.parent_asset.id.message} />
                   )}
-                />
+                </div>
               </div>
             </section>
 
-            {/* Technical Specifications */}
+            {/* Lubrication System Details */}
             <section className="flex flex-col gap-6 border border-gray-200 p-6">
               <Text variant="h6" className="mb-4">
-                Technical Specifications
+                Lubrication System Details
               </Text>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Controller
@@ -319,7 +361,142 @@ export function AddSamplingPointForm() {
                   {...register("current_oil_grade")}
                   error={errors.current_oil_grade?.message}
                 />
+
+                <Input
+                  label="Last Sample Date"
+                  type="date"
+                  placeholder="Enter last sample date"
+                  {...register("last_sample_date")}
+                  error={errors.last_sample_date?.message}
+                />
+                <Input
+                  label="Effective Date"
+                  type="date"
+                  placeholder="Enter effective date"
+                  {...register("effective_date")}
+                  error={errors.effective_date?.message}
+                />
               </div>
+            </section>
+
+            {/* Scheduling & Logistics */}
+            <section className="flex flex-col gap-6 border border-gray-200 p-6">
+              <Text variant="h6" className="mb-4">
+                Scheduling & Logistics
+              </Text>
+              <div className="flex flex-col gap-4">
+                <Input
+                  type="date"
+                  label="Next Due Date"
+                  placeholder="Calculated from interval and last sample date"
+                  {...register("next_due_date")}
+                  error={errors.next_due_date?.message}
+                />
+
+                <div>
+                  <Controller
+                    name="assignee"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value?.id || ""}
+                        onValueChange={(value) => field.onChange({ id: value })}
+                      >
+                        <SelectTrigger
+                          className="col-span-full"
+                          label="Assignee"
+                        >
+                          <SelectValue placeholder="Select an assignee" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {users.map((user) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.first_name} {user.last_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.assignee?.id && (
+                    <ErrorText error={errors.assignee.id.message} />
+                  )}
+                </div>
+
+                <div>
+                  <Controller
+                    control={control}
+                    name="sampling_route"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value?.id || ""}
+                        onValueChange={(value) => field.onChange({ id: value })}
+                      >
+                        <SelectTrigger label="Sampling Route">
+                          <SelectValue placeholder="Select a sampling route" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sampling_routes.map((route) => (
+                            <SelectItem key={route.id} value={route.id}>
+                              {route.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.sampling_route?.id && (
+                    <ErrorText error={errors.sampling_route.id.message} />
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label="Sampling Port Type"
+                    placeholder="Enter sampling port type"
+                    {...register("sampling_port_type")}
+                    error={errors.sampling_port_type?.message}
+                  />
+                  <Input
+                    label="Sampling Port Location"
+                    placeholder="Enter sampling port location"
+                    {...register("sampling_port_location")}
+                    error={errors.sampling_port_location?.message}
+                  />
+                </div>
+
+                <Input
+                  label="Lab Destination"
+                  placeholder="Enter lab destination"
+                  {...register("lab_destination")}
+                  error={errors.lab_destination?.message}
+                />
+
+                <Input
+                  label="Sampling volume (ml)"
+                  placeholder="Enter sampling volume"
+                  {...register("sampling_volume")}
+                  error={errors.sampling_volume?.message}
+                />
+
+                <Input
+                  label="Special Instructions/Safety Notes"
+                  type="textarea"
+                  placeholder="Enter special instructions/safety notes"
+                  {...register("special_instructions")}
+                  error={errors.special_instructions?.message}
+                />
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-6 border border-gray-100 p-6">
+              {/* here is where you can upload the image */}
+              <Text variant="p">Attachments (optional)</Text>
+              <Input
+                type="file"
+                label="Upload Image"
+                placeholder="Upload image"
+              />
             </section>
           </div>
           <div className="flex flex-col gap-6 border border-gray-200 p-6 max-w-[300px] w-full">

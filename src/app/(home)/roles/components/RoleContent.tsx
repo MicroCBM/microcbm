@@ -37,7 +37,7 @@ export function RoleContent({
       {/* Header */}
       <div className="flex items-center justify-between">
         <Text variant="h6">Roles & Permissions</Text>
-        <AddRoleModal permissionsData={permissionsData} />
+        <AddRoleModal />
       </div>
 
       {/* Tabs */}

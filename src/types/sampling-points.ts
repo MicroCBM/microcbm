@@ -79,6 +79,14 @@ interface SamplingPoint {
   current_oil_grade: string;
   status: string;
   severity: string;
+  sampling_port_type: string;
+  sampling_port_location: string;
+  lab_destination: string;
+  sampling_volume: string;
+  special_instructions: string;
+  last_sample_date: number;
+  effective_date: number;
+  next_due_date: number;
   created_at: number;
   created_at_datetime: string;
   updated_at: number;

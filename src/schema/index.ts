@@ -6,5 +6,6 @@ export * from "./departments";
 export * from "./alarms";
 export * from "./recommendations";
 export * from "./sampling-points";
+export * from "./sampling-routes";
 export * from "./roles";
 export * from "./samples";

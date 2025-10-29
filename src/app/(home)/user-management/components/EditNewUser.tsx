@@ -25,6 +25,7 @@ import * as RPNInput from "react-phone-number-input";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import dayjs from "dayjs";
+import { useRouter } from "next/navigation";
 
 interface USER_TYPE {
   country: string;
@@ -134,6 +135,7 @@ export const EditNewUser = ({
   rolesData: Role[];
   organizations: Organization[];
 }) => {
+  const router = useRouter();
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -145,7 +147,7 @@ export const EditNewUser = ({
     mode: "onSubmit",
   });
 
-  console.log("user in edit new user", user);
+  // console.log("user in edit new user", user);
 
   React.useEffect(() => {
     if (!user) return;
@@ -185,6 +187,7 @@ export const EditNewUser = ({
       const result = await editUserService(user?.id as string, payload);
       if (result.success) {
         toast.success("User updated successfully!");
+        router.refresh();
         onClose();
       } else {
         toast.error(result.message || "Failed to update user");

@@ -8,6 +8,7 @@ export * from "./departments";
 export * from "./alarms";
 export * from "./recommendations";
 export * from "./sampling-points";
+export * from "./sampling-routes";
 export * from "./samples";
 
 // Re-export types only

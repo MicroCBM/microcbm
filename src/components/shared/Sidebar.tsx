@@ -36,6 +36,7 @@ export default function Sidebar({
         { label: "Assets", href: "/assets" },
         { label: "Sites", href: "/sites" },
         { label: "Sampling Points", href: "/sampling-points" },
+        { label: "Sampling Routes", href: "/sampling-routes" },
       ],
     },
     {

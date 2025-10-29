@@ -26,6 +26,7 @@ import * as RPNInput from "react-phone-number-input";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 
 interface Role {
   id: string;
@@ -53,6 +54,8 @@ export const AddNewUser = ({
   organizations: Organization[];
   sites: Sites[];
 }) => {
+  const router = useRouter();
+  const [isOpen, setIsOpen] = React.useState(false);
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -100,6 +103,8 @@ export const AddNewUser = ({
       toast.success("User added successfully", {
         description: `${response.data?.message}`,
       });
+      setIsOpen(false);
+      router.refresh();
     } else {
       toast.error(
         response.message || "User addition failed. Please try again."
@@ -109,7 +114,7 @@ export const AddNewUser = ({
 
   return (
     <>
-      <Sheet>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button size="medium" className="rounded-full">
             <Icon icon="mdi:plus-circle" className="text-white size-5" />

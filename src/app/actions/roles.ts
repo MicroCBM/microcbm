@@ -10,8 +10,10 @@ interface Role {
   name: string;
   permissions: Permission[];
   level: number;
+  description: string;
   created_at: number;
   created_at_datetime: string;
+  active: boolean;
 }
 
 interface Permission {

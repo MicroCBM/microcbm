@@ -5,6 +5,7 @@ import { getSamplingPointsService } from "@/app/actions";
 
 export default async function SamplingPointsPage() {
   const samplingPoints = await getSamplingPointsService();
+
   console.log("samplingPoints", samplingPoints);
 
   return (
