@@ -1,6 +1,6 @@
 "use server";
 import React from "react";
-import { EditSamplingRouteForm } from "./components";
+import { EditSamplingRouteForm } from "./components/EditSamplingRouteForm";
 import {
   getUsersService,
   getSitesService,
@@ -9,19 +9,20 @@ import {
 import { notFound } from "next/navigation";
 
 interface EditSamplingRoutePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditSamplingRoutePage({
   params,
 }: EditSamplingRoutePageProps) {
   try {
+    const { id } = await params;
     const [users, sites, samplingRoute] = await Promise.all([
       getUsersService(),
       getSitesService(),
-      getSamplingRouteService(params.id),
+      getSamplingRouteService(id),
     ]);
 
     // Filter users to only include technicians

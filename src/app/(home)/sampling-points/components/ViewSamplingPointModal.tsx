@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui";
-import { Text, StatusBadge } from "@/components";
+import { StatusBadge } from "@/components";
 import { SamplingPoint } from "@/types";
 import dayjs from "dayjs";
 
