@@ -47,7 +47,14 @@ export default async function RecommendationsPage({
         data={recommendations}
         sites={sites}
         assets={assets}
-        users={users}
+        users={
+          users as Array<{
+            id: string;
+            first_name: string;
+            last_name: string;
+            email?: string;
+          }>
+        }
       />
     </main>
   );

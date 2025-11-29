@@ -1,6 +1,7 @@
 import React from "react";
 
 import { Icon } from "@iconify/react";
+import Image from "next/image";
 
 interface ImageUploadProps {
   file: File | null;
@@ -54,10 +55,12 @@ export default function ImageUpload({
       />
       <div className="grid inset-0 m-auto rounded-full">
         {displayImage ? (
-          <img
-            src={displayImage}
+          <Image
+            height={120}
+            width={120}
+            src={displayImage as string}
             alt="profile"
-            className="w-full h-[120px] object-cover rounded-[12px]"
+            className="object-cover rounded-[12px]"
           />
         ) : (
           <Icon

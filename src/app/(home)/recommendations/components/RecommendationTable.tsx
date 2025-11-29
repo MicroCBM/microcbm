@@ -25,12 +25,19 @@ import { deleteRecommendationService } from "@/app/actions";
 import { toast } from "sonner";
 import { EditRecommendationModal } from "./EditRecommendationModal";
 
+interface UserType {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email?: string;
+}
+
 interface RecommendationTableProps {
   data: Recommendation[];
   className?: string;
   sites?: Sites[];
   assets?: Asset[];
-  users?: unknown[];
+  users?: UserType[];
 }
 
 export function RecommendationTable({
@@ -153,15 +160,15 @@ export function RecommendationTable({
       header: "Recommender",
       cell: ({ row }) => {
         const recommender = users.find(
-          (user: unknown) => user.id === row.original.recommender?.id
+          (user) => user.id === row.original.recommender?.id
         );
-        return (
-          <span className="text-sm text-gray-900">
-            {recommender?.first_name + " " + recommender?.last_name ||
-              "-" ||
-              "-"}
-          </span>
-        );
+        const fullName =
+          recommender?.first_name || recommender?.last_name
+            ? `${recommender?.first_name || ""} ${
+                recommender?.last_name || ""
+              }`.trim()
+            : "-";
+        return <span className="text-sm text-gray-900">{fullName}</span>;
       },
       size: 150,
     },

@@ -28,7 +28,7 @@ export function Permissions({ data }: { data: Permission[] }) {
   const groupedPermissions = useMemo(() => {
     const map = new Map<string, Permission[]>();
 
-    data.permissions.forEach((permission) => {
+    data.forEach((permission: Permission) => {
       if (!permission.resource) return;
       if (!map.has(permission.resource)) {
         map.set(permission.resource, []);

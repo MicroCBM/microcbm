@@ -28,17 +28,21 @@ interface Permission {
   name: string;
   resource: string;
   action: string;
+  created_at: number;
+  created_at_datetime: string;
 }
 
 export function SingleRoleInfo({ role }: Readonly<{ role: Role }>) {
   const [isRoleActive, setIsRoleActive] = React.useState(role.active);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   const handleCloseDeleteModal = () => {
     setIsDeleteModalOpen(false);
   };
 
   const handleConfirmDelete = async () => {
+    setIsDeleting(true);
     try {
       const response = await deleteRoleService(role.id);
       console.log("response", response);
@@ -55,6 +59,8 @@ export function SingleRoleInfo({ role }: Readonly<{ role: Role }>) {
       toast.error(
         (error as Error).message || "Failed to delete role. Please try again."
       );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -188,6 +194,7 @@ export function SingleRoleInfo({ role }: Readonly<{ role: Role }>) {
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
       />
     </>
   );

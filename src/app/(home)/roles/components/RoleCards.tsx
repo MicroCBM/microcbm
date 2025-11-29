@@ -56,7 +56,7 @@ export function RoleCards({
     useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [searchName, setSearchName] = useUrlState("name", "");
-  const [roleId, setRoleId] = useUrlState("roleId", "");
+  const [, setRoleId] = useUrlState("roleId", "");
 
   // Find the selected role from data
   const selectedRoleFromData = selectedRoleId

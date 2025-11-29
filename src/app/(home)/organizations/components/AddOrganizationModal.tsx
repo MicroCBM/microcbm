@@ -82,7 +82,7 @@ export const AddOrganizationModal = () => {
     setIsUploadingImage(true);
 
     try {
-      const response = await uploadImage({ file });
+      const response = await uploadImage({ file: file as File }, "organization-logos");
 
       if (response.success) {
         // Extract filename from response

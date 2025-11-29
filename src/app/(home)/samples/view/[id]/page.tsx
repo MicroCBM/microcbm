@@ -1,11 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  getSampleService,
-  getSampleContaminantsAnalyticsService,
-  getSampleAnalysisGroupsAnalyticsService,
-} from "@/app/actions";
+import { getSampleService } from "@/app/actions";
 import { Sample } from "@/types";
 import { toast } from "sonner";
 import { SampleAnalyticsView } from "./components/SampleAnalyticsView";
@@ -72,4 +68,3 @@ export default function ViewSampleAnalyticsPage() {
     </main>
   );
 }
-

@@ -10,6 +10,27 @@ import { Text } from "@/components";
 import { SampleAnalyticsChart } from "./SampleAnalyticsChart";
 import { SampleAnalyticsTable } from "./SampleAnalyticsTable";
 
+interface AnalyticsDataPoint {
+  name?: string;
+  element?: string;
+  value?: number;
+  count?: number;
+  date?: string;
+  timestamp?: number;
+  label?: string;
+  [key: string]: unknown;
+}
+
+interface NestedAnalyticsData {
+  data?: number[] | AnalyticsDataPoint[];
+  labels?: string[];
+  series?: AnalyticsDataPoint[];
+  values?: AnalyticsDataPoint[];
+  items?: AnalyticsDataPoint[];
+  results?: AnalyticsDataPoint[];
+  [key: string]: unknown;
+}
+
 const CATEGORIES = [
   { value: "Wear Metals", label: "Wear Metals" },
   { value: "Contaminants", label: "Contaminants" },
@@ -37,8 +58,8 @@ interface SampleAnalyticsViewProps {
 export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
   const [activeCategory, setActiveCategory] = useState("Wear Metals");
   const [selectedPeriod, setSelectedPeriod] = useState("3");
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [tableData, setTableData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<AnalyticsDataPoint[]>([]);
+  const [tableData, setTableData] = useState<AnalyticsDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedElement, setSelectedElement] =
     useState<string>("All Elements");
@@ -65,44 +86,87 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
 
         if (response.success && response.data) {
           // Process the data based on the API response structure
-          let data: any[] = [];
+          let data: AnalyticsDataPoint[] = [];
 
           // Handle nested structure: response.data.data.data and response.data.data.labels
-          const nestedData = response.data?.data as any;
+          const nestedData = response.data?.data as
+            | NestedAnalyticsData
+            | AnalyticsDataPoint[]
+            | unknown;
 
-          if (nestedData?.data && Array.isArray(nestedData.data)) {
-            // If we have labels and data arrays, combine them
-            if (nestedData.labels && Array.isArray(nestedData.labels)) {
-              data = nestedData.data.map((value: number, index: number) => ({
-                name: nestedData.labels[index],
-                element: nestedData.labels[index],
-                value: value,
-                label: nestedData.labels[index],
-              }));
-            } else {
-              // Just use the data array
-              data = nestedData.data;
-            }
-          } else if (nestedData && Array.isArray(nestedData)) {
-            // Direct array response
-            data = nestedData;
-          } else if (nestedData && typeof nestedData === "object") {
-            // Try to extract from common keys
-            if (nestedData.series && Array.isArray(nestedData.series)) {
-              data = nestedData.series;
-            } else if (nestedData.values && Array.isArray(nestedData.values)) {
-              data = nestedData.values;
-            } else if (nestedData.items && Array.isArray(nestedData.items)) {
-              data = nestedData.items;
+          if (
+            nestedData &&
+            typeof nestedData === "object" &&
+            !Array.isArray(nestedData)
+          ) {
+            const typedNestedData = nestedData as NestedAnalyticsData;
+
+            if (typedNestedData.data && Array.isArray(typedNestedData.data)) {
+              // If we have labels and data arrays, combine them
+              if (
+                typedNestedData.labels &&
+                Array.isArray(typedNestedData.labels)
+              ) {
+                // Check if data is array of numbers (for labels mapping)
+                if (
+                  typedNestedData.data.length > 0 &&
+                  typeof typedNestedData.data[0] === "number"
+                ) {
+                  data = (typedNestedData.data as number[]).map(
+                    (value: number, index: number) => ({
+                      name: typedNestedData.labels?.[index] || "",
+                      element: typedNestedData.labels?.[index] || "",
+                      value: value,
+                      label: typedNestedData.labels?.[index] || "",
+                    })
+                  );
+                } else {
+                  // Data is already array of objects
+                  data = typedNestedData.data as AnalyticsDataPoint[];
+                }
+              } else {
+                // Just use the data array (might be numbers or objects)
+                if (
+                  typedNestedData.data.length > 0 &&
+                  typeof typedNestedData.data[0] === "number"
+                ) {
+                  // Convert numbers to objects
+                  data = (typedNestedData.data as number[]).map(
+                    (value: number) => ({
+                      value: value,
+                    })
+                  );
+                } else {
+                  data = typedNestedData.data as AnalyticsDataPoint[];
+                }
+              }
             } else if (
-              nestedData.results &&
-              Array.isArray(nestedData.results)
+              typedNestedData.series &&
+              Array.isArray(typedNestedData.series)
             ) {
-              data = nestedData.results;
+              data = typedNestedData.series;
+            } else if (
+              typedNestedData.values &&
+              Array.isArray(typedNestedData.values)
+            ) {
+              data = typedNestedData.values;
+            } else if (
+              typedNestedData.items &&
+              Array.isArray(typedNestedData.items)
+            ) {
+              data = typedNestedData.items;
+            } else if (
+              typedNestedData.results &&
+              Array.isArray(typedNestedData.results)
+            ) {
+              data = typedNestedData.results;
             }
+          } else if (Array.isArray(nestedData)) {
+            // Direct array response
+            data = nestedData as AnalyticsDataPoint[];
           } else if (Array.isArray(response.data)) {
             // Fallback: response.data is directly an array
-            data = response.data;
+            data = response.data as AnalyticsDataPoint[];
           }
 
           setChartData(data);
@@ -127,10 +191,14 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
       return ["All Elements"];
     }
     const uniqueElements = new Set<string>();
-    chartData.forEach((item: any) => {
+    chartData.forEach((item: AnalyticsDataPoint) => {
       if (item && typeof item === "object") {
-        if (item.element) uniqueElements.add(item.element);
-        if (item.name) uniqueElements.add(item.name);
+        if (item.element && typeof item.element === "string") {
+          uniqueElements.add(item.element);
+        }
+        if (item.name && typeof item.name === "string") {
+          uniqueElements.add(item.name);
+        }
       }
     });
     return ["All Elements", ...Array.from(uniqueElements)];
@@ -141,7 +209,7 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
     if (!Array.isArray(chartData)) return [];
     if (selectedElement === "All Elements") return chartData;
     return chartData.filter(
-      (item: any) =>
+      (item: AnalyticsDataPoint) =>
         item &&
         typeof item === "object" &&
         (item.element === selectedElement || item.name === selectedElement)

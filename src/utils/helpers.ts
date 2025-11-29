@@ -97,7 +97,7 @@ const filterRegions = (
     : filteredRegions;
 };
 
-const formatCurrency = (value: string, currency: string) => {
+const formatCurrency = (value: string) => {
   if (value && !isNaN(parseFloat(value))) {
     const formattedValue = parseFloat(value).toFixed(2);
     return formattedValue;

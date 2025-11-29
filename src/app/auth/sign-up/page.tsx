@@ -148,9 +148,12 @@ export default function SignUp() {
   async function handleImageUpload(file: File) {
     setIsUploadingImage(true);
 
-    const response = await uploadImage({ file }, "organization-logos");
+    const response = await uploadImage(
+      { file: file as File },
+      "organization-logos"
+    );
     // if (response.success) {
-    setUploadedFileName(response.data?.data?.file_key);
+    setUploadedFileName(response.data?.data?.file_key as string);
     // } else {
     //   setErrorMessage(
     //     response.message || "Image upload failed. Please try again."

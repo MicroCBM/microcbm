@@ -17,7 +17,7 @@ export default async function SitesPage() {
   return (
     <main className="flex flex-col gap-4">
       <SiteContent organizations={organizations} sites={sites} />
-      <SiteSummary sitesAnalytics={sitesAnalytics} />
+      {sitesAnalytics && <SiteSummary sitesAnalytics={sitesAnalytics} />}
       <SiteTable sites={sites} organizations={organizations} />
     </main>
   );

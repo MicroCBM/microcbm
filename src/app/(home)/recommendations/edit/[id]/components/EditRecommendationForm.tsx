@@ -89,7 +89,9 @@ export function EditRecommendationForm({
   // Filter assets based on selected site, but always include the current asset
   const filteredAssets = React.useMemo(() => {
     if (!selectedSiteId) return assets;
-    const filtered = assets.filter((asset) => asset.parent_site?.id === selectedSiteId);
+    const filtered = assets.filter(
+      (asset) => asset.parent_site?.id === selectedSiteId
+    );
     // Always include current asset if it exists, even if it doesn't match filter
     if (selectedAssetId && !filtered.some((a) => a.id === selectedAssetId)) {
       const currentAsset = assets.find((a) => a.id === selectedAssetId);
@@ -103,7 +105,7 @@ export function EditRecommendationForm({
     let filtered = samplingPoints;
     if (selectedSiteId) {
       filtered = filtered.filter(
-        (sp) => sp.site?.id === selectedSiteId
+        (sp) => sp.parent_asset?.parent_site?.id === selectedSiteId
       );
     }
     if (selectedAssetId) {
@@ -136,10 +138,7 @@ export function EditRecommendationForm({
 
   const onSubmit = async (data: EditRecommendationPayload) => {
     try {
-      const response = await editRecommendationService(
-        recommendation.id,
-        data
-      );
+      const response = await editRecommendationService(recommendation.id, data);
       if (response.success) {
         toast.success("Recommendation updated successfully", {
           description: "The recommendation has been updated.",
@@ -258,7 +257,9 @@ export function EditRecommendationForm({
                   onValueChange={(value) => {
                     field.onChange(value);
                     // Clear sampling point when asset changes
-                    setValue("sampling_point.id", "", { shouldValidate: false });
+                    setValue("sampling_point.id", "", {
+                      shouldValidate: false,
+                    });
                   }}
                   disabled={!selectedSiteId || filteredAssets.length === 0}
                 >
@@ -390,4 +391,3 @@ export function EditRecommendationForm({
     </>
   );
 }
-

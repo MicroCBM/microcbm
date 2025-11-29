@@ -16,40 +16,52 @@ interface ChartDataPoint {
   date?: string;
   timestamp?: number;
   value?: number;
-  [key: string]: any;
+  element?: string;
+  name?: string;
+  count?: number;
+  created_at_datetime?: string;
+  date_sampled?: string;
+  [key: string]: unknown;
+}
+
+interface GroupedChartData {
+  date: string;
+  [elementName: string]: string | number;
 }
 
 interface SampleAnalyticsChartProps {
   data: ChartDataPoint[];
-  category: string;
+  category?: string;
 }
 
-export function SampleAnalyticsChart({
-  data,
-  category,
-}: SampleAnalyticsChartProps) {
+export function SampleAnalyticsChart({ data }: SampleAnalyticsChartProps) {
   // Transform data for the chart
   const chartData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
     // Group data by date if needed
-    const groupedByDate = data.reduce((acc: any, item: any) => {
-      const dateKey =
-        item.date ||
-        (item.timestamp
-          ? dayjs.unix(item.timestamp).format("MMM DD")
-          : dayjs(item.created_at_datetime || item.date_sampled).format("MMM DD"));
+    const groupedByDate = data.reduce(
+      (acc: Record<string, GroupedChartData>, item: ChartDataPoint) => {
+        const dateKey =
+          item.date ||
+          (item.timestamp
+            ? dayjs.unix(item.timestamp).format("MMM DD")
+            : dayjs(
+                (item.created_at_datetime || item.date_sampled) as string
+              ).format("MMM DD"));
 
-      if (!acc[dateKey]) {
-        acc[dateKey] = { date: dateKey };
-      }
+        if (!acc[dateKey]) {
+          acc[dateKey] = { date: dateKey };
+        }
 
-      // Add values for different elements/series
-      const elementName = item.element || item.name || "value";
-      acc[dateKey][elementName] = item.value || item.count || 0;
+        // Add values for different elements/series
+        const elementName = (item.element || item.name || "value") as string;
+        acc[dateKey][elementName] = item.value || item.count || 0;
 
-      return acc;
-    }, {});
+        return acc;
+      },
+      {} as Record<string, GroupedChartData>
+    );
 
     return Object.values(groupedByDate);
   }, [data]);
@@ -58,7 +70,7 @@ export function SampleAnalyticsChart({
   const seriesNames = React.useMemo(() => {
     if (!data || data.length === 0) return [];
     const names = new Set<string>();
-    data.forEach((item: any) => {
+    data.forEach((item: ChartDataPoint) => {
       if (item.element) names.add(item.element);
       if (item.name) names.add(item.name);
     });
@@ -89,8 +101,11 @@ export function SampleAnalyticsChart({
 
   // Calculate max value for Y-axis
   const maxValue = Math.max(
-    ...chartData.flatMap((d) =>
-      seriesNames.map((name) => d[name] || 0)
+    ...chartData.flatMap((d: GroupedChartData) =>
+      seriesNames.map((name) => {
+        const value = d[name];
+        return typeof value === "number" ? value : 0;
+      })
     ),
     1
   );
@@ -155,4 +170,3 @@ export function SampleAnalyticsChart({
     </div>
   );
 }
-

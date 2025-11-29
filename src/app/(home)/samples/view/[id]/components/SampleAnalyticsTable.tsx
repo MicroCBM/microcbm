@@ -6,9 +6,17 @@ interface TableDataPoint {
   element?: string;
   name?: string;
   value?: number;
+  count?: number;
   unit?: string;
   date?: string;
-  [key: string]: any;
+  timestamp?: number;
+  id?: string;
+  [key: string]: unknown;
+}
+
+interface TableRow {
+  date: string;
+  [columnName: string]: string | number | undefined;
 }
 
 interface SampleAnalyticsTableProps {
@@ -22,22 +30,6 @@ export function SampleAnalyticsTable({
   category,
   isLoading,
 }: SampleAnalyticsTableProps) {
-  if (isLoading) {
-    return (
-      <div className="p-6 flex items-center justify-center">
-        <div className="text-gray-500">Loading table data...</div>
-      </div>
-    );
-  }
-
-  if (!data || data.length === 0) {
-    return (
-      <div className="p-6 flex items-center justify-center">
-        <div className="text-gray-500">No data available</div>
-      </div>
-    );
-  }
-
   // Extract column names based on category
   const columns = React.useMemo(() => {
     if (category === "Wear Metals") {
@@ -64,45 +56,78 @@ export function SampleAnalyticsTable({
     }
     // Fallback: extract from data
     const columnSet = new Set<string>();
-    data.forEach((item) => {
-      Object.keys(item).forEach((key) => {
-        if (
-          key !== "date" &&
-          key !== "timestamp" &&
-          key !== "id" &&
-          key !== "element" &&
-          key !== "name"
-        ) {
-          columnSet.add(key);
-        }
+    if (data && data.length > 0) {
+      data.forEach((item) => {
+        Object.keys(item).forEach((key) => {
+          if (
+            key !== "date" &&
+            key !== "timestamp" &&
+            key !== "id" &&
+            key !== "element" &&
+            key !== "name"
+          ) {
+            columnSet.add(key);
+          }
+        });
       });
-    });
+    }
     return Array.from(columnSet);
   }, [data, category]);
 
   // Transform data into rows
-  const tableRows = React.useMemo(() => {
+  const tableRows = React.useMemo((): TableRow[] => {
     if (!data || data.length === 0) return [];
 
     // If data is an array of objects with element/value structure
     if (data[0]?.element || data[0]?.name) {
       // Create a single row with all elements
-      const row: Record<string, any> = { date: "TODAY" };
-      data.forEach((item: any) => {
-        const key = item.element || item.name;
+      const row: TableRow = { date: "TODAY" };
+      data.forEach((item: TableDataPoint) => {
+        const key = (item.element || item.name) as string;
         if (key) {
-          row[key] = item.value || item.count || "-";
+          const value = item.value || item.count;
+          if (value !== undefined && value !== null) {
+            row[key] = typeof value === "number" ? value : String(value);
+          } else {
+            row[key] = "-";
+          }
         }
       });
       return [row];
     }
 
     // Otherwise, use data as-is
-    return data.map((item, index) => ({
-      ...item,
-      date: item.date || (index === 0 ? "TODAY" : `Row ${index + 1}`),
-    }));
+    return data.map((item, index) => {
+      const row: TableRow = {
+        date: item.date || (index === 0 ? "TODAY" : `Row ${index + 1}`),
+      };
+      Object.keys(item).forEach((key) => {
+        if (key !== "date" && key !== "timestamp" && key !== "id") {
+          const value = item[key];
+          if (value !== undefined && value !== null) {
+            row[key] = value as string | number;
+          }
+        }
+      });
+      return row;
+    });
   }, [data]);
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-gray-500">Loading table data...</div>
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-gray-500">No data available</div>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
@@ -127,20 +152,20 @@ export function SampleAnalyticsTable({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {tableRows.map((row, rowIndex) => (
-            <tr
-              key={rowIndex}
-              className="hover:bg-gray-50 transition-colors"
-            >
+            <tr key={rowIndex} className="hover:bg-gray-50 transition-colors">
               <td className="px-4 py-3 text-sm font-medium text-gray-900">
                 {row.date || (rowIndex === 0 ? "TODAY" : `Row ${rowIndex + 1}`)}
               </td>
-              {columns.map((column) => (
-                <td key={column} className="px-4 py-3 text-sm text-gray-900">
-                  {typeof row[column] === "number"
-                    ? row[column].toFixed(2)
-                    : row[column] || "-"}
-                </td>
-              ))}
+              {columns.map((column) => {
+                const cellValue = row[column];
+                return (
+                  <td key={column} className="px-4 py-3 text-sm text-gray-900">
+                    {typeof cellValue === "number"
+                      ? cellValue.toFixed(2)
+                      : cellValue || "-"}
+                  </td>
+                );
+              })}
               <td className="px-4 py-3 text-sm">
                 <button className="p-1 hover:bg-gray-100 rounded">
                   <Icon
@@ -156,4 +181,3 @@ export function SampleAnalyticsTable({
     </div>
   );
 }
-

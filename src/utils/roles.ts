@@ -1,6 +1,10 @@
-import type { IAdmin, MenuItem, PermissionType } from "@/types";
+import type { MenuItem, PermissionType } from "@/types";
 
-export function getAllAdminPermissions(roles?: IAdmin["roles"]) {
+interface Role {
+  permissions?: PermissionType[] | string[];
+}
+
+export function getAllAdminPermissions(roles?: Role | Role[]) {
   if (!roles) return [];
 
   // Handle both single role and array of roles

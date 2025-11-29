@@ -217,7 +217,9 @@ export const EditAssetForm = ({
         );
       }
     } catch (error) {
-      toast.error("Failed to delete file. Please try again.");
+      toast.error(
+        (error as string) || "Failed to delete file. Please try again."
+      );
     } finally {
       setIsDeletingFile(false);
     }

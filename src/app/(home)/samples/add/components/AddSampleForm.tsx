@@ -30,7 +30,7 @@ export function AddSampleForm({
   samplingPoints,
 }: AddSampleFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setIsSubmitting] = useState(false);
 
   const form = useForm<AddSamplePayload>({
     resolver: zodResolver(ADD_SAMPLE_SCHEMA),
@@ -291,10 +291,6 @@ export function AddSampleForm({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleCancel = () => {
-    router.push("/samples");
   };
 
   const [steps, setSteps] = useState<number>(1);

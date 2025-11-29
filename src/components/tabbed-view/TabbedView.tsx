@@ -5,7 +5,7 @@ import { Tabs } from "@/components";
 
 interface TabConfig<T extends string> {
   key: T;
-  component: React.ComponentType<any>;
+  component: React.ComponentType<Record<string, unknown>>;
   label?: string; // Optional custom label, falls back to key
 }
 
@@ -31,7 +31,7 @@ export function TabbedView<T extends string>({
   // Create a map of tab keys to components
   const tabComponentMap = tabs.reduce(
     (acc, tab) => ({ ...acc, [tab.key]: tab.component }),
-    {} as Record<T, React.ComponentType<any>>
+    {} as Record<T, React.ComponentType<Record<string, unknown>>>
   );
 
   // Get the active component

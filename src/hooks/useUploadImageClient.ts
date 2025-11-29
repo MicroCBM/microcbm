@@ -1,10 +1,16 @@
+import React from "react";
 export function usePresignedUrl(
   fileKey?: string | null,
   shouldFetch: boolean = true
-): PresignedUrlState {
-  const [url, setUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+): {
+  url: string | null;
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+} {
+  const [url, setUrl] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   const fetchUrl = async () => {
     if (!fileKey || !shouldFetch) {
@@ -36,7 +42,7 @@ export function usePresignedUrl(
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchUrl();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileKey, shouldFetch]);

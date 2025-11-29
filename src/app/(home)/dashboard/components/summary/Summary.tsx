@@ -71,8 +71,18 @@ export const Summary = ({
             </div>
             <Text variant="h6">{item.value}</Text>
             <div className="flex items-center gap-2 px-[6.4px] py-[4.8px]">
-              <Text variant="span">{item.label?.label}</Text>
-              <Icon icon="mdi:trending-up" />
+              <Text variant="span">
+                {typeof item.label === "string"
+                  ? item.label
+                  : item.label?.label || ""}
+              </Text>
+              <Icon
+                icon={
+                  typeof item.label === "string"
+                    ? "mdi:trending-up"
+                    : item.label?.icon || "mdi:trending-up"
+                }
+              />
             </div>
             <Text variant="span" className="text-gray">
               {item.description}

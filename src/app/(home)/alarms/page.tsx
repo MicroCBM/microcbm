@@ -20,7 +20,7 @@ export default async function AlarmsPage() {
   return (
     <main className="flex flex-col gap-4">
       <AlarmContent sites={sites} />
-      <AlarmsSummery alarmsAnalytics={alarmsAnalytics} />
+      {alarmsAnalytics && <AlarmsSummery alarmsAnalytics={alarmsAnalytics} />}
       <AlarmFilters />
       <AlarmTable data={alarms} sites={sites} />
     </main>

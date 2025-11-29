@@ -19,7 +19,7 @@ export default async function AssetsPage({
   return (
     <main className="flex flex-col gap-4">
       <AssetContent sites={sites} />
-      <AssetSummary assetsAnalytics={assetsAnalytics} />
+      {assetsAnalytics && <AssetSummary assetsAnalytics={assetsAnalytics} />}
       <AssetTable data={assets} />
     </main>
   );
