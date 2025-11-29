@@ -4,13 +4,8 @@ import { SiteTable } from "@/app/(home)/sites/components";
 import { AssetTable } from "@/app/(home)/assets/components";
 import { SamplingPointTable } from "@/app/(home)/sampling-points/components";
 import { Asset, Organization, SamplingPoint, Sites } from "@/types";
+import { useContentGuard } from "@/hooks";
 import React from "react";
-
-const assetsTabs = [
-  { value: "site", label: "Site" },
-  { value: "assets", label: "Assets" },
-  { value: "sampling-points", label: "Sampling Points" },
-];
 
 interface CustomTabCompProps {
   sites: Sites[];
@@ -25,9 +20,47 @@ export const CustomTabComp = ({
   assetsList,
   samplingPoints,
 }: CustomTabCompProps) => {
+  // Check permissions for each tab
+  const { isAllowed: hasSitesPermission } = useContentGuard("sites:read");
+  const { isAllowed: hasAssetsPermission } = useContentGuard("assets:read");
+  const { isAllowed: hasSamplingPointsPermission } = useContentGuard(
+    "sampling_points:read"
+  );
+
+  // Build available tabs based on permissions
+  const availableTabs = React.useMemo(() => {
+    const tabs = [];
+    if (hasSitesPermission) {
+      tabs.push({ value: "site", label: "Site" });
+    }
+    if (hasAssetsPermission) {
+      tabs.push({ value: "assets", label: "Assets" });
+    }
+    if (hasSamplingPointsPermission) {
+      tabs.push({ value: "sampling-points", label: "Sampling Points" });
+    }
+    return tabs;
+  }, [hasSitesPermission, hasAssetsPermission, hasSamplingPointsPermission]);
+
+  // Set initial tab to first available tab
   const [selectedTab, setSelectedTab] = React.useState<
     "site" | "assets" | "sampling-points"
-  >("site");
+  >(() => {
+    if (availableTabs.length > 0) {
+      return availableTabs[0].value as "site" | "assets" | "sampling-points";
+    }
+    return "site";
+  });
+
+  // Update selected tab if current tab is no longer available
+  React.useEffect(() => {
+    const tabValues = availableTabs.map((tab) => tab.value);
+    if (!tabValues.includes(selectedTab) && availableTabs.length > 0) {
+      setSelectedTab(
+        availableTabs[0].value as "site" | "assets" | "sampling-points"
+      );
+    }
+  }, [availableTabs, selectedTab]);
 
   const getTotalCount = () => {
     switch (selectedTab) {
@@ -51,23 +84,30 @@ export const CustomTabComp = ({
     }
   };
 
+  // Don't render if no tabs available
+  if (availableTabs.length === 0) {
+    return null;
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <CustomTabs
           value={selectedTab}
           onValueChange={(value) => setSelectedTab(value as typeof selectedTab)}
-          tabs={assetsTabs}
+          tabs={availableTabs}
         />
         <Text variant="span">
           Total {getTotalCount()} {getLabel()}
         </Text>
       </div>
-      {selectedTab === "site" && (
+      {selectedTab === "site" && hasSitesPermission && (
         <SiteTable sites={sites} organizations={organizations} />
       )}
-      {selectedTab === "assets" && <AssetTable data={assetsList} />}
-      {selectedTab === "sampling-points" && (
+      {selectedTab === "assets" && hasAssetsPermission && (
+        <AssetTable data={assetsList} />
+      )}
+      {selectedTab === "sampling-points" && hasSamplingPointsPermission && (
         <SamplingPointTable data={samplingPoints} />
       )}
     </div>

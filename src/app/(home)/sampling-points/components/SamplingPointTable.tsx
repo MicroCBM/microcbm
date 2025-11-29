@@ -75,6 +75,7 @@ export function SamplingPointTable({
         toast.success("Sampling point deleted successfully", {
           description: "The sampling point has been permanently removed.",
         });
+        router.refresh();
         onSamplingPointDeleted?.();
         handleCloseDeleteModal();
       } else {

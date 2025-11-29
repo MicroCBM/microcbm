@@ -106,4 +106,33 @@ interface Sites {
   updated_at_datetime: string;
 }
 
-export type { Asset, Sites };
+interface SitesAnalytics {
+  issues_trend_percentage: number;
+  sites_trend_percentage: number;
+  sites_with_issues: number;
+  total_sites: number;
+}
+
+interface AssetAnalytics {
+  total_assets: number;
+  asset_trend: {
+    growth: number;
+    percentage: number;
+  };
+  critical_assets: {
+    total: number;
+    trend: {
+      growth: number;
+      percentage: number;
+    };
+  };
+  assets_with_alarms: {
+    total: number;
+    trend: {
+      growth: number;
+      percentage: number;
+    };
+  };
+}
+
+export type { Asset, Sites, SitesAnalytics, AssetAnalytics };

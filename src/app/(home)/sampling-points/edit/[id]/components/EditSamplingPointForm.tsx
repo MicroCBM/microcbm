@@ -1,132 +1,360 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Button, Text, Select, Label } from "@/components";
+import {
+  Button,
+  Text,
+  Select,
+  SelectItem,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+  ErrorText,
+  FileUploader,
+} from "@/components";
 import { Icon } from "@/libs";
 import { AddSamplingPointPayload, ADD_SAMPLING_POINT_SCHEMA } from "@/schema";
-import { editSamplingPointService, getAssetsService } from "@/app/actions";
-import { SamplingPoint, Asset } from "@/types";
+import {
+  editSamplingPointService,
+  uploadImage,
+  deleteFile,
+} from "@/app/actions";
+import { Asset, SamplingPoint, SamplingRoute } from "@/types";
 import Input from "@/components/input/Input";
+import { useState } from "react";
+import { usePresignedUrl } from "@/hooks";
+import dayjs from "dayjs";
+import {
+  CIRCUIT_TYPE_OPTIONS,
+  COMPONENT_TYPE_OPTIONS,
+  SAMPLE_FREQUENCY_OPTIONS,
+  SEVERITY_OPTIONS,
+  STATUS_OPTIONS,
+  SYSTEM_CAPACITY_OPTIONS,
+} from "@/utils";
 
-const CIRCUIT_TYPES = [
-  "Circulating Oil (Recirculation System)",
-  "Static Oil (Sump System)",
-  "Hydraulic System",
-  "Gear System",
-  "Compressor System",
-  "Turbine System",
-  "Engine System",
-  "Other",
-];
-
-const COMPONENT_TYPES = [
-  "Gearbox",
-  "Engine",
-  "Hydraulic Pump",
-  "Compressor",
-  "Turbine",
-  "Motor",
-  "Bearing",
-  "Transmission",
-  "Other",
-];
-
-const SAMPLE_FREQUENCIES = [
-  "Daily (≈8-24 Hours)",
-  "Weekly (≈40-168 Hours)",
-  "Monthly (≈250-500 Hours)",
-  "Quarterly (≈750-1500 Hours)",
-  "Semi-annually (≈1500-3000 Hours)",
-  "Annually (≈3000-6000 Hours)",
-  "As needed",
-];
-
-const SYSTEM_CAPACITIES = [
-  "Small (< 5 L / < 1.3 Gal)",
-  "Medium (5 L - 50 L / 1.3 - 13 Gal)",
-  "Large (50 L - 500 L / 13 - 132 Gal)",
-  "Very Large (> 500 L / > 132 Gal)",
-];
-
-const OIL_GRADES = [
-  "Mineral Oil (R&O)",
-  "Synthetic Oil (PAO)",
-  "Synthetic Oil (PAG)",
-  "Synthetic Oil (Esters)",
-  "Biodegradable Oil",
-  "Fire-resistant Oil",
-  "Other",
-];
-
-const STATUS_OPTIONS = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "maintenance", label: "Under Maintenance" },
-];
-
-const SEVERITY_OPTIONS = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-  { value: "critical", label: "Critical" },
-];
+interface USER_TYPE {
+  country: string;
+  created_at: number;
+  created_at_datetime: string;
+  date_of_birth: string;
+  email: string;
+  first_name: string;
+  id: string;
+  last_name: string;
+  organization: {
+    created_at: number;
+    created_at_datetime: string;
+    description: string;
+    id: string;
+    industry: string;
+    logo_url: string;
+    members: unknown;
+    name: string;
+    owner: unknown;
+    sites: unknown;
+    team_strength: string;
+    updated_at: number;
+    updated_at_datetime: string;
+  };
+  password_hash: string;
+  phone: string;
+  role: string;
+  role_id: string | null;
+  role_obj: unknown;
+  site: {
+    address: string;
+    attachments: null;
+    city: string;
+    country: string;
+    created_at: number;
+    created_at_datetime: string;
+    description: string;
+    id: string;
+    installation_environment: string;
+    manager_email: string;
+    manager_location: string;
+    manager_name: string;
+    manager_phone_number: string;
+    members: unknown;
+    name: string;
+    organization: unknown;
+    regulations_and_standards: unknown;
+    tag: string;
+    updated_at: number;
+    updated_at_datetime: string;
+  };
+  status: string;
+  updated_at: number;
+  updated_at_datetime: string;
+}
 
 interface EditSamplingPointFormProps {
   samplingPoint: SamplingPoint;
+  users: USER_TYPE[];
+  sampling_routes: SamplingRoute[];
+  assets: Asset[];
 }
 
 export function EditSamplingPointForm({
   samplingPoint,
+  users,
+  sampling_routes,
+  assets,
 }: EditSamplingPointFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [assets, setAssets] = useState<Asset[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [isFileDeleted, setIsFileDeleted] = useState(false);
+
+  // Get existing attachment file key
+  const existingAttachment =
+    samplingPoint.attachments && samplingPoint.attachments.length > 0
+      ? samplingPoint.attachments[0]?.url
+      : null;
+
+  // Get presigned URL for existing attachment
+  const { url: existingAttachmentUrl, isLoading: isAttachmentLoading } =
+    usePresignedUrl(existingAttachment, !!existingAttachment && !isFileDeleted);
+
+  // Convert date fields from number/timestamp to date string format
+  const formatDateForInput = (
+    dateValue: number | string | undefined
+  ): string => {
+    if (!dateValue) return "";
+    if (typeof dateValue === "string") {
+      // If it's already a string (ISO format like "2025-12-05T00:00:00Z"), parse it
+      const parsed = dayjs(dateValue);
+      return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
+    }
+    // If it's a number, check if it's a Unix timestamp (seconds) or milliseconds
+    // Unix timestamps are typically 10 digits, milliseconds are 13 digits
+    const numValue = Number(dateValue);
+    if (numValue > 1000000000000) {
+      // It's in milliseconds
+      const parsed = dayjs(numValue);
+      return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
+    } else {
+      // It's in seconds (Unix timestamp)
+      const parsed = dayjs.unix(numValue);
+      return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
+    }
+  };
+
+  // Prepare default values
+  const defaultValues = React.useMemo(() => {
+    return {
+      name: samplingPoint.name || "",
+      tag: samplingPoint.tag || "",
+      parent_asset: { id: samplingPoint.parent_asset?.id || "" },
+      circuit_type: samplingPoint.circuit_type || "",
+      component_type: samplingPoint.component_type || "",
+      sample_frequency: samplingPoint.sample_frequency || "",
+      system_capacity: samplingPoint.system_capacity || "",
+      current_oil_grade: samplingPoint.current_oil_grade || "",
+      status: samplingPoint.status?.toLowerCase() || "active",
+      severity: samplingPoint.severity?.toLowerCase() || "medium",
+      assignee: samplingPoint.assignee?.id
+        ? { id: samplingPoint.assignee.id }
+        : { id: "" },
+      sampling_route: samplingPoint.sampling_route?.id
+        ? { id: samplingPoint.sampling_route.id }
+        : { id: "" },
+      sampling_port_type: samplingPoint.sampling_port_type || "",
+      sampling_port_location: samplingPoint.sampling_port_location || "",
+      lab_destination: samplingPoint.lab_destination || "",
+      sampling_volume: samplingPoint.sampling_volume || "",
+      special_instructions: samplingPoint.special_instructions || "",
+      last_sample_date: formatDateForInput(samplingPoint.last_sample_date),
+      effective_date: formatDateForInput(samplingPoint.effective_date),
+      next_due_date: formatDateForInput(samplingPoint.next_due_date),
+    };
+  }, [samplingPoint]);
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
-    setValue,
     watch,
+    setValue,
+    reset,
   } = useForm<AddSamplingPointPayload>({
     resolver: zodResolver(ADD_SAMPLING_POINT_SCHEMA),
-    defaultValues: {
-      name: samplingPoint.name,
-      tag: samplingPoint.tag,
-      parent_asset: { id: samplingPoint.parent_asset.id },
-      circuit_type: samplingPoint.circuit_type,
-      component_type: samplingPoint.component_type,
-      sample_frequency: samplingPoint.sample_frequency,
-      system_capacity: samplingPoint.system_capacity,
-      current_oil_grade: samplingPoint.current_oil_grade,
-      status: samplingPoint.status,
-      severity: samplingPoint.severity,
-    },
+    mode: "onSubmit",
+    defaultValues,
   });
 
-  const selectedParentAsset = watch("parent_asset");
+  // Reset form when samplingPoint changes
+  React.useEffect(() => {
+    reset(defaultValues);
+  }, [defaultValues, reset]);
 
-  useEffect(() => {
-    const fetchAssets = async () => {
-      try {
-        const data = await getAssetsService();
-        setAssets(data);
-      } catch (error) {
-        console.error("Error fetching assets:", error);
-        toast.error("Failed to fetch assets");
+  const selectedAssetId = watch("parent_asset.id");
+  const currentAssigneeId = watch("assignee.id");
+
+  // Filter users based on selected asset's organization
+  const filteredUsers = React.useMemo(() => {
+    if (!selectedAssetId) return users;
+
+    const selectedAsset = assets.find((asset) => asset.id === selectedAssetId);
+    if (!selectedAsset) return users;
+
+    const assetOrganizationId = selectedAsset?.assignee?.organization?.id;
+
+    // If asset doesn't have an organization, return all users
+    // This allows existing assignees to be displayed even if asset org is missing
+    if (!assetOrganizationId) {
+      return users;
+    }
+
+    const filtered = users.filter(
+      (user) => user.organization?.id === assetOrganizationId
+    );
+
+    return filtered;
+  }, [selectedAssetId, assets, users]);
+
+  // Track initial asset ID to prevent clearing assignee on initial load
+  const initialAssetId = React.useRef(samplingPoint.parent_asset?.id);
+  const initialAssigneeId = React.useRef(samplingPoint.assignee?.id);
+
+  // Clear assignee if current assignee is not in filtered users or when asset changes
+  React.useEffect(() => {
+    // Don't clear on initial load if asset hasn't changed
+    if (
+      selectedAssetId === initialAssetId.current &&
+      currentAssigneeId === initialAssigneeId.current
+    ) {
+      return;
+    }
+
+    if (selectedAssetId) {
+      if (currentAssigneeId) {
+        const isAssigneeValid = filteredUsers.some(
+          (user) => user.id === currentAssigneeId
+        );
+        if (!isAssigneeValid && filteredUsers.length > 0) {
+          // Only clear if there are filtered users but current assignee is not in them
+          setValue("assignee.id", "", { shouldValidate: false });
+        }
       }
-    };
+    } else {
+      if (currentAssigneeId) {
+        setValue("assignee.id", "", { shouldValidate: false });
+      }
+    }
+  }, [selectedAssetId, filteredUsers, currentAssigneeId, setValue]);
 
-    fetchAssets();
-  }, []);
+  const uploadImageFile = async (
+    file: File
+  ): Promise<{
+    url: string;
+    name: string;
+  } | null> => {
+    setIsUploadingImage(true);
+    try {
+      const response = await uploadImage(
+        { file },
+        "sampling-point-attachments"
+      );
+
+      if (response.success) {
+        const fileKey = response.data?.data?.file_key;
+
+        if (fileKey && typeof fileKey === "string") {
+          return {
+            url: fileKey,
+            name: file.name,
+          };
+        }
+        toast.error("Failed to get file key from upload response.");
+        return null;
+      } else {
+        toast.error(
+          response.message || "File upload failed. Please try again."
+        );
+        return null;
+      }
+    } catch {
+      toast.error("File upload failed. Please try again.");
+      return null;
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleDeleteFile = async () => {
+    if (!existingAttachment) return;
+
+    try {
+      const response = await deleteFile(existingAttachment);
+      if (response.success) {
+        setIsFileDeleted(true);
+        setAttachmentFile(null);
+        toast.success("File deleted successfully");
+      } else {
+        toast.error(response.message || "Failed to delete file");
+      }
+    } catch {
+      toast.error("Failed to delete file. Please try again.");
+    }
+  };
 
   const onSubmit = async (data: AddSamplingPointPayload) => {
     setIsSubmitting(true);
+
+    // Upload new attachment if one is selected
+    let attachmentData: { url: string; name: string } | null = null;
+
+    if (attachmentFile) {
+      attachmentData = await uploadImageFile(attachmentFile);
+      if (!attachmentData) {
+        toast.error("File upload failed. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    // Delete existing file if marked for deletion
+    if (isFileDeleted && existingAttachment) {
+      await deleteFile(existingAttachment);
+    }
+
+    // Prepare the payload with attachment
+    const payload: AddSamplingPointPayload = {
+      ...data,
+      ...(attachmentData
+        ? {
+            attachments: [
+              {
+                url: attachmentData.url,
+                name: attachmentData.name,
+              },
+            ],
+          }
+        : !isFileDeleted && existingAttachment
+        ? {
+            attachments: [
+              {
+                url: existingAttachment,
+                name: samplingPoint.attachments?.[0]?.name || "Attachment",
+              },
+            ],
+          }
+        : {}),
+    };
+
     try {
-      const response = await editSamplingPointService(samplingPoint.id, data);
+      const response = await editSamplingPointService(
+        samplingPoint.id,
+        payload
+      );
+
       if (response.success) {
         toast.success("Sampling point updated successfully", {
           description: "The sampling point has been updated in your system.",
@@ -153,205 +381,444 @@ export function EditSamplingPointForm({
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <button
-            onClick={handleCancel}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <Icon icon="mdi:arrow-left" className="w-5 h-5 text-gray-600" />
-          </button>
-          <Text variant="h4">Edit Sampling Point</Text>
-        </div>
-        <Text variant="span" className="text-gray-600">
-          Update the sampling point information and specifications.
-        </Text>
+    <div className="">
+      <div className="flex items-center gap-3 mb-2">
+        <button
+          onClick={handleCancel}
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <Icon icon="mdi:arrow-left" className="w-5 h-5 text-gray-600" />
+        </button>
+        <Text variant="h6">Edit Sampling Point</Text>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        {/* Basic Information */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <Text variant="h6" className="mb-4">
-            Basic Information
-          </Text>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Sampling Point Name *</Label>
-              <Input
-                label="Sampling Point Name"
-                placeholder="e.g., Main Gearbox Oil Sampling Point"
-                {...register("name")}
-                error={errors.name?.message}
+        <section className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col gap-6 flex-1">
+            {/* Basic Information */}
+            <section className="flex flex-col gap-6 border border-gray-200 p-6">
+              <Text variant="p">Basic Information</Text>
+              <div className="flex flex-col gap-4">
+                <Input
+                  label="Sampling Point Name"
+                  placeholder="e.g., Main Gearbox Oil Sampling Point"
+                  {...register("name")}
+                  error={errors.name?.message}
+                />
+
+                <Input
+                  label="Tag"
+                  placeholder="e.g., GBX-001-OIL"
+                  {...register("tag")}
+                  error={errors.tag?.message}
+                />
+
+                <div>
+                  <Controller
+                    control={control}
+                    name="parent_asset"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value?.id || ""}
+                        onValueChange={(value) => field.onChange({ id: value })}
+                      >
+                        <SelectTrigger label="Parent Asset">
+                          <SelectValue placeholder="Select an asset" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {assets.map((asset) => (
+                            <SelectItem key={asset.id} value={asset.id}>
+                              {asset.name} ({asset.tag})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.parent_asset?.id && (
+                    <ErrorText error={errors.parent_asset.id.message} />
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Lubrication System Details */}
+            <section className="flex flex-col gap-6 border border-gray-200 p-6">
+              <Text variant="h6" className="mb-4">
+                Lubrication System Details
+              </Text>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Controller
+                    control={control}
+                    name="circuit_type"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || ""}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                        }}
+                      >
+                        <SelectTrigger label="Circuit Type">
+                          <SelectValue placeholder="Select a circuit type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CIRCUIT_TYPE_OPTIONS.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.circuit_type && (
+                    <ErrorText error={errors.circuit_type.message} />
+                  )}
+                </div>
+
+                <div>
+                  <Controller
+                    control={control}
+                    name="component_type"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || ""}
+                        onValueChange={(value) => {
+                          field.onChange(value || "");
+                        }}
+                      >
+                        <SelectTrigger label="Component Type">
+                          <SelectValue placeholder="Select a component type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COMPONENT_TYPE_OPTIONS.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.component_type && (
+                    <ErrorText error={errors.component_type.message} />
+                  )}
+                </div>
+
+                <div>
+                  <Controller
+                    control={control}
+                    name="sample_frequency"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || ""}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                        }}
+                      >
+                        <SelectTrigger label="Sample Frequency">
+                          <SelectValue placeholder="Select a sample frequency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SAMPLE_FREQUENCY_OPTIONS.map((frequency) => (
+                            <SelectItem key={frequency} value={frequency}>
+                              {frequency}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.sample_frequency && (
+                    <ErrorText error={errors.sample_frequency.message} />
+                  )}
+                </div>
+                <div>
+                  <Controller
+                    control={control}
+                    name="system_capacity"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value || ""}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                        }}
+                      >
+                        <SelectTrigger label="System Capacity">
+                          <SelectValue placeholder="Select a system capacity" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SYSTEM_CAPACITY_OPTIONS.map((capacity) => (
+                            <SelectItem key={capacity} value={capacity}>
+                              {capacity}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.system_capacity && (
+                    <ErrorText error={errors.system_capacity.message} />
+                  )}
+                </div>
+
+                <Input
+                  label="Current Oil Grade"
+                  placeholder="Enter current oil grade"
+                  className="col-span-full"
+                  {...register("current_oil_grade")}
+                  error={errors.current_oil_grade?.message}
+                />
+
+                <Input
+                  label="Last Sample Date"
+                  type="date"
+                  placeholder="Enter last sample date"
+                  {...register("last_sample_date")}
+                  error={errors.last_sample_date?.message}
+                />
+                <Input
+                  label="Effective Date"
+                  type="date"
+                  placeholder="Enter effective date"
+                  {...register("effective_date")}
+                  error={errors.effective_date?.message}
+                />
+              </div>
+            </section>
+
+            {/* Scheduling & Logistics */}
+            <section className="flex flex-col gap-6 border border-gray-200 p-6">
+              <Text variant="h6" className="mb-4">
+                Scheduling & Logistics
+              </Text>
+              <div className="flex flex-col gap-4">
+                <Input
+                  type="date"
+                  label="Next Due Date"
+                  placeholder="Calculated from interval and last sample date"
+                  {...register("next_due_date")}
+                  error={errors.next_due_date?.message}
+                />
+
+                <div>
+                  <Controller
+                    name="assignee"
+                    control={control}
+                    render={({ field }) => (
+                      <div>
+                        <Select
+                          value={field.value?.id || ""}
+                          onValueChange={(value) => {
+                            if (value) {
+                              field.onChange({ id: value });
+                            } else {
+                              field.onChange({ id: "" });
+                            }
+                          }}
+                        >
+                          <SelectTrigger
+                            className="col-span-full"
+                            label="Assignee"
+                          >
+                            <SelectValue placeholder="Select an assignee" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filteredUsers.length > 0 &&
+                              filteredUsers.map((user) => (
+                                <SelectItem key={user.id} value={user.id}>
+                                  {user.first_name} {user.last_name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        {selectedAssetId && filteredUsers.length === 0 && (
+                          <p className="text-sm text-amber-600 mt-1">
+                            No users found in the selected asset&apos;s
+                            organization. Please select a different asset.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  />
+                  {errors.assignee?.id && (
+                    <ErrorText error={errors.assignee.id.message} />
+                  )}
+                </div>
+
+                <div>
+                  <Controller
+                    control={control}
+                    name="sampling_route"
+                    render={({ field }) => (
+                      <Select
+                        value={field.value?.id || ""}
+                        onValueChange={(value) => field.onChange({ id: value })}
+                      >
+                        <SelectTrigger label="Sampling Route">
+                          <SelectValue placeholder="Select a sampling route" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sampling_routes.map((route) => (
+                            <SelectItem key={route.id} value={route.id}>
+                              {route.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.sampling_route?.id && (
+                    <ErrorText error={errors.sampling_route.id.message} />
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label="Sampling Port Type"
+                    placeholder="Enter sampling port type"
+                    {...register("sampling_port_type")}
+                    error={errors.sampling_port_type?.message}
+                  />
+                  <Input
+                    label="Sampling Port Location"
+                    placeholder="Enter sampling port location"
+                    {...register("sampling_port_location")}
+                    error={errors.sampling_port_location?.message}
+                  />
+                </div>
+
+                <Input
+                  label="Lab Destination"
+                  placeholder="Enter lab destination"
+                  {...register("lab_destination")}
+                  error={errors.lab_destination?.message}
+                />
+
+                <Input
+                  label="Sampling volume (ml)"
+                  placeholder="Enter sampling volume"
+                  {...register("sampling_volume")}
+                  error={errors.sampling_volume?.message}
+                />
+
+                <Input
+                  label="Special Instructions/Safety Notes"
+                  type="textarea"
+                  placeholder="Enter special instructions/safety notes"
+                  {...register("special_instructions")}
+                  error={errors.special_instructions?.message}
+                />
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-6 border border-gray-100 p-6">
+              <Text variant="p">Attachments (optional)</Text>
+              {existingAttachment && !isFileDeleted ? (
+                <div className="flex flex-col gap-2">
+                  {isAttachmentLoading ? (
+                    <p className="text-sm text-gray-500">
+                      Loading attachment...
+                    </p>
+                  ) : existingAttachmentUrl ? (
+                    <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
+                      <a
+                        href={existingAttachmentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-sm"
+                      >
+                        {samplingPoint.attachments?.[0]?.name ||
+                          "View Attachment"}
+                      </a>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="small"
+                        onClick={handleDeleteFile}
+                      >
+                        <Icon icon="mdi:delete" className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      Unable to load attachment
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <FileUploader
+                  label="Upload Attachment"
+                  value={attachmentFile}
+                  onChange={setAttachmentFile}
+                  id="attachment"
+                />
+              )}
+            </section>
+          </div>
+          <div className="flex flex-col gap-6 border border-gray-200 p-6 max-w-[300px] w-full">
+            <Text variant="p">Sampling Point Details</Text>
+            <div className="flex flex-col gap-4">
+              <Controller
+                control={control}
+                name="status"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                    }}
+                  >
+                    <SelectTrigger label="Status">
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="tag">Tag *</Label>
-              <Input
-                label="Tag"
-                placeholder="e.g., GBX-001-OIL"
-                {...register("tag")}
-                error={errors.tag?.message}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="parent_asset">Parent Asset *</Label>
-              <Select
-                value={selectedParentAsset?.id || ""}
-                onValueChange={(value) => {
-                  setValue("parent_asset.id", value);
-                }}
-              >
-                <option value="">Select an asset</option>
-                {assets.map((asset) => (
-                  <option key={asset.id} value={asset.id}>
-                    {asset.name} ({asset.tag})
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="component_type">Component Type *</Label>
-              <Select
-                value={watch("component_type") || ""}
-                onValueChange={(value) => {
-                  setValue("component_type", value);
-                }}
-              >
-                <option value="">Select component type</option>
-                {COMPONENT_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </Select>
+              <div>
+                <Controller
+                  control={control}
+                  name="severity"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                      }}
+                    >
+                      <SelectTrigger label="Severity">
+                        <SelectValue placeholder="Select a severity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SEVERITY_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.severity && (
+                  <ErrorText error={errors.severity.message} />
+                )}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Technical Specifications */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <Text variant="h6" className="mb-4">
-            Technical Specifications
-          </Text>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="circuit_type">Circuit Type *</Label>
-              <Select
-                value={watch("circuit_type") || ""}
-                onValueChange={(value) => {
-                  setValue("circuit_type", value);
-                }}
-              >
-                <option value="">Select circuit type</option>
-                {CIRCUIT_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="sample_frequency">Sample Frequency *</Label>
-              <Select
-                value={watch("sample_frequency") || ""}
-                onValueChange={(value) => {
-                  setValue("sample_frequency", value);
-                }}
-              >
-                <option value="">Select sample frequency</option>
-                {SAMPLE_FREQUENCIES.map((frequency) => (
-                  <option key={frequency} value={frequency}>
-                    {frequency}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="system_capacity">System Capacity *</Label>
-              <Select
-                value={watch("system_capacity") || ""}
-                onValueChange={(value) => {
-                  setValue("system_capacity", value);
-                }}
-              >
-                <option value="">Select system capacity</option>
-                {SYSTEM_CAPACITIES.map((capacity) => (
-                  <option key={capacity} value={capacity}>
-                    {capacity}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="current_oil_grade">Current Oil Grade *</Label>
-              <Select
-                value={watch("current_oil_grade") || ""}
-                onValueChange={(value) => {
-                  setValue("current_oil_grade", value);
-                }}
-              >
-                <option value="">Select oil grade</option>
-                {OIL_GRADES.map((grade) => (
-                  <option key={grade} value={grade}>
-                    {grade}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        {/* Status and Severity */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <Text variant="h6" className="mb-4">
-            Status and Severity
-          </Text>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="status">Status *</Label>
-              <Select
-                value={watch("status") || ""}
-                onValueChange={(value) => {
-                  setValue("status", value);
-                }}
-              >
-                <option value="">Select status</option>
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="severity">Severity *</Label>
-              <Select
-                value={watch("severity") || ""}
-                onValueChange={(value) => {
-                  setValue("severity", value);
-                }}
-              >
-                <option value="">Select severity</option>
-                {SEVERITY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
-        </div>
+        </section>
 
         {/* Form Actions */}
-        <div className="flex justify-end gap-4 pt-6 border-t">
+        <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
           <Button
             type="button"
             variant="outline"
@@ -361,21 +828,17 @@ export function EditSamplingPointForm({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting} className="px-8">
-            {isSubmitting ? (
-              <>
-                <Icon
-                  icon="mdi:loading"
-                  className="w-4 h-4 mr-2 animate-spin"
-                />
-                Updating...
-              </>
-            ) : (
-              <>
-                <Icon icon="mdi:check-circle" className="w-4 h-4 mr-2" />
-                Update Sampling Point
-              </>
-            )}
+          <Button
+            type="submit"
+            disabled={isSubmitting || isUploadingImage}
+            loading={isSubmitting || isUploadingImage}
+            className="px-8"
+          >
+            {isUploadingImage
+              ? "Uploading File..."
+              : isSubmitting
+              ? "Updating..."
+              : "Update Sampling Point"}
           </Button>
         </div>
       </form>

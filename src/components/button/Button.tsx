@@ -2,6 +2,8 @@ import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import Link from "next/link";
 import { Icon, type IconifyIconProps } from "@iconify/react";
+import { ComponentGuard } from "../content-guard";
+import { PermissionType } from "@/types/roles";
 
 const buttonClasses = cva(
   "flex items-center justify-center gap-2 text-sm font-medium transition whitespace-nowrap outline-none ring-offset-2 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer",
@@ -74,6 +76,7 @@ type ButtonProps<T extends AsProp = "button"> = {
   iconProps?: Partial<React.ComponentProps<typeof Icon>>;
   loading?: boolean;
   className?: string;
+  permissions?: PermissionType | PermissionType[];
 } & React.ComponentProps<"button" | typeof Link> &
   Omit<ButtonClasses, "minW">;
 
@@ -90,6 +93,7 @@ export function Button<T extends AsProp = "button">(props: ButtonProps<T>) {
     variant,
     className,
     size,
+    permissions,
     ...rest
   } = props;
 
@@ -109,14 +113,20 @@ export function Button<T extends AsProp = "button">(props: ButtonProps<T>) {
   const renderedIcon = icon ? <Icon {...iconProps} icon={icon} /> : null;
 
   return React.createElement(
-    as,
-    evaluatedProps as React.ComponentProps<typeof Link>,
-    iconPosition === "left" && !loading && icon ? renderedIcon : null,
-    iconOnly && icon && !loading ? renderedIcon : null,
-    loading ? (
-      <Icon icon="mdi:loading" className="animate-spin text-xl" />
-    ) : null,
-    !loading ? children : null,
-    iconPosition === "right" && !loading && icon ? renderedIcon : null
+    ComponentGuard,
+    {
+      permissions: permissions,
+    },
+    React.createElement(
+      as,
+      evaluatedProps as React.ComponentProps<typeof Link>,
+      iconPosition === "left" && !loading && icon ? renderedIcon : null,
+      iconOnly && icon && !loading ? renderedIcon : null,
+      loading ? (
+        <Icon icon="mdi:loading" className="animate-spin text-xl" />
+      ) : null,
+      !loading ? children : null,
+      iconPosition === "right" && !loading && icon ? renderedIcon : null
+    )
   );
 }

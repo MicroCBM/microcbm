@@ -5,6 +5,7 @@ import { Button, Text } from "@/components";
 import { Icon } from "@/libs";
 import Link from "next/link";
 import { Asset, SamplingPoint, Sites } from "@/types";
+import { ComponentGuard } from "@/components/content-guard";
 
 export function SampleContent({
   sites,
@@ -26,12 +27,14 @@ export function SampleContent({
           Manage and monitor oil analysis samples
         </Text>
       </div>
-      <Link href="/samples/add">
-        <Button size="medium" className="rounded-full">
-          <Icon icon="mdi:plus-circle" className="text-white size-5" />
-          Add New Sample
-        </Button>
-      </Link>
+      <ComponentGuard permissions="samples:create">
+        <Link href="/samples/add">
+          <Button size="medium" className="rounded-full">
+            <Icon icon="mdi:plus-circle" className="text-white size-5" />
+            Add New Sample
+          </Button>
+        </Link>
+      </ComponentGuard>
     </div>
   );
 }

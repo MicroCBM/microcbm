@@ -7,24 +7,24 @@ import {
   Text,
 } from "@/components";
 import { Icon } from "@/libs";
-import { Organization } from "@/types";
-import { ROLES, SITE_ASSIGNED, STATUSES } from "@/utils";
+import { Organization, Sites } from "@/types";
+import { STATUSES } from "@/utils";
 import React from "react";
 
 export function SiteFilters({
   organizations,
+  sites,
 }: {
   organizations: Organization[];
+  sites: Sites[];
 }) {
-  console.log(organizations);
-
   const [search, setSearch] = React.useState("");
   return (
     <div className="flex items-center gap-2">
       <Search
         value={search}
         onChange={setSearch}
-        placeholder="Search assets"
+        placeholder="Search sites"
         className="h-10 max-w-[296px]"
       />
       <Popover>
@@ -65,17 +65,17 @@ export function SiteFilters({
               icon="hugeicons:plus-sign-circle"
               className="text-black size-4 group-hover:text-white"
             />
-            Role
+            Organization
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[208px]">
           <div className="flex flex-col">
-            {ROLES.map((role) => (
+            {organizations.map((org) => (
               <button
-                key={role.value}
+                key={org.id}
                 className="px-2 py-[6px] hover:bg-gray-100 text-left"
               >
-                <Text variant="span">{role.label}</Text>
+                <Text variant="span">{org.name}</Text>
               </button>
             ))}
           </div>
@@ -92,17 +92,17 @@ export function SiteFilters({
               icon="hugeicons:plus-sign-circle"
               className="text-black size-4 group-hover:text-white"
             />
-            Site Assigned
+            Site
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[208px]">
           <div className="flex flex-col">
-            {SITE_ASSIGNED.map((role) => (
+            {sites.map((site) => (
               <button
-                key={role.value}
+                key={site.id}
                 className="px-2 py-[6px] hover:bg-gray-100 text-left"
               >
-                <Text variant="span">{role.label}</Text>
+                <Text variant="span">{site.name}</Text>
               </button>
             ))}
           </div>

@@ -87,10 +87,38 @@ interface SamplingPoint {
   last_sample_date: number;
   effective_date: number;
   next_due_date: number;
+  assignee?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    organization?: {
+      id: string;
+      name: string;
+    };
+  } | null;
+  sampling_route?: {
+    id: string;
+    name: string;
+    description?: string;
+  } | null;
+  attachments?: Array<{
+    name: string;
+    url: string;
+  }>;
   created_at: number;
   created_at_datetime: string;
   updated_at: number;
   updated_at_datetime: string;
 }
 
-export type { SamplingPoint };
+interface SamplingPointAnalytics {
+  due_trend_percentage: number;
+  overdue_trend_percentage: number;
+  sampling_points_due: number;
+  sampling_points_overdue: number;
+  total_sampling_points: number;
+  total_trend_percentage: number;
+}
+
+export type { SamplingPoint, SamplingPointAnalytics };

@@ -1,23 +1,47 @@
 "use server";
 
-import { Asset, Sites } from "@/types";
+import { Asset, Sites, SitesAnalytics, AssetAnalytics } from "@/types";
 import { ApiResponse, handleApiRequest, requestWithAuth } from "./helpers";
 import { AddAssetPayload, AddSitesPayload, EditSitePayload } from "@/schema";
 
 const commonEndpoint = "/api/v1/";
 
-async function getAssetsService(): Promise<Asset[]> {
+async function getAssetsService(params?: {
+  [key: string]: string | string[] | undefined;
+}): Promise<Asset[]> {
   try {
-    const response = await requestWithAuth(`${commonEndpoint}assets`, {
-      method: "GET",
-    });
+    const queryString = new URLSearchParams(
+      Object.entries(params ?? {})
+        .filter(([, value]) => value !== undefined && value !== "")
+        .map(([key, value]) => [key, value] as [string, string])
+    ).toString();
+    const response = await requestWithAuth(
+      `${commonEndpoint}assets?${queryString}`,
+      {
+        method: "GET",
+      }
+    );
+
+    // Handle 403 Forbidden (permission denied) gracefully
+    if (response.status === 403) {
+      console.warn("User does not have permission to access assets");
+      return [];
+    }
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      throw new Error(
+        `Failed to fetch assets: ${response.status} ${response.statusText}`
+      );
+    }
 
     const data = await response.json();
 
-    return data?.data;
+    return data?.data || [];
   } catch (error) {
     console.error("Error fetching assets:", error);
-    throw error;
+    // Return empty array instead of throwing to prevent page crashes
+    return [];
   }
 }
 
@@ -57,6 +81,12 @@ async function getSitesService(): Promise<Sites[]> {
       method: "GET",
     });
 
+    // Handle 403 Forbidden (permission denied) gracefully
+    if (response.status === 403) {
+      console.warn("User does not have permission to access sites");
+      return [];
+    }
+
     if (!response.ok) {
       console.error("API Error:", response.status, response.statusText);
       throw new Error(
@@ -70,7 +100,77 @@ async function getSitesService(): Promise<Sites[]> {
     return data?.data || [];
   } catch (error) {
     console.error("Error fetching sites:", error);
-    throw error;
+    // Return empty array instead of throwing to prevent page crashes
+    return [];
+  }
+}
+
+async function getSitesAnalyticsService(): Promise<SitesAnalytics | null> {
+  try {
+    const response = await requestWithAuth(`${commonEndpoint}sites/analytics`, {
+      method: "GET",
+    });
+
+    // Handle 403 Forbidden (permission denied) gracefully
+    if (response.status === 403) {
+      console.warn("User does not have permission to access sites analytics");
+      return null;
+    }
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Non-JSON response from sites analytics API");
+      return null;
+    }
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    return data?.data || null;
+  } catch (error) {
+    console.error("Error fetching sites analytics:", error);
+    // Return null instead of throwing to prevent page crashes
+    return null;
+  }
+}
+
+async function getAssetsAnalyticsService(): Promise<AssetAnalytics | null> {
+  try {
+    const response = await requestWithAuth(
+      `${commonEndpoint}assets/analytics`,
+      {
+        method: "GET",
+      }
+    );
+
+    // Handle 403 Forbidden (permission denied) gracefully
+    if (response.status === 403) {
+      console.warn("User does not have permission to access assets analytics");
+      return null;
+    }
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Non-JSON response from assets analytics API");
+      return null;
+    }
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    return data?.data || null;
+  } catch (error) {
+    console.error("Error fetching assets analytics:", error);
+    // Return null instead of throwing to prevent page crashes
+    return null;
   }
 }
 
@@ -99,4 +199,6 @@ export {
   getAssetService,
   editAssetService,
   deleteAssetService,
+  getSitesAnalyticsService,
+  getAssetsAnalyticsService,
 };

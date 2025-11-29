@@ -1,60 +1,46 @@
-"use client";
-import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+"use server";
+import React from "react";
+import { notFound } from "next/navigation";
 import { EditSamplingPointForm } from "./components";
-import { getSamplingPointService } from "@/app/actions";
-import { SamplingPoint } from "@/types";
-import { toast } from "sonner";
+import {
+  getSamplingPointService,
+  getAssetsService,
+  getSamplingRoutesService,
+  getUsersService,
+} from "@/app/actions";
 
-export default function EditSamplingPointPage() {
-  const params = useParams();
-  const [samplingPoint, setSamplingPoint] = useState<SamplingPoint | null>(
-    null
-  );
-  const [isLoading, setIsLoading] = useState(true);
+interface EditSamplingPointPageProps {
+  params: Promise<{ id: string }>;
+}
 
-  useEffect(() => {
-    const fetchSamplingPoint = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getSamplingPointService(params.id as string);
-        setSamplingPoint(data);
-      } catch (error) {
-        console.error("Error fetching sampling point:", error);
-        toast.error("Failed to fetch sampling point details");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+export default async function EditSamplingPointPage({
+  params,
+}: EditSamplingPointPageProps) {
+  try {
+    const { id } = await params;
+    const [samplingPoint, users, samplingRoutes, assets] = await Promise.all([
+      getSamplingPointService(id),
+      getUsersService(),
+      getSamplingRoutesService(),
+      getAssetsService(),
+    ]);
 
-    if (params.id) {
-      fetchSamplingPoint();
+    if (!samplingPoint) {
+      notFound();
     }
-  }, [params.id]);
 
-  if (isLoading) {
     return (
       <main className="flex flex-col gap-4">
-        <div className="flex items-center justify-center p-8">
-          <div className="text-gray-500">Loading sampling point details...</div>
-        </div>
+        <EditSamplingPointForm
+          samplingPoint={samplingPoint}
+          users={users}
+          sampling_routes={samplingRoutes}
+          assets={assets}
+        />
       </main>
     );
+  } catch (error) {
+    console.error("Error fetching data for edit sampling point:", error);
+    notFound();
   }
-
-  if (!samplingPoint) {
-    return (
-      <main className="flex flex-col gap-4">
-        <div className="flex items-center justify-center p-8">
-          <div className="text-gray-500">Sampling point not found</div>
-        </div>
-      </main>
-    );
-  }
-
-  return (
-    <main className="flex flex-col gap-4">
-      <EditSamplingPointForm samplingPoint={samplingPoint} />
-    </main>
-  );
 }

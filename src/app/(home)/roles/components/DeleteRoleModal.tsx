@@ -8,11 +8,10 @@ import {
 } from "@/components/ui";
 import { Text, Button } from "@/components";
 
-
 interface Role {
   id: string;
   name: string;
-  permissions: Permission[];
+  permissions: Permission[] | null;
   level: number;
   created_at: number;
   created_at_datetime: string;
@@ -26,7 +25,6 @@ interface Permission {
   created_at: number;
   created_at_datetime: string;
 }
-
 
 interface DeleteRoleModalProps {
   role: Role | null;

@@ -74,6 +74,7 @@ export function AssetTable({
         });
         onAssetDeleted?.();
         handleCloseDeleteModal();
+        router.refresh();
       } else {
         toast.error(
           response.message || "Failed to delete asset. Please try again."

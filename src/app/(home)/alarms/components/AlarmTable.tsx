@@ -8,6 +8,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import dayjs from "dayjs";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/libs";
 import { cn } from "@/libs";
 import {
@@ -31,6 +32,7 @@ interface AlarmTableProps {
 }
 
 export function AlarmTable({ data, className, sites = [] }: AlarmTableProps) {
+  const router = useRouter();
   const [selectedAlarm, setSelectedAlarm] = useState<Alarm | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -70,9 +72,8 @@ export function AlarmTable({ data, className, sites = [] }: AlarmTableProps) {
         toast.success("Alarm deleted successfully", {
           description: "The alarm has been permanently removed.",
         });
+        router.refresh();
         handleCloseDeleteModal();
-        // Refresh the page to show updated data
-        window.location.reload();
       } else {
         toast.error(
           response.message || "Failed to delete alarm. Please try again."
@@ -103,11 +104,12 @@ export function AlarmTable({ data, className, sites = [] }: AlarmTableProps) {
     {
       accessorKey: "site",
       header: "Site",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
-          {row.original.site?.name || row.original.site?.id || "-"}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const site = sites.find((s) => s.id === row.original.site?.id);
+        return (
+          <span className="text-sm text-gray-900">{site?.name || "-"}</span>
+        );
+      },
       size: 150,
     },
     {
@@ -326,6 +328,7 @@ export function AlarmTable({ data, className, sites = [] }: AlarmTableProps) {
         alarm={selectedAlarm as Alarm}
         isOpen={isViewModalOpen}
         onClose={handleCloseModal}
+        sites={sites}
       />
 
       <DeleteAlarmModal

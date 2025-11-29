@@ -121,7 +121,31 @@ export function EditSamplingRouteForm({
     });
   }, [samplingRoute, reset]);
 
-  const selectedSite = watch("site_id");
+  const selectedSiteId = watch("site_id");
+  const currentTechnicianId = watch("technician_id");
+
+  // Filter technicians based on selected site
+  const filteredTechnicians = React.useMemo(() => {
+    if (!selectedSiteId) return technicians;
+
+    return technicians.filter(
+      (technician) => technician.site?.id === selectedSiteId
+    );
+  }, [selectedSiteId, technicians]);
+
+  // Clear technician if current technician is not in filtered list when site changes
+  React.useEffect(() => {
+    if (selectedSiteId && currentTechnicianId) {
+      const isTechnicianValid = filteredTechnicians.some(
+        (technician) => technician.id === currentTechnicianId
+      );
+      if (!isTechnicianValid) {
+        setValue("technician_id", "", { shouldValidate: false });
+      }
+    } else if (!selectedSiteId && currentTechnicianId) {
+      setValue("technician_id", "", { shouldValidate: false });
+    }
+  }, [selectedSiteId, filteredTechnicians, currentTechnicianId, setValue]);
 
   const onSubmit = async (data: AddSamplingRoutePayload) => {
     console.log("submit data", data);
@@ -151,100 +175,60 @@ export function EditSamplingRouteForm({
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center gap-3">
+    <>
+      <div className="flex items-center gap-2">
             <button
               onClick={() => router.back()}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="w-10 h-10 border border-gray-200 flex items-center justify-center"
             >
-              <Icon icon="mdi:arrow-left" className="w-5 h-5 text-gray-600" />
+          <Icon icon="mdi:chevron-left" className=" size-5" />
             </button>
-            <Text variant="h5">Edit Sampling Route</Text>
-          </div>
+
+        <Text variant="h6">Edit Sampling Route</Text>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-8">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="p-6 flex flex-col gap-4"
+      >
           {/* Basic Information Section */}
-          <div className="space-y-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col gap-4 flex-1">
+            <section className="flex flex-col gap-6 border border-gray-100 p-6">
             <Text variant="h6" className="text-gray-900">
               Basic Information
             </Text>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Route Name *
-                </label>
+              <div className="flex flex-col gap-4">
                 <Input
                   {...register("name")}
                   placeholder="Enter route name"
                   error={errors.name?.message}
+                  label="Route Name"
                 />
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Status
-                </label>
-                <Select
-                  value={watch("status")}
-                  onValueChange={(value) => setValue("status", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.status && (
-                  <Text variant="span" className="text-red-500 text-sm">
-                    {errors.status.message}
-                  </Text>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Description *
-              </label>
-              <textarea
+                <Input
+                  type="textarea"
+                  rows={4}
                 {...register("description")}
                 placeholder="Enter route description"
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  error={errors.description?.message}
+                  label="Description"
               />
-              {errors.description && (
-                <Text variant="span" className="text-red-500 text-sm">
-                  {errors.description.message}
-                </Text>
-              )}
             </div>
-          </div>
-
-          {/* Site and Technician Assignment Section */}
-          <div className="space-y-6">
+            </section>
+            <section className="flex flex-col gap-6 border border-gray-100 p-6">
             <Text variant="h6" className="text-gray-900">
               Assignment
             </Text>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Site *
-                </label>
                 <Select
-                  value={watch("site_id")}
+                    value={watch("site_id") || ""}
                   onValueChange={(value) => setValue("site_id", value)}
                 >
-                  <SelectTrigger>
+                    <SelectTrigger label="Site">
                     <SelectValue placeholder="Select site" />
                   </SelectTrigger>
                   <SelectContent>
@@ -263,21 +247,30 @@ export function EditSamplingRouteForm({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Technician (Optional)
-                </label>
                 <Select
-                  value={watch("technician_id") || ""}
+                    value={watch("technician_id") || "none"}
                   onValueChange={(value) =>
-                    setValue("technician_id", value || undefined)
+                      setValue("technician_id", value === "none" ? undefined : value)
+                    }
+                    disabled={
+                      !selectedSiteId || filteredTechnicians.length === 0
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select technician" />
+                    <SelectTrigger label="Technician">
+                      <SelectValue
+                        placeholder={
+                          !selectedSiteId
+                            ? "Select a site first"
+                            : filteredTechnicians.length === 0
+                            ? "No technicians available for this site"
+                            : "Select technician"
+                        }
+                      />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No technician assigned</SelectItem>
-                    {technicians.map((technician) => (
+                      <SelectItem value="none">No technician assigned</SelectItem>
+                      {filteredTechnicians.length > 0 &&
+                        filteredTechnicians.map((technician) => (
                       <SelectItem key={technician.id} value={technician.id}>
                         {technician.first_name} {technician.last_name} (
                         {technician.role})
@@ -285,6 +278,12 @@ export function EditSamplingRouteForm({
                     ))}
                   </SelectContent>
                 </Select>
+                  {selectedSiteId && filteredTechnicians.length === 0 && (
+                    <Text variant="span" className="text-amber-600 text-sm">
+                      No technicians found for the selected site. Please select
+                      a different site.
+                    </Text>
+                  )}
                 {errors.technician_id && (
                   <Text variant="span" className="text-red-500 text-sm">
                     {errors.technician_id.message}
@@ -292,20 +291,48 @@ export function EditSamplingRouteForm({
                 )}
               </div>
             </div>
+            </section>
+          </div>
+
+          <section className="flex flex-col gap-6 border border-gray-100 p-6 w-full lg:max-w-[300px]">
+            <Text variant="h6" className="text-gray-900">
+              Status
+            </Text>
+            <Select
+              value={watch("status") || ""}
+              onValueChange={(value) => setValue("status", value)}
+            >
+              <SelectTrigger label="Status">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.status && (
+              <Text variant="span" className="text-red-500 text-sm">
+                {errors.status.message}
+              </Text>
+            )}
+          </section>
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-200">
             <Button
               type="button"
               variant="outline"
               onClick={() => router.back()}
               disabled={isSubmitting}
-              className="px-6"
+            className="px-6 w-full sm:w-auto"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="px-6">
+          <Button type="submit" disabled={isSubmitting} className="px-6 w-full sm:w-auto">
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <Icon icon="mdi:loading" className="w-4 h-4 animate-spin" />
@@ -317,7 +344,6 @@ export function EditSamplingRouteForm({
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </>
   );
 }

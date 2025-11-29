@@ -1,33 +1,34 @@
 import { z } from "zod";
+import { getOptionalStringSchema, getRequiredStringSchema } from "./shared";
 
 export const ADD_ASSET_SCHEMA = z.object({
-  name: z.string().min(1, "Name is required"),
-  tag: z.string().min(1, "Tag is required"),
+  name: getRequiredStringSchema("Name"),
+  tag: getRequiredStringSchema("Tag"),
   parent_site: z.object({
-    id: z.string().min(1, "Parent site ID is required"),
+    id: getRequiredStringSchema("Parent site ID"),
   }),
-  type: z.string().min(1, "Type is required"),
-  equipment_class: z.string().optional(),
-  manufacturer: z.string().optional(),
+  type: getRequiredStringSchema("Type"),
+  equipment_class: getOptionalStringSchema(),
+  manufacturer: getOptionalStringSchema(),
   is_modified: z.boolean().optional(),
-  model_number: z.string().min(1, "Model number is required"),
-  serial_number: z.string().min(1, "Serial number is required"),
-  criticality_level: z.string().min(1, "Critical level is required"),
-  operating_hours: z.string().min(1, "Operating hours is required"),
-  commissioned_date: z.string().min(1, "Commissioned date is required"),
-  status: z.string().min(1, "Status is required"),
-  maintenance_strategy: z.string().min(1, "Maintenance strategy is required"),
-  last_performed_maintenance: z
-    .string()
-    .min(1, "Last performed maintenance is required"),
-  major_overhaul: z.string().min(1, "Major overhaul date is required"),
-  last_date_overhaul: z.string().min(1, "Last overhaul date is required"),
+  model_number: getRequiredStringSchema("Model number"),
+  serial_number: getRequiredStringSchema("Serial number"),
+  criticality_level: getRequiredStringSchema("Critical level"),
+  operating_hours: getRequiredStringSchema("Operating hours"),
+  commissioned_date: getRequiredStringSchema("Commissioned date"),
+  status: getRequiredStringSchema("Status"),
+  maintenance_strategy: getRequiredStringSchema("Maintenance strategy"),
+  last_performed_maintenance: getRequiredStringSchema(
+    "Last performed maintenance"
+  ),
+  major_overhaul: getRequiredStringSchema("Major overhaul date"),
+  last_date_overhaul: getRequiredStringSchema("Last overhaul date"),
   assignee: z.object({
-    id: z.string().min(1, "Assignee ID is required"),
+    id: getRequiredStringSchema("Assignee ID"),
   }),
-  power_rating: z.string().min(1, "Power rating (Kw) is required"),
-  speed: z.string().min(1, "Speed (RPM) is required"),
-  capacity: z.string().min(1, "Capacity (m3/h) is required"),
+  power_rating: getRequiredStringSchema("Power rating (Kw)"),
+  speed: getRequiredStringSchema("Speed (RPM)"),
+  capacity: getRequiredStringSchema("Capacity (m3/h)"),
   datasheet: z
     .object({
       file_url: z.string().url("Please enter a valid URL").optional(),

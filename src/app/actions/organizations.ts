@@ -12,12 +12,26 @@ async function getOrganizationsService(): Promise<Organization[]> {
       method: "GET",
     });
 
+    // Handle 403 Forbidden (permission denied) gracefully
+    if (response.status === 403) {
+      console.warn("User does not have permission to access organizations");
+      return [];
+    }
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      throw new Error(
+        `Failed to fetch organizations: ${response.status} ${response.statusText}`
+      );
+    }
+
     const data = await response.json();
 
-    return data?.data;
+    return data?.data || [];
   } catch (error) {
     console.error("Error fetching organizations:", error);
-    throw error;
+    // Return empty array instead of throwing to prevent page crashes
+    return [];
   }
 }
 

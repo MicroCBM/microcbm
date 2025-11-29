@@ -9,6 +9,7 @@ export interface Organization {
     file_name: string;
     uploaded_at: string;
   };
+  logo_url?: string;
   owner?: {
     first_name: string;
     last_name: string;

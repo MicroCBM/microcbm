@@ -14,6 +14,7 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -83,7 +84,11 @@ export function AddRoleModal() {
             <SheetTitle>Create New Role</SheetTitle>
           </SheetHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="px-6">
+          <form
+            id="add-role-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="px-6"
+          >
             <div className="flex flex-col gap-6">
               <Input
                 label="Role Name"
@@ -126,30 +131,30 @@ export function AddRoleModal() {
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isSubmitting}
-                className="px-6"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="px-6">
-                {isSubmitting ? (
-                  <>
-                    <Icon
-                      icon="mdi:loading"
-                      className="w-4 h-4 mr-2 animate-spin"
-                    />
-                    Creating...
-                  </>
-                ) : (
-                  "Create Role"
-                )}
-              </Button>
-            </div>
           </form>
+          <SheetFooter>
+            <Button type="button" variant="outline" disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="add-role-form"
+              disabled={isSubmitting}
+              loading={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Icon
+                    icon="mdi:loading"
+                    className="w-4 h-4 mr-2 animate-spin"
+                  />
+                  Creating...
+                </>
+              ) : (
+                "Create Role"
+              )}
+            </Button>
+          </SheetFooter>
         </SheetContent>
       </Sheet>
     </>

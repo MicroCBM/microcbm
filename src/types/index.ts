@@ -7,3 +7,5 @@ export * from "./recommendations";
 export * from "./sampling-points";
 export * from "./sampling-routes";
 export * from "./samples";
+export * from "./roles";
+export * from "./shared";

@@ -10,7 +10,6 @@ export default async function AddSamplePage() {
   const sites = await getSitesService();
   const assets = await getAssetsService();
   const samplingPoints = await getSamplingPointsService();
-  console.log("sampling points", samplingPoints);
 
   return (
     <main className="flex flex-col gap-4">

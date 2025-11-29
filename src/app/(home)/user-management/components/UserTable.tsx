@@ -166,11 +166,16 @@ export function UserTable({
       size: 200,
     },
     {
-      accessorKey: "role",
+      accessorKey: "role.id",
       header: "Role",
-      cell: ({ getValue }) => (
-        <span className="text-sm text-gray-900">{getValue() as string}</span>
-      ),
+      cell: ({ row }) => {
+        const roleData = rolesData.find((r) => r.id === row.original.role_id);
+        return (
+          <span className="text-sm text-gray-900">
+            {roleData?.name || "N/A"}
+          </span>
+        );
+      },
       size: 120,
     },
     {

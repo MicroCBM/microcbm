@@ -15,6 +15,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  StatusBadge,
   Text,
 } from "@/components";
 import { Recommendation, Sites, Asset } from "@/types";
@@ -29,6 +30,7 @@ interface RecommendationTableProps {
   className?: string;
   sites?: Sites[];
   assets?: Asset[];
+  users?: unknown[];
 }
 
 export function RecommendationTable({
@@ -36,6 +38,7 @@ export function RecommendationTable({
   className,
   sites = [],
   assets = [],
+  users = [],
 }: RecommendationTableProps) {
   const [selectedRecommendation, setSelectedRecommendation] =
     useState<Recommendation | null>(null);
@@ -96,79 +99,70 @@ export function RecommendationTable({
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "critical":
-        return "bg-red-100 text-red-800";
-      case "high":
-        return "bg-orange-100 text-orange-800";
-      case "medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "low":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const columns: ColumnDef<Recommendation>[] = [
     {
       id: "title",
-      header: "Title",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-900 font-medium">
-            {row.original.title}
-          </span>
-        </div>
-      ),
+      header: "Title & Description",
+      cell: ({ row }) => {
+        const { title, description } = row.original;
+        return (
+          <div className="flex flex-col  gap-1">
+            <span className="text-sm text-gray-900 font-medium">{title}</span>
+            {description && (
+              <p className="text-sm text-gray-500">{description}</p>
+            )}
+          </div>
+        );
+      },
       size: 250,
-    },
-    {
-      accessorKey: "severity",
-      header: "Severity",
-      cell: ({ row }) => (
-        <span
-          className={`text-sm px-2 py-1 rounded-full ${getSeverityColor(
-            row.original.severity
-          )}`}
-        >
-          {row.original.severity.charAt(0).toUpperCase() +
-            row.original.severity.slice(1)}
-        </span>
-      ),
-      size: 120,
     },
     {
       accessorKey: "site",
       header: "Site",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
-          {row.original.site?.name || row.original.site?.id || "-"}
-        </span>
-      ),
+      cell: ({ row }) => {
+        // find the site name from the sites array
+        const site = sites.find(
+          (site: Sites) => site.id === row.original.site?.id
+        );
+        return (
+          <span className="text-sm text-gray-900">
+            {site?.name || site?.id || "-"}
+          </span>
+        );
+      },
       size: 150,
     },
     {
       accessorKey: "asset",
       header: "Asset",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
-          {row.original.asset?.name || row.original.asset?.id || "-"}
-        </span>
-      ),
+      cell: ({ row }) => {
+        // find the asset name from the assets array
+        const asset = assets.find(
+          (asset: Asset) => asset.id === row.original.asset?.id
+        );
+        return (
+          <span className="text-sm text-gray-900">
+            {asset?.name || asset?.id || "-"}
+          </span>
+        );
+      },
       size: 150,
     },
     {
       accessorKey: "recommender",
       header: "Recommender",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
-          {row.original.recommender?.name ||
-            row.original.recommender?.id ||
-            "-"}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const recommender = users.find(
+          (user: unknown) => user.id === row.original.recommender?.id
+        );
+        return (
+          <span className="text-sm text-gray-900">
+            {recommender?.first_name + " " + recommender?.last_name ||
+              "-" ||
+              "-"}
+          </span>
+        );
+      },
       size: 150,
     },
     {
@@ -180,6 +174,24 @@ export function RecommendationTable({
         </span>
       ),
       size: 180,
+    },
+    {
+      accessorKey: "severity",
+      header: "Severity",
+      cell: ({ row }) => (
+        <StatusBadge
+          status={
+            row.original.severity as
+              | "Active"
+              | "Inactive"
+              | "Pending"
+              | "Low"
+              | "Medium"
+              | "High"
+          }
+        />
+      ),
+      size: 120,
     },
     {
       id: "actions",

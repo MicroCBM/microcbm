@@ -7,10 +7,11 @@ import {
   Text,
 } from "@/components";
 import { Icon } from "@/libs";
-import { ROLES, SITE_ASSIGNED, STATUSES } from "@/utils";
+import { ROLES, STATUSES } from "@/utils";
+import { Sites } from "@/types";
 import React from "react";
 
-export function UserFilters() {
+export function UserFilters({ sites }: { sites: Sites[] }) {
   const [search, setSearch] = React.useState("");
   return (
     <div className="flex items-center gap-2">
@@ -90,12 +91,12 @@ export function UserFilters() {
         </PopoverTrigger>
         <PopoverContent className="w-[208px]">
           <div className="flex flex-col">
-            {SITE_ASSIGNED.map((role) => (
+            {sites.map((site) => (
               <button
-                key={role.value}
+                key={site.id}
                 className="px-2 py-[6px] hover:bg-gray-100 text-left"
               >
-                <Text variant="span">{role.label}</Text>
+                <Text variant="span">{site.name}</Text>
               </button>
             ))}
           </div>

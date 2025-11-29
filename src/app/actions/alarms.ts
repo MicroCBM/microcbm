@@ -1,6 +1,6 @@
 "use server";
 
-import { Alarm } from "@/types";
+import { Alarm, AlarmAnalytics } from "@/types";
 import { ApiResponse, handleApiRequest, requestWithAuth } from "./helpers";
 import { AddAlarmPayload, EditAlarmPayload } from "@/schema";
 
@@ -18,6 +18,42 @@ async function getAlarmsService(): Promise<Alarm[]> {
   } catch (error) {
     console.error("Error fetching alarms:", error);
     throw error;
+  }
+}
+
+async function getAlarmsAnalyticsService(): Promise<AlarmAnalytics | null> {
+  try {
+    const response = await requestWithAuth(
+      `${commonEndpoint}alarms/analytics`,
+      {
+        method: "GET",
+      }
+    );
+
+    // Handle 403 Forbidden (permission denied) gracefully
+    if (response.status === 403) {
+      console.warn("User does not have permission to access alarms analytics");
+      return null;
+    }
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Non-JSON response from alarms analytics API");
+      return null;
+    }
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    return data?.data || null;
+  } catch (error) {
+    console.error("Error fetching alarms analytics:", error);
+    // Return null instead of throwing to prevent page crashes
+    return null;
   }
 }
 
@@ -53,6 +89,7 @@ async function deleteAlarmService(id: string): Promise<ApiResponse> {
 
 export {
   getAlarmsService,
+  getAlarmsAnalyticsService,
   getAlarmService,
   addAlarmService,
   editAlarmService,

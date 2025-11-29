@@ -2,35 +2,44 @@
 import { Text } from "@/components";
 import { Icon } from "@/libs";
 import React from "react";
+import { SamplingPointAnalytics } from "@/types";
+import { getTrendData } from "@/utils";
 
-const cardData = [
-  {
-    id: 1,
-    title: "Total Samples",
-    value: "10",
-    description: "This is the total of all your samples.",
-    label: "Trending up this week",
-    icon: "mdi:trending-up",
-  },
-  {
-    id: 2,
-    title: "Active Samples",
-    value: "10",
-    description: "This is the total of all your active samples.",
-    label: "Trending up this week",
-    icon: "mdi:trending-up",
-  },
-  {
-    id: 3,
-    title: "Critical Samples",
-    value: "10",
-    description: "This is the total of all your critical samples.",
-    label: "Trending up this week",
-    icon: "mdi:trending-up",
-  },
-];
+export const SamplesSummary = ({
+  samplingPointsAnalytics,
+}: {
+  samplingPointsAnalytics: SamplingPointAnalytics | null;
+}) => {
+  // Don't render if analytics data is not available
+  if (!samplingPointsAnalytics) {
+    return null;
+  }
+  const cardData = [
+    {
+      id: 1,
+      title: "Total Sampling Points",
+      value: samplingPointsAnalytics?.total_sampling_points || 0,
+      description: "This is the total of all your sampling points.",
+      trend: getTrendData(samplingPointsAnalytics?.total_trend_percentage || 0),
+    },
+    {
+      id: 2,
+      title: "Sampling Points Due",
+      value: samplingPointsAnalytics?.sampling_points_due || 0,
+      description: "Sampling points that are due for sampling.",
+      trend: getTrendData(samplingPointsAnalytics?.due_trend_percentage || 0),
+    },
+    {
+      id: 3,
+      title: "Overdue Sampling Points",
+      value: samplingPointsAnalytics?.sampling_points_overdue || 0,
+      description: "Sampling points that are overdue for sampling.",
+      trend: getTrendData(
+        samplingPointsAnalytics?.overdue_trend_percentage || 0
+      ),
+    },
+  ];
 
-export const SamplesSummary = () => {
   return (
     <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {cardData.map((item) => (
@@ -43,14 +52,14 @@ export const SamplesSummary = () => {
               {item.title}
             </Text>
             <div className="flex items-center gap-2 border border-gray-100 px-[6.4px] py-[4.8px]">
-              <Icon icon="mdi:trending-up" />
-              <Text variant="span">{item.value}</Text>
+              <Icon icon={item.trend.icon} />
+              <Text variant="span">{item.trend.label.split("%")[0]}%</Text>
             </div>
           </div>
           <Text variant="h6">{item.value}</Text>
           <div className="flex items-center gap-2 px-[6.4px] py-[4.8px]">
-            <Text variant="span">{item.label}</Text>
-            <Icon icon="mdi:trending-up" />
+            <Text variant="span">{item.trend.label}</Text>
+            <Icon icon={item.trend.icon} />
           </div>
           <Text variant="span" className="text-gray">
             {item.description}

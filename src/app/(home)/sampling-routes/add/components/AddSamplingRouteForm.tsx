@@ -103,11 +103,38 @@ export function AddSamplingRouteForm({
     },
   });
 
+  const selectedSiteId = watch("site_id");
+  const currentTechnicianId = watch("technician_id");
+
+  // Filter technicians based on selected site
+  const filteredTechnicians = React.useMemo(() => {
+    if (!selectedSiteId) return technicians;
+
+    return technicians.filter(
+      (technician) => technician.site?.id === selectedSiteId
+    );
+  }, [selectedSiteId, technicians]);
+
+  // Clear technician if current technician is not in filtered list when site changes
+  React.useEffect(() => {
+    if (selectedSiteId && currentTechnicianId) {
+      const isTechnicianValid = filteredTechnicians.some(
+        (technician) => technician.id === currentTechnicianId
+      );
+      if (!isTechnicianValid) {
+        setValue("technician_id", "", { shouldValidate: false });
+      }
+    } else if (!selectedSiteId && currentTechnicianId) {
+      setValue("technician_id", "", { shouldValidate: false });
+    }
+  }, [selectedSiteId, filteredTechnicians, currentTechnicianId, setValue]);
+
   const onSubmit = async (data: AddSamplingRoutePayload) => {
     console.log("submit data", data);
     setIsSubmitting(true);
     try {
       const response = await addSamplingRouteService(data);
+
       if (response.success) {
         toast.success("Sampling route created successfully", {
           description: "The sampling route has been added to your system.",
@@ -132,35 +159,23 @@ export function AddSamplingRouteForm({
 
   return (
     <>
-      <section className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.back()}
-            className="w-10 h-10 border border-gray-200 flex items-center justify-center"
-          >
-            <Icon icon="mdi:chevron-left" className=" size-5" />
-          </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => router.back()}
+          className="w-10 h-10 border border-gray-200 flex items-center justify-center"
+        >
+          <Icon icon="mdi:chevron-left" className=" size-5" />
+        </button>
 
-          <Text variant="h6">Add Sampling Route</Text>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button size="medium" variant="outline">
-            Discard
-          </Button>
-          <Button size="medium" variant="outline">
-            Save Draft
-          </Button>
-          <Button size="medium">Create Sampling Route</Button>
-        </div>
-      </section>
+        <Text variant="h6">Add Sampling Route</Text>
+      </div>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="p-6 flex flex-col gap-4"
       >
         {/* Basic Information Section */}
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex flex-col gap-4 flex-1">
             <section className="flex flex-col gap-6 border border-gray-100 p-6">
               <Text variant="h6" className="text-gray-900">
@@ -193,7 +208,7 @@ export function AddSamplingRouteForm({
               <div className="flex flex-col gap-4">
                 <div className="space-y-2">
                   <Select
-                    value={watch("site_id")}
+                    value={watch("site_id") || ""}
                     onValueChange={(value) => setValue("site_id", value)}
                   >
                     <SelectTrigger label="Site">
@@ -216,21 +231,39 @@ export function AddSamplingRouteForm({
 
                 <div className="space-y-2">
                   <Select
-                    value={watch("technician_id")}
+                    value={watch("technician_id") || ""}
                     onValueChange={(value) => setValue("technician_id", value)}
+                    disabled={
+                      !selectedSiteId || filteredTechnicians.length === 0
+                    }
                   >
                     <SelectTrigger label="Technician">
-                      <SelectValue placeholder="Select technician" />
+                      <SelectValue
+                        placeholder={
+                          !selectedSiteId
+                            ? "Select a site first"
+                            : filteredTechnicians.length === 0
+                            ? "No technicians available for this site"
+                            : "Select technician"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {technicians.map((technician) => (
-                        <SelectItem key={technician.id} value={technician.id}>
-                          {technician.first_name} {technician.last_name} (
-                          {technician.role})
-                        </SelectItem>
-                      ))}
+                      {filteredTechnicians.length > 0 &&
+                        filteredTechnicians.map((technician) => (
+                          <SelectItem key={technician.id} value={technician.id}>
+                            {technician.first_name} {technician.last_name} (
+                            {technician.role})
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
+                  {selectedSiteId && filteredTechnicians.length === 0 && (
+                    <Text variant="span" className="text-amber-600 text-sm">
+                      No technicians found for the selected site. Please select
+                      a different site.
+                    </Text>
+                  )}
                   {errors.technician_id && (
                     <Text variant="span" className="text-red-500 text-sm">
                       {errors.technician_id.message}
@@ -241,12 +274,12 @@ export function AddSamplingRouteForm({
             </section>
           </div>
 
-          <section className="flex flex-col gap-6 border border-gray-100 p-6 max-w-[300px] w-full">
+          <section className="flex flex-col gap-6 border border-gray-100 p-6 w-full lg:max-w-[300px]">
             <Text variant="h6" className="text-gray-900">
               Status
             </Text>
             <Select
-              value={watch("status")}
+              value={watch("status") || ""}
               onValueChange={(value) => setValue("status", value)}
             >
               <SelectTrigger label="Status">
@@ -269,17 +302,21 @@ export function AddSamplingRouteForm({
         </div>
 
         {/* Form Actions */}
-        <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-200">
           <Button
             type="button"
             variant="outline"
             onClick={() => router.back()}
             disabled={isSubmitting}
-            className="px-6"
+            className="px-6 w-full sm:w-auto"
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting} className="px-6">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-6 w-full sm:w-auto"
+          >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
                 <Icon icon="mdi:loading" className="w-4 h-4 animate-spin" />

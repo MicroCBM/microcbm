@@ -4,6 +4,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui";
 import { StatusBadge } from "@/components";
 import { SamplingPoint } from "@/types";
 import dayjs from "dayjs";
+import { usePresignedUrl } from "@/hooks";
+import Image from "next/image";
 
 interface ViewSamplingPointModalProps {
   samplingPoint: SamplingPoint | null;
@@ -16,9 +18,17 @@ export function ViewSamplingPointModal({
   isOpen,
   onClose,
 }: ViewSamplingPointModalProps) {
-  if (!samplingPoint) return null;
+  // Get the first attachment's file key
+  const attachmentFileKey =
+    samplingPoint?.attachments && samplingPoint.attachments.length > 0
+      ? samplingPoint.attachments[0]?.url
+      : null;
 
-  console.log("samplingPoint", samplingPoint);
+  // Get presigned URL for the attachment (must be called before early return)
+  const { url: attachmentUrl, isLoading: isAttachmentLoading } =
+    usePresignedUrl(attachmentFileKey, isOpen && !!attachmentFileKey);
+
+  if (!samplingPoint) return null;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -231,6 +241,44 @@ export function ViewSamplingPointModal({
               />
             </div>
           </section>
+
+          {/* Attachments */}
+          {attachmentFileKey && (
+            <section className="flex flex-col gap-4 border border-gray-100 p-4">
+              <p className="text-[#807f94] text-xs font-medium">Attachment</p>
+              {isAttachmentLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <p className="text-[#807f94] text-sm">Loading image...</p>
+                </div>
+              ) : attachmentUrl ? (
+                <div className="flex flex-col gap-2">
+                  <a
+                    href={attachmentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <Image
+                      src={attachmentUrl}
+                      alt={
+                        samplingPoint.attachments?.[0]?.name ||
+                        "Sampling point attachment"
+                      }
+                      width={500}
+                      height={300}
+                      className="w-full h-auto rounded-lg border border-gray-200 object-contain"
+                      unoptimized
+                    />
+                  </a>
+                  <p className="text-[#1f1f1f] text-xs">
+                    {samplingPoint.attachments?.[0]?.name || "Attachment"}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-[#807f94] text-sm">Unable to load image</p>
+              )}
+            </section>
+          )}
         </div>
       </SheetContent>
     </Sheet>

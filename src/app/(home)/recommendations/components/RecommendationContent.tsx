@@ -5,6 +5,7 @@ import { Button, Text } from "@/components";
 
 import { Icon } from "@/libs";
 import { useRouter } from "next/navigation";
+import { ComponentGuard } from "@/components/content-guard";
 
 export function RecommendationContent() {
   const router = useRouter();
@@ -17,14 +18,16 @@ export function RecommendationContent() {
         Recommendations
       </Text>
 
-      <Button
-        onClick={handleAddRecommendation}
-        size="medium"
-        className="rounded-full"
-      >
-        <Icon icon="mdi:plus-circle" className="text-white size-5" />
-        Add New Recommendation
-      </Button>
+      <ComponentGuard permissions="recommendations:create">
+        <Button
+          onClick={handleAddRecommendation}
+          size="medium"
+          className="rounded-full"
+        >
+          <Icon icon="mdi:plus-circle" className="text-white size-5" />
+          Add New Recommendation
+        </Button>
+      </ComponentGuard>
     </div>
   );
 }

@@ -21,3 +21,21 @@ export interface AlarmFilters {
   acknowledged_status?: string;
   site?: string;
 }
+
+export interface AlarmAnalytics {
+  alarm_trend: {
+    growth: number;
+    percentage: number;
+  };
+  forecast_alarms: number;
+  forecast_trend: {
+    growth: number;
+    percentage: number;
+  };
+  open_overdue_alarms: number;
+  open_overdue_trend: {
+    growth: number;
+    percentage: number;
+  };
+  total_alarms: number;
+}

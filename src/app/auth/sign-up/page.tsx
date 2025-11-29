@@ -1,13 +1,13 @@
 "use client";
 import {
   Button,
+  ImageUpload,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
   Text,
-  // LogoUpload,
 } from "@/components";
 import Input from "@/components/input/Input";
 
@@ -16,69 +16,37 @@ import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { ROUTES } from "@/utils";
-import { Icon } from "@/libs";
 import { INDUSTRIES, SPECIAL_CHARACTERS, TEAM_SIZES } from "@/helpers";
 import AccountCreatedSuccess from "../components/AccountCreatedSuccess";
 import { signupService } from "@/app/actions/auth";
-
-// Step-based validation schemas
-const step1Schema = z.object({
-  user: z.object({
-    first_name: z.string().min(1, { message: "First name is required" }),
-    last_name: z.string().min(1, { message: "Last name is required" }),
-    email: z.string().email({ message: "Invalid email address" }),
-  }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters" }),
-});
-
-const step2Schema = z.object({
-  organization: z.object({
-    name: z.string().min(1, { message: "Organization name is required" }),
-    industry: z.string().min(1, { message: "Industry is required" }),
-    team_strength: z.string().min(1, { message: "Team strength is required" }),
-  }),
-});
-
-const step3Schema = z.object({
-  organization: z.object({
-    logo_url: z.string().min(1, { message: "Logo URL is required" }),
-  }),
-});
-
-// Full schema for TypeScript types
-const fullSchema = z.object({
-  user: z.object({
-    first_name: z.string().min(1, { message: "First name is required" }),
-    last_name: z.string().min(1, { message: "Last name is required" }),
-    email: z.string().email({ message: "Invalid email address" }),
-  }),
-  organization: z.object({
-    name: z.string().min(1, { message: "Organization name is required" }),
-    industry: z.string().min(1, { message: "Industry is required" }),
-    team_strength: z.string().min(1, { message: "Team strength is required" }),
-    logo_url: z.string().min(1, { message: "Logo URL is required" }),
-  }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters" }),
-});
-
-type FormData = z.infer<typeof fullSchema>;
+import {
+  SIGN_UP_FULL_SCHEMA,
+  SIGN_UP_STEP_1_SCHEMA,
+  SIGN_UP_STEP_2_SCHEMA,
+} from "@/schema";
+import { uploadImage } from "@/app/actions";
+import { Icon } from "@/libs";
+import { useRouter } from "next/navigation";
 
 export default function SignUp() {
+  const router = useRouter();
   const [step, setStep] = React.useState<
     "sign-up" | "organization-setup" | "logo-upload" | "account-created-success"
   >("sign-up");
   const [errorMessage, setErrorMessage] = React.useState<string>("");
+  const [file, setFile] = React.useState<File | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = React.useState(false);
+  const [uploadedFileName, setUploadedFileName] = React.useState<string | null>(
+    null
+  );
+
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
     register,
     watch,
     control,
-  } = useForm<FormData>({
+  } = useForm<z.infer<typeof SIGN_UP_FULL_SCHEMA>>({
     mode: "onChange",
   });
 
@@ -92,7 +60,7 @@ export default function SignUp() {
   const hasUppercase = /[A-Z]/.test(password);
   const hasSpecialChar = /[!@#$%^&*()]/.test(password);
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: z.infer<typeof SIGN_UP_FULL_SCHEMA>) => {
     console.log("Form data:", data);
     setErrorMessage(""); // Clear previous errors
 
@@ -107,12 +75,15 @@ export default function SignUp() {
         password: data.password,
       };
 
-      const result = step1Schema.safeParse(step1Data);
+      const result = SIGN_UP_STEP_1_SCHEMA.safeParse(step1Data);
       if (result.success) {
         setStep("organization-setup");
       } else {
         console.error("Step 1 validation failed:", result.error);
-        setErrorMessage("Please fill in all required fields correctly.");
+        const firstError = result.error.issues[0];
+        setErrorMessage(
+          firstError?.message || "Please fill in all required fields correctly."
+        );
       }
     } else if (step === "organization-setup") {
       // Validate step 2 fields
@@ -124,30 +95,27 @@ export default function SignUp() {
         },
       };
 
-      const result = step2Schema.safeParse(step2Data);
+      const result = SIGN_UP_STEP_2_SCHEMA.safeParse(step2Data);
       if (result.success) {
         setStep("logo-upload");
       } else {
         console.error("Step 2 validation failed:", result.error);
-        setErrorMessage("Please fill in all required fields correctly.");
+        const firstError = result.error.issues[0];
+        setErrorMessage(
+          firstError?.message || "Please fill in all required fields correctly."
+        );
       }
     } else if (step === "logo-upload") {
       // Validate step 3 fields
-      const step3Data = {
-        organization: {
-          logo_url: data.organization?.logo_url,
-        },
-      };
-
-      const result = step3Schema.safeParse(step3Data);
+      const result = SIGN_UP_FULL_SCHEMA.safeParse(data);
       if (!result.success) {
-        console.error("Step 3 validation failed:", result.error);
-        setErrorMessage("Please upload an organization logo.");
+        console.error("Full validation failed:", result.error);
+        setErrorMessage("Please complete all steps correctly.");
         return;
       }
 
       // Validate full form before submitting
-      const fullResult = fullSchema.safeParse(data);
+      const fullResult = SIGN_UP_FULL_SCHEMA.safeParse(data);
       if (!fullResult.success) {
         console.error("Full validation failed:", fullResult.error);
         setErrorMessage("Please complete all steps correctly.");
@@ -157,25 +125,56 @@ export default function SignUp() {
       // Handle final form submission
       console.log("Complete signup data:", data);
 
-      const response = await signupService(data);
+      const response = await signupService({
+        user: data.user,
+        organization: {
+          ...data.organization,
+          logo_url: data.organization?.logo_url || uploadedFileName || "",
+        },
+        password: data.password,
+      });
+
+      console.log("response", response);
 
       if (response.success) {
         setStep("account-created-success");
+        router.push(ROUTES.AUTH.LOGIN);
       } else {
-        // Show error message to user
         setErrorMessage(response.message || "Signup failed. Please try again.");
-        console.error("Signup failed:", response);
       }
-    } else if (step === "account-created-success") {
-      setStep("sign-up");
     }
   };
+
+  async function handleImageUpload(file: File) {
+    setIsUploadingImage(true);
+
+    const response = await uploadImage({ file }, "organization-logos");
+    // if (response.success) {
+    setUploadedFileName(response.data?.data?.file_key);
+    // } else {
+    //   setErrorMessage(
+    //     response.message || "Image upload failed. Please try again."
+    //   );
+    // }
+  }
   return (
     <div className="w-full p-10 flex flex-col justify-between min-h-screen">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col justify-center max-w-[580px] mx-auto w-full gap-10 flex-1"
       >
+        {step !== "sign-up" && (
+          <button
+            type="button"
+            onClick={() =>
+              setStep(step === "logo-upload" ? "organization-setup" : "sign-up")
+            }
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors w-fit mb-2"
+          >
+            <Icon icon="mdi:chevron-left" className="w-5 h-5" />
+            Back
+          </button>
+        )}
         {step === "sign-up" && (
           <div className="flex flex-col gap-6">
             <p className="text-gray text-lg text-center">1/3</p>
@@ -404,33 +403,13 @@ export default function SignUp() {
             </div>
 
             <div className="flex flex-col gap-4">
-              <Input
-                label="Organization Logo"
-                type="text"
-                // type="file"
-                placeholder="Enter your email"
-                {...register("organization.logo_url")}
-                error={errors.organization?.logo_url?.message as string}
+              <ImageUpload
+                file={file}
+                onFileChange={setFile}
+                onUpload={handleImageUpload}
+                isUploading={isUploadingImage}
+                currentImageUrl={uploadedFileName || undefined}
               />
-              {/* <LogoUpload
-                name="organization.logo_url"
-                control={control}
-                label="Organization Logo"
-                maxSize={5}
-                maxFiles={1}
-                error={errors.organization?.logo_url?.message as string}
-              /> */}
-
-              <div className="grid grid-cols-2 gap-2">
-                <Button type="button" variant="outline">
-                  <Icon icon="mdi:camera" className="w-4 h-4" />
-                  Take a photo
-                </Button>
-                <Button type="button" variant="outline">
-                  <Icon icon="mdi:upload" className="w-4 h-4" />
-                  Upload from library
-                </Button>
-              </div>
             </div>
 
             {errorMessage && (

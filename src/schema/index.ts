@@ -9,3 +9,5 @@ export * from "./sampling-points";
 export * from "./sampling-routes";
 export * from "./roles";
 export * from "./samples";
+export * from "./permissions";
+export * from "./auth";

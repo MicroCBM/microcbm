@@ -11,14 +11,16 @@ import {
   getSitesService,
   getAssetsService,
   getSamplingPointsService,
+  getSamplingPointsAnalyticsService,
 } from "@/app/actions";
+import { ComponentGuard } from "@/components/content-guard";
 
 export default async function SamplesPage() {
   const samples = await getSamplesService();
   const sites = await getSitesService();
   const assets = await getAssetsService();
   const samplingPoints = await getSamplingPointsService();
-  console.log("samples", samples);
+  const samplingPointsAnalytics = await getSamplingPointsAnalyticsService();
 
   return (
     <main className="flex flex-col gap-4">
@@ -27,9 +29,18 @@ export default async function SamplesPage() {
         assets={assets}
         samplingPoints={samplingPoints}
       />
-      <SamplesSummary />
+      {samplingPointsAnalytics && (
+        <ComponentGuard permissions="sampling_points:read">
+          <SamplesSummary samplingPointsAnalytics={samplingPointsAnalytics} />
+        </ComponentGuard>
+      )}
       <SampleFilters />
-      <SampleTable data={samples} sites={sites} />
+      <SampleTable
+        data={samples}
+        sites={sites}
+        assets={assets}
+        samplingPoints={samplingPoints}
+      />
     </main>
   );
 }

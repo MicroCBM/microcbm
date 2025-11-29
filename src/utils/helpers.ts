@@ -116,9 +116,21 @@ function transformStrToDropdownOptions(strs: string[]) {
   return output;
 }
 
+function getTrendData(percentage: number) {
+  const isPositive = percentage >= 0;
+  const formattedPercentage = Math.abs(percentage).toFixed(1);
+  const icon = isPositive ? "mdi:trending-up" : "mdi:trending-down";
+  const label = `${
+    isPositive ? "+" : ""
+  }${formattedPercentage}% from last period`;
+
+  return { icon, label, isPositive };
+}
+
 export {
   filterCountries,
   filterRegions,
   formatCurrency,
   transformStrToDropdownOptions,
+  getTrendData,
 };

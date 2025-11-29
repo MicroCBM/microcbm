@@ -41,7 +41,7 @@ export function UserContent({
           sites={sites}
         />
       </div>
-      <UserFilters />
+      <UserFilters sites={sites} />
     </div>
   );
 }

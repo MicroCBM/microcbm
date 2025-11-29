@@ -114,7 +114,7 @@ export function OrganizationTable({ data, className }: OrganizationTableProps) {
           {row.original.industry}
         </span>
       ),
-      size: 150,
+      size: 200,
     },
     {
       accessorKey: "team_strength",
@@ -136,17 +136,17 @@ export function OrganizationTable({ data, className }: OrganizationTableProps) {
       ),
       size: 200,
     },
-    {
-      accessorKey: "owner",
-      header: "Owner Name",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900 truncate max-w-xs">
-          {row.original.owner?.first_name || "-"}{" "}
-          {row.original.owner?.last_name || "-"}
-        </span>
-      ),
-      size: 300,
-    },
+    // {
+    //   accessorKey: "owner",
+    //   header: "Owner Name",
+    //   cell: ({ row }) => (
+    //     <span className="text-sm text-gray-900 truncate max-w-xs">
+    //       {row.original.owner?.first_name || "-"}{" "}
+    //       {row.original.owner?.last_name || "-"}
+    //     </span>
+    //   ),
+    //   size: 300,
+    // },
     {
       accessorKey: "sites",
       header: "Number of Sites",

@@ -12,8 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui";
-import { Icon } from "@/libs";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui";
 import { EditRolePayload, EDIT_ROLE_SCHEMA } from "@/schema";
 import { editRoleService } from "@/app/actions";
 import Input from "@/components/input/Input";
@@ -27,12 +32,12 @@ const ACTIVE_STATUS_OPTIONS = [
 interface Role {
   id: string;
   name: string;
-  permissions: Permission[];
+  permissions: Permission[] | null;
   level: number;
-  description: string;
   created_at: number;
   created_at_datetime: string;
-  active?: boolean;
+  description: string;
+  active: boolean;
 }
 
 interface Permission {
@@ -80,10 +85,7 @@ export function EditRoleModal({
     }
   }, [isOpen, role, reset]);
 
-  console.log("errors", errors);
-
   const onSubmit = async (data: EditRolePayload) => {
-    console.log("data", data);
     if (!role) return;
 
     setIsSubmitting(true);
@@ -125,6 +127,7 @@ export function EditRoleModal({
         </SheetHeader>
 
         <form
+          id="edit-role-form"
           onSubmit={handleSubmit(onSubmit as SubmitHandler<EditRolePayload>)}
           className="px-6"
         >
@@ -140,10 +143,10 @@ export function EditRoleModal({
                 error={errors.name?.message}
               />
 
-              <Text variant="h6">Description</Text>
               <Input
                 type="textarea"
                 rows={4}
+                label="Description"
                 {...register("description")}
                 placeholder="Describe the role's responsibilities and scope..."
               />
@@ -174,33 +177,20 @@ export function EditRoleModal({
               />
             </div>
           </div>
-
-          {/* Form Actions */}
-          <div className="sticky bottom-0 bg-white flex justify-end gap-4 py-4 border-t border-gray-200 px-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting}
-              className="px-6"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting} className="px-6">
-              {isSubmitting ? (
-                <>
-                  <Icon
-                    icon="mdi:loading"
-                    className="w-4 h-4 mr-2 animate-spin"
-                  />
-                  Updating...
-                </>
-              ) : (
-                "Update Role"
-              )}
-            </Button>
-          </div>
         </form>
+        <SheetFooter>
+          <Button type="button" variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            loading={isSubmitting}
+            form="edit-role-form"
+          >
+            Update Role
+          </Button>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

@@ -56,7 +56,9 @@ export function AddSampleForm({
     setIsSubmitting(true);
     try {
       // Convert date to Unix timestamp
-      const dateSampled = dayjs(data.date_sampled as unknown as string).unix();
+      const dateSampled = dayjs(
+        (data.date_sampled as unknown as string) || new Date()
+      ).unix();
 
       // Transform wear metals object into array format
       const wearMetalsArray: Array<{
@@ -77,24 +79,201 @@ export function AddSampleForm({
         "titanium",
       ];
 
-      metals.forEach((metal) => {
-        const value = (data as Record<string, unknown>)[`wear_metals.${metal}`];
-        if (value !== undefined && value !== null && value !== "") {
-          wearMetalsArray.push({
-            element: metal,
-            value: parseFloat(value as string),
-            unit: "ppm",
-          });
-        }
-      });
+      if (data.wear_metals) {
+        metals.forEach((metal) => {
+          const value = data.wear_metals?.[metal];
+          if (value !== undefined && value !== null && value !== "") {
+            const numValue = parseFloat(value as string);
+            if (!isNaN(numValue)) {
+              wearMetalsArray.push({
+                element: metal,
+                value: numValue,
+                unit: "ppm",
+              });
+            }
+          }
+        });
+      }
 
-      const payload: unknown = {
-        ...data,
-        date_sampled: dateSampled,
-        wear_metals: wearMetalsArray.length > 0 ? wearMetalsArray : undefined,
+      // Transform contaminants object into array format
+      const contaminantsArray: Array<{
+        type: string;
+        value: number;
+        unit: string;
+      }> = [];
+
+      const contaminantsMap: Record<string, string> = {
+        silicon: "silicon",
+        sodium: "sodium",
+        potassium: "potassium",
+        water: "water",
+        total_acid_number: "total_acid_number",
       };
 
-      const response = await addSampleService(payload as AddSamplePayload);
+      // Handle contaminants as either object (from form) or array (already transformed)
+      const contaminantsData = data.contaminants as
+        | Record<string, string>
+        | Array<{ type: string; value: number; unit: string }>
+        | undefined;
+
+      if (contaminantsData) {
+        if (Array.isArray(contaminantsData)) {
+          contaminantsArray.push(...contaminantsData);
+        } else if (typeof contaminantsData === "object") {
+          Object.entries(contaminantsData).forEach(([key, value]) => {
+            if (
+              value !== undefined &&
+              value !== null &&
+              value !== "" &&
+              contaminantsMap[key]
+            ) {
+              const numValue = parseFloat(value as string);
+              if (!isNaN(numValue)) {
+                contaminantsArray.push({
+                  type: contaminantsMap[key],
+                  value: numValue,
+                  unit: "ppm",
+                });
+              }
+            }
+          });
+        }
+      }
+
+      // Transform particle counts object into array format
+      const particleCountsArray: Array<{
+        size_range: string;
+        count: number;
+        unit: string;
+      }> = [];
+
+      const particleSizeMap: Record<string, string> = {
+        "4_micron": "4-6um",
+        "8_micron": "6-10um",
+        "14_micron": "10-14um",
+        "20_micron": "14-20um",
+        "25_micron": "20-25um",
+        "50_micron": "25-50um",
+        "75_micron": "50-75um",
+        "100_micron": "75-100um",
+      };
+
+      // Handle particle_counts as either object (from form) or array (already transformed)
+      const particleCountsData = data.particle_counts as
+        | Record<string, string>
+        | Array<{ size_range: string; count: number; unit: string }>
+        | undefined;
+
+      if (particleCountsData) {
+        if (Array.isArray(particleCountsData)) {
+          particleCountsArray.push(...particleCountsData);
+        } else if (typeof particleCountsData === "object") {
+          Object.entries(particleCountsData).forEach(([key, value]) => {
+            if (
+              value !== undefined &&
+              value !== null &&
+              value !== "" &&
+              particleSizeMap[key]
+            ) {
+              const numValue = parseFloat(value as string);
+              if (!isNaN(numValue)) {
+                particleCountsArray.push({
+                  size_range: particleSizeMap[key],
+                  count: numValue,
+                  unit: "particles/ml",
+                });
+              }
+            }
+          });
+        }
+      }
+
+      // Transform viscosity levels object into array format
+      const viscosityLevelsArray: Array<{
+        temperature: number;
+        viscosity: number;
+        unit: string;
+      }> = [];
+
+      const viscosityTempMap: Record<string, number> = {
+        "40_cst": 40,
+        "100_cst": 100,
+      };
+
+      // Handle viscosity_levels as either object (from form) or array (already transformed)
+      const viscosityLevelsData = data.viscosity_levels as
+        | Record<string, string>
+        | Array<{ temperature: number; viscosity: number; unit: string }>
+        | undefined;
+
+      if (viscosityLevelsData) {
+        if (Array.isArray(viscosityLevelsData)) {
+          viscosityLevelsArray.push(...viscosityLevelsData);
+        } else if (typeof viscosityLevelsData === "object") {
+          Object.entries(viscosityLevelsData).forEach(([key, value]) => {
+            if (
+              value !== undefined &&
+              value !== null &&
+              value !== "" &&
+              viscosityTempMap[key]
+            ) {
+              const numValue = parseFloat(value as string);
+              if (!isNaN(numValue)) {
+                viscosityLevelsArray.push({
+                  temperature: viscosityTempMap[key],
+                  viscosity: numValue,
+                  unit: "cSt",
+                });
+              }
+            }
+          });
+        }
+      }
+
+      // Convert filter_changed and oil_drained from "yes"/"no" to boolean
+      const filterChanged =
+        typeof data.filter_changed === "string"
+          ? data.filter_changed.toLowerCase() === "yes"
+          : false;
+      const oilDrained =
+        typeof data.oil_drained === "string"
+          ? data.oil_drained.toLowerCase() === "yes"
+          : false;
+
+      // Build the payload
+      const payload = {
+        site: data.site,
+        asset: data.asset,
+        sampling_point: data.sampling_point,
+        serial_number: data.serial_number,
+        date_sampled: dateSampled,
+        lab_name: data.lab_name,
+        service_meter_reading: data.service_meter_reading,
+        hrs: data.hrs,
+        oil_in_service: data.oil_in_service,
+        filter_changed: filterChanged,
+        oil_drained: oilDrained,
+        severity: data.severity,
+        ...(wearMetalsArray.length > 0 && { wear_metals: wearMetalsArray }),
+        ...(contaminantsArray.length > 0 && {
+          contaminants: contaminantsArray,
+        }),
+        ...(particleCountsArray.length > 0 && {
+          particle_counts: particleCountsArray,
+        }),
+        ...(viscosityLevelsArray.length > 0 && {
+          viscosity_levels: viscosityLevelsArray,
+        }),
+        // Add collection_date from date_sampled in ISO format
+        collection_date: dayjs(
+          (data.date_sampled as unknown as string) || new Date()
+        ).toISOString(),
+      };
+
+      // Cast to unknown first to bypass type checking since we're transforming the data structure
+      const response = await addSampleService(
+        payload as unknown as AddSamplePayload
+      );
       if (response.success) {
         toast.success("Sample created successfully", {
           description: "The sample has been added to your system.",

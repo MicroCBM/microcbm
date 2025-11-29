@@ -20,4 +20,9 @@ interface SessionUser {
   iat: number;
 }
 
-export type { CountryRegion, Region, SessionUser };
+type DropdownOption = {
+  label: string;
+  value: string;
+};
+
+export type { CountryRegion, Region, SessionUser, DropdownOption };

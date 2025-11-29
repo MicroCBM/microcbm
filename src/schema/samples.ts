@@ -1,40 +1,41 @@
 import { z } from "zod";
+import { getRequiredStringSchema } from "./shared";
 
 export const ADD_SAMPLE_SCHEMA = z.object({
   site: z.object({
-    id: z.string().min(1, "Site ID is required"),
+    id: getRequiredStringSchema("Site ID"),
   }),
   asset: z.object({
-    id: z.string().min(1, "Asset ID is required"),
+    id: getRequiredStringSchema("Asset ID"),
   }),
   sampling_point: z.object({
-    id: z.string().min(1, "Sampling point ID is required"),
+    id: getRequiredStringSchema("Sampling point ID"),
   }),
-  serial_number: z.string().min(1, "Serial number is required"),
+  serial_number: getRequiredStringSchema("Serial number"),
   date_sampled: z.number(),
-  lab_name: z.string().min(1, "Lab name is required"),
-  service_meter_reading: z.string().min(1, "Service meter reading is required"),
-  hrs: z.string().min(1, "Hours is required"),
-  oil_in_service: z.string().min(1, "Oil in service is required"),
-  filter_changed: z.string().min(1, "Filter changed is required"),
-  oil_drained: z.string().min(1, "Oil drained is required"),
-  severity: z.string().min(1, "Severity is required"),
+  lab_name: getRequiredStringSchema("Lab name"),
+  service_meter_reading: getRequiredStringSchema("Service meter reading"),
+  hrs: getRequiredStringSchema("Hours"),
+  oil_in_service: getRequiredStringSchema("Oil in service"),
+  filter_changed: getRequiredStringSchema("Filter changed"),
+  oil_drained: getRequiredStringSchema("Oil drained"),
+  severity: getRequiredStringSchema("Severity"),
   wear_metals: z.record(z.string(), z.string()).optional(),
   contaminants: z
     .array(
       z.object({
-        type: z.string().min(1, "Type is required"),
+        type: getRequiredStringSchema("Type"),
         value: z.number(),
-        unit: z.string().min(1, "Unit is required"),
+        unit: getRequiredStringSchema("Unit"),
       })
     )
     .optional(),
   particle_counts: z
     .array(
       z.object({
-        size_range: z.string().min(1, "Size range is required"),
+        size_range: getRequiredStringSchema("Size range"),
         count: z.number(),
-        unit: z.string().min(1, "Unit is required"),
+        unit: getRequiredStringSchema("Unit"),
       })
     )
     .optional(),
@@ -43,7 +44,7 @@ export const ADD_SAMPLE_SCHEMA = z.object({
       z.object({
         temperature: z.number(),
         viscosity: z.number(),
-        unit: z.string().min(1, "Unit is required"),
+        unit: getRequiredStringSchema("Unit"),
       })
     )
     .optional(),
@@ -51,39 +52,39 @@ export const ADD_SAMPLE_SCHEMA = z.object({
 
 export const EDIT_SAMPLE_SCHEMA = z.object({
   site: z.object({
-    id: z.string().min(1, "Site ID is required"),
+    id: getRequiredStringSchema("Site ID"),
   }),
   asset: z.object({
-    id: z.string().min(1, "Asset ID is required"),
+    id: getRequiredStringSchema("Asset ID"),
   }),
   sampling_point: z.object({
-    id: z.string().min(1, "Sampling point ID is required"),
+    id: getRequiredStringSchema("Sampling point ID"),
   }),
-  serial_number: z.string().min(1, "Serial number is required"),
+  serial_number: getRequiredStringSchema("Serial number"),
   date_sampled: z.number(),
-  lab_name: z.string().min(1, "Lab name is required"),
-  service_meter_reading: z.string().min(1, "Service meter reading is required"),
-  hrs: z.string().min(1, "Hours is required"),
-  oil_in_service: z.string().min(1, "Oil in service is required"),
-  filter_changed: z.string().min(1, "Filter changed is required"),
-  oil_drained: z.string().min(1, "Oil drained is required"),
-  severity: z.string().min(1, "Severity is required"),
+  lab_name: getRequiredStringSchema("Lab name"),
+  service_meter_reading: getRequiredStringSchema("Service meter reading"),
+  hrs: getRequiredStringSchema("Hours"),
+  oil_in_service: getRequiredStringSchema("Oil in service"),
+  filter_changed: getRequiredStringSchema("Filter changed"),
+  oil_drained: getRequiredStringSchema("Oil drained"),
+  severity: getRequiredStringSchema("Severity"),
   wear_metals: z.record(z.string(), z.string()).optional(),
   contaminants: z
     .array(
       z.object({
-        type: z.string().min(1, "Type is required"),
+        type: getRequiredStringSchema("Type"),
         value: z.number(),
-        unit: z.string().min(1, "Unit is required"),
+        unit: getRequiredStringSchema("Unit"),
       })
     )
     .optional(),
   particle_counts: z
     .array(
       z.object({
-        size_range: z.string().min(1, "Size range is required"),
+        size_range: getRequiredStringSchema("Size range"),
         count: z.number(),
-        unit: z.string().min(1, "Unit is required"),
+        unit: getRequiredStringSchema("Unit"),
       })
     )
     .optional(),
@@ -92,7 +93,7 @@ export const EDIT_SAMPLE_SCHEMA = z.object({
       z.object({
         temperature: z.number(),
         viscosity: z.number(),
-        unit: z.string().min(1, "Unit is required"),
+        unit: getRequiredStringSchema("Unit"),
       })
     )
     .optional(),

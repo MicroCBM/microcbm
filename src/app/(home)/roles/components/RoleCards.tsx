@@ -1,12 +1,16 @@
 "use client";
-import React, { useState } from "react";
-import { Text, Button, StatusBadge } from "@/components";
+import React, { useState, useEffect } from "react";
+import { Text, Button, StatusBadge, Search } from "@/components";
 import { Icon } from "@/libs";
 
 import { deleteRoleService } from "@/app/actions";
 import { toast } from "sonner";
 import { EditRoleModal } from "./EditRoleModal";
 import { DeleteRoleModal } from "./DeleteRoleModal";
+import { EditPermissions } from "./RoleForm/EditPermissions";
+import { useRouter } from "next/navigation";
+import { useUrlState } from "@/hooks";
+import { Dropdown } from "@/components/dropdown";
 
 interface Role {
   id: string;
@@ -31,17 +35,72 @@ interface RoleCardsProps {
   data: Role[];
   onRoleDeleted?: () => void;
   onRoleUpdated?: () => void;
+  permissions: Permission[] | null;
+  rolePermissions?: Permission[] | null;
+  selectedRoleId?: string | null;
 }
 
 export function RoleCards({
   data,
+  permissions,
   onRoleDeleted,
   onRoleUpdated,
+  rolePermissions,
+  selectedRoleId,
 }: RoleCardsProps) {
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isViewPermissionsModalOpen, setIsViewPermissionsModalOpen] =
+    useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [searchName, setSearchName] = useUrlState("name", "");
+  const [roleId, setRoleId] = useUrlState("roleId", "");
+
+  // Find the selected role from data
+  const selectedRoleFromData = selectedRoleId
+    ? data.find((role) => role.id === selectedRoleId)
+    : null;
+
+  // Get permissions for the selected role from server-fetched data
+  // rolePermissions should already be an array, but handle edge cases
+  const selectedPermissions: Permission[] =
+    selectedRoleId && rolePermissions !== null && rolePermissions !== undefined
+      ? Array.isArray(rolePermissions)
+        ? rolePermissions
+        : []
+      : [];
+
+  // Effect to handle opening modal when permissions are loaded from server
+  useEffect(() => {
+    // Only open modal if:
+    // 1. roleId is set in URL (selectedRoleId is not null)
+    // 2. Permissions have been fetched (rolePermissions is not null/undefined - includes empty arrays)
+    // 3. Role data is available
+    // 4. Modal is not already open (to prevent reopening when clearing roleId)
+    if (
+      selectedRoleId &&
+      rolePermissions !== null &&
+      rolePermissions !== undefined &&
+      selectedRoleFromData &&
+      !isViewPermissionsModalOpen
+    ) {
+      // Permissions have been fetched (even if empty array), set the selected role and open modal
+      setSelectedRole(selectedRoleFromData);
+      setIsViewPermissionsModalOpen(true);
+    }
+    // Close modal if roleId is cleared
+    if (!selectedRoleId && isViewPermissionsModalOpen) {
+      setIsViewPermissionsModalOpen(false);
+      setSelectedRole(null);
+    }
+  }, [
+    selectedRoleId,
+    rolePermissions,
+    selectedRoleFromData,
+    isViewPermissionsModalOpen,
+  ]);
 
   const handleEditRole = (role: Role) => {
     setSelectedRole(role);
@@ -51,6 +110,12 @@ export function RoleCards({
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedRole(null);
+  };
+
+  const handleViewPermissions = (role: Role) => {
+    // Update URL to trigger server-side fetch
+    setRoleId(role.id);
+    // Modal will open automatically via useEffect when permissions are loaded
   };
 
   const handleDeleteRole = (role: Role) => {
@@ -104,8 +169,14 @@ export function RoleCards({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-1">
       {/* Role Cards Grid */}
+      <Search
+        value={searchName}
+        onChange={setSearchName}
+        placeholder="Search roles"
+        className="h-10 max-w-[296px]"
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {data.map((role) => (
           <div
@@ -135,42 +206,44 @@ export function RoleCards({
                   </p>
                 </section>
               </div>
-              <div className="relative">
+
+              <Dropdown
+                actions={[
+                  {
+                    label: "View Details",
+                    onClickFn: () => router.push(`/roles/view/${role.id}`),
+                  },
+                  {
+                    label: "Edit Role",
+                    onClickFn: () => handleEditRole(role),
+                  },
+                  {
+                    label: "View Permissions",
+                    onClickFn: () => handleViewPermissions(role),
+                  },
+                  {
+                    label: "Delete Role",
+                    onClickFn: () => handleDeleteRole(role),
+                  },
+                ]}
+                // permission={[
+                //   "roles:view",
+                //   "roles:edit",
+                //   "roles:delete",
+                //   "roles:view-permissions",
+                // ]}
+              >
                 <button
-                  onClick={() => {
-                    // Handle options menu
-                    const menu = document.getElementById(
-                      `role-menu-${role.id}`
-                    );
-                    if (menu) {
-                      menu.classList.toggle("hidden");
-                    }
-                  }}
-                  className="p-1 hover:bg-gray-100 rounded-full"
+                  type="button"
+                  className="btn rounded-lg no-print"
+                  aria-label="View actions"
                 >
                   <Icon
                     icon="mdi:dots-vertical"
                     className="w-4 h-4 text-gray-600"
                   />
                 </button>
-                <div
-                  id={`role-menu-${role.id}`}
-                  className="hidden absolute right-0 top-8 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10"
-                >
-                  <button
-                    onClick={() => handleEditRole(role)}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    Edit Role
-                  </button>
-                  <button
-                    onClick={() => handleDeleteRole(role)}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                  >
-                    Delete Role
-                  </button>
-                </div>
-              </div>
+              </Dropdown>
             </div>
           </div>
         ))}
@@ -204,6 +277,15 @@ export function RoleCards({
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
         onRoleUpdated={onRoleUpdated}
+      />
+      <EditPermissions
+        roleId={selectedRoleId || ""}
+        data={selectedPermissions}
+        permissions={permissions}
+        isOpen={isViewPermissionsModalOpen}
+        onClose={() => {
+          setRoleId("");
+        }}
       />
     </div>
   );

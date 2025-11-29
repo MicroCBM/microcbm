@@ -26,6 +26,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
+import { cn } from "@/libs";
 
 interface USER_TYPE {
   country: string;
@@ -138,7 +139,7 @@ export const EditNewUser = ({
   const router = useRouter();
   const {
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
     register,
     control,
     reset,
@@ -352,7 +353,13 @@ export const EditNewUser = ({
             <Button type="button" variant="outline">
               Discard
             </Button>
-            <Button type="submit" form="add-user-form" loading={isSubmitting}>
+            <Button
+              type="submit"
+              disabled={!isValid}
+              className={cn(!isValid && "opacity-50 cursor-not-allowed")}
+              form="add-user-form"
+              loading={isSubmitting}
+            >
               Update User
             </Button>
           </SheetFooter>

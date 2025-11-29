@@ -10,6 +10,8 @@ import {
   Label,
   RadioGroupItem,
   RadioGroup,
+  CreatableCombobox,
+  FileUploader,
 } from "@/components";
 import { ADD_ASSET_SCHEMA, AddAssetPayload } from "@/schema";
 import React from "react";
@@ -22,8 +24,11 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Icon } from "@/libs";
 import { Asset, Sites } from "@/types";
-import { editAssetService } from "@/app/actions";
+import { editAssetService, uploadImage, deleteFile } from "@/app/actions";
 import dayjs from "dayjs";
+import { ASSET_TYPE_OPTIONS } from "@/utils";
+import { useState } from "react";
+import { usePresignedUrl } from "@/hooks";
 
 interface USER_TYPE {
   country: string;
@@ -95,6 +100,25 @@ export const EditAssetForm = ({
   asset?: Asset;
 }) => {
   const router = useRouter();
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [datasheetFile, setDatasheetFile] = useState<File | null>(null);
+  const [isDeletingFile, setIsDeletingFile] = useState(false);
+  const [isFileDeleted, setIsFileDeleted] = useState(false);
+
+  // Get presigned URL for existing datasheet
+  const existingDatasheetKey = asset?.datasheet?.file_url;
+  const { url: datasheetUrl, isLoading: isDatasheetLoading } = usePresignedUrl(
+    existingDatasheetKey && !isFileDeleted ? existingDatasheetKey : null,
+    !!existingDatasheetKey && !isFileDeleted
+  );
+
+  // Helper function to extract numeric value from string with units
+  const extractNumericValue = (value?: string): string => {
+    if (!value) return "";
+    // Extract number from strings like "10 kW", "10 RPM", "10 m³/h"
+    const match = value.match(/^(\d+(?:\.\d+)?)/);
+    return match ? match[1] : value;
+  };
 
   const {
     handleSubmit,
@@ -102,10 +126,41 @@ export const EditAssetForm = ({
     formState: { errors, isSubmitting },
     register,
     reset,
+    watch,
+    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(ADD_ASSET_SCHEMA),
     mode: "onSubmit",
   });
+
+  const selectedSiteId = watch("parent_site.id");
+  const currentAssigneeId = watch("assignee.id");
+
+  // Filter users based on selected site's organization
+  const filteredUsers = React.useMemo(() => {
+    if (!selectedSiteId) return users;
+
+    const selectedSite = sites.find((site) => site.id === selectedSiteId);
+    if (!selectedSite?.organization?.id) return users;
+
+    return users.filter(
+      (user) => user.organization?.id === selectedSite.organization.id
+    );
+  }, [selectedSiteId, sites, users]);
+
+  // Clear assignee if current assignee is not in filtered users
+  React.useEffect(() => {
+    if (currentAssigneeId && filteredUsers.length > 0) {
+      const isAssigneeValid = filteredUsers.some(
+        (user) => user.id === currentAssigneeId
+      );
+      if (!isAssigneeValid) {
+        setValue("assignee.id", "");
+      }
+    }
+  }, [filteredUsers, currentAssigneeId, setValue]);
+
+  console.log("edit asset", asset);
 
   React.useEffect(() => {
     if (asset && assetId) {
@@ -119,11 +174,11 @@ export const EditAssetForm = ({
         is_modified: asset?.is_modified,
         model_number: asset?.model_number || "",
         serial_number: asset?.serial_number || "",
-        criticality_level: asset?.criticality_level || "",
+        criticality_level: asset?.criticality_level?.toLowerCase() || "",
         operating_hours: asset?.operating_hours || "",
         commissioned_date:
           dayjs(asset?.commissioned_date).format("YYYY-MM-DD") || "",
-        status: asset?.status || "",
+        status: asset?.status?.toLowerCase() || "",
         maintenance_strategy: asset?.maintenance_strategy || "",
         last_performed_maintenance:
           dayjs(asset?.last_performed_maintenance).format("YYYY-MM-DD") || "",
@@ -131,9 +186,9 @@ export const EditAssetForm = ({
         last_date_overhaul:
           dayjs(asset?.last_date_overhaul).format("YYYY-MM-DD") || "",
         assignee: { id: asset?.assignee?.id || "" },
-        power_rating: asset?.power_rating || "",
-        speed: asset?.speed || "",
-        capacity: asset?.capacity || "",
+        power_rating: extractNumericValue(asset?.power_rating),
+        speed: extractNumericValue(asset?.speed),
+        capacity: extractNumericValue(asset?.capacity),
         datasheet: asset?.datasheet
           ? {
               file_url: asset.datasheet.file_url || "",
@@ -145,30 +200,145 @@ export const EditAssetForm = ({
     }
   }, [asset, assetId, reset]);
 
-  const onSubmit = async (data: AddAssetPayload) => {
-    console.log("submit data", data);
+  const handleDeleteFile = async () => {
+    if (!existingDatasheetKey) return;
 
-    // Clean up the data before submission
-    const cleanedData = {
+    setIsDeletingFile(true);
+    try {
+      const response = await deleteFile(existingDatasheetKey);
+      if (response.success) {
+        toast.success("File deleted successfully");
+        setIsFileDeleted(true);
+        // Clear datasheet from form
+        setValue("datasheet", undefined);
+      } else {
+        toast.error(
+          response.message || "Failed to delete file. Please try again."
+        );
+      }
+    } catch (error) {
+      toast.error("Failed to delete file. Please try again.");
+    } finally {
+      setIsDeletingFile(false);
+    }
+  };
+
+  const uploadImageFile = async (
+    file: File
+  ): Promise<{
+    file_url: string;
+    file_name: string;
+    uploaded_at: string;
+  } | null> => {
+    setIsUploadingImage(true);
+    try {
+      const response = await uploadImage({ file }, "asset-datasheets");
+
+      if (response.success) {
+        // Extract file key from response - same as sign-up flow
+        const fileKey = response.data?.data?.file_key;
+
+        if (fileKey && typeof fileKey === "string") {
+          // Use the file key directly as file_url (same as sign-up)
+          return {
+            file_url: fileKey,
+            file_name: file.name,
+            uploaded_at: new Date().toISOString(),
+          };
+        }
+        toast.error("Failed to get file key from upload response.");
+        return null;
+      } else {
+        toast.error(
+          response.message || "Image upload failed. Please try again."
+        );
+        return null;
+      }
+    } catch {
+      toast.error("Image upload failed. Please try again.");
+      return null;
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const appendUnit = (value: string, unit: string) => {
+    if (!value) return value;
+    const normalized = value.trim();
+    if (!normalized) return normalized;
+    return normalized.toLowerCase().includes(unit.toLowerCase())
+      ? normalized
+      : `${normalized} ${unit}`;
+  };
+
+  const toTitleCase = (value?: string) =>
+    value
+      ? value
+          .split(" ")
+          .map((word) =>
+            word.length > 0
+              ? word[0].toUpperCase() + word.slice(1).toLowerCase()
+              : word
+          )
+          .join(" ")
+      : value;
+
+  const onSubmit = async (data: AddAssetPayload) => {
+    // Upload image first if one is selected
+    let datasheetData: {
+      file_url: string;
+      file_name: string;
+      uploaded_at: string;
+    } | null = null;
+
+    if (datasheetFile) {
+      datasheetData = await uploadImageFile(datasheetFile);
+      if (!datasheetData) {
+        // If image upload fails, stop form submission
+        toast.error("Image upload failed. Please try again.");
+        return;
+      }
+    }
+
+    // Prepare the payload with datasheet
+    const payload: AddAssetPayload = {
       ...data,
-      // Only include datasheet if it has valid data, otherwise omit it entirely
-      ...(data.datasheet && data.datasheet.file_name
+      type: toTitleCase(data.type) as string,
+      criticality_level: toTitleCase(data.criticality_level) as string,
+      status: toTitleCase(data.status) as string,
+      power_rating: appendUnit(data.power_rating, "kW"),
+      speed: appendUnit(data.speed, "RPM"),
+      capacity: appendUnit(data.capacity, "m³/h"),
+      ...(datasheetData
+        ? {
+            datasheet: {
+              ...datasheetData,
+              // Use file_key directly as file_url (same as sign-up flow)
+              file_url: datasheetData.file_url,
+            },
+          }
+        : // Only keep existing datasheet if file is not deleted
+        !isFileDeleted && data.datasheet && data.datasheet.file_name
         ? { datasheet: data.datasheet }
         : {}),
     };
 
-    // Remove datasheet from the object if it's empty or invalid
-    if (!data.datasheet || !data.datasheet.file_name) {
-      delete cleanedData.datasheet;
+    // Remove datasheet from the object if it's empty, invalid, or deleted
+    if (!payload.datasheet || !payload.datasheet.file_name || isFileDeleted) {
+      delete payload.datasheet;
     }
 
-    const response = await editAssetService(assetId as string, cleanedData);
+    const response = await editAssetService(assetId as string, payload);
     try {
       if (response.success) {
         toast.success("Asset updated successfully", {
           description: `${response.data?.message}`,
         });
         router.push("/assets");
+      } else {
+        toast.error(
+          response.message || "Asset update failed. Please try again."
+        );
       }
     } catch (error) {
       toast.error(
@@ -194,20 +364,10 @@ export const EditAssetForm = ({
 
           <Text variant="h6">Edit Asset</Text>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button size="medium" variant="outline">
-            Discard
-          </Button>
-          <Button size="medium" variant="outline">
-            Save Draft
-          </Button>
-          <Button size="medium">Update Asset</Button>
-        </div>
       </section>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="max-w-[827.8px] p-6 flex flex-col gap-4"
+        className="max-w-[827.8px] flex flex-col gap-4"
       >
         <section className="flex flex-col gap-6 border border-gray-100 p-6">
           <Text variant="p">Basic Information</Text>
@@ -248,28 +408,22 @@ export const EditAssetForm = ({
               )}
             />
 
-            <Controller
-              control={control}
-              name="type"
-              render={({ field }) => (
-                <Select
-                  value={field.value || ""}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger label="Asset Type">
-                    <SelectValue placeholder="Select a asset type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="compressor">Compressor</SelectItem>
-                    <SelectItem value="pump">Pump</SelectItem>
-                    <SelectItem value="motor">Motor</SelectItem>
-                    <SelectItem value="gearbox">Gearbox</SelectItem>
-                    <SelectItem value="valve">Valve</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
+            <div className="flex flex-col">
+              <Text as="span">Asset Type</Text>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <CreatableCombobox
+                    options={ASSET_TYPE_OPTIONS}
+                    onChange={field.onChange}
+                    value={field.value}
+                    placeholder="Select or type a asset type..."
+                    name={field.name}
+                  />
+                )}
+              />
+            </div>
 
             <Input
               label="Equipment Class (Optional)"
@@ -444,7 +598,7 @@ export const EditAssetForm = ({
                   <SelectValue placeholder="Select a assignee" />
                 </SelectTrigger>
                 <SelectContent>
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.first_name} {user.last_name}
                     </SelectItem>
@@ -483,16 +637,93 @@ export const EditAssetForm = ({
         </section>
 
         <div className="flex flex-col gap-6 border border-gray-100 p-6">
-          {/* here is where you can upload the image */}
-          <Input type="file" label="Upload Image" placeholder="Upload image" />
+          <Text variant="p">Asset Datasheet</Text>
+
+          {/* Show existing file if available and not deleted */}
+          {existingDatasheetKey && !isFileDeleted && (
+            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {isDatasheetLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Icon
+                        icon="hugeicons:loading-01"
+                        className="w-5 h-5 animate-spin text-gray-400"
+                      />
+                      <Text variant="span" className="text-sm text-gray-600">
+                        Loading file...
+                      </Text>
+                    </div>
+                  ) : datasheetUrl ? (
+                    <>
+                      <a
+                        href={datasheetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                      >
+                        <Icon icon="mdi:file-document" className="w-5 h-5" />
+                        <Text variant="span" className="text-sm font-medium">
+                          {asset?.datasheet?.file_name || "View Datasheet"}
+                        </Text>
+                        <Icon icon="mdi:open-in-new" className="w-4 h-4" />
+                      </a>
+                    </>
+                  ) : (
+                    <Text variant="span" className="text-sm text-gray-600">
+                      {asset?.datasheet?.file_name || "Datasheet"}
+                    </Text>
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="small"
+                  onClick={handleDeleteFile}
+                  loading={isDeletingFile}
+                  className="text-red-600 hover:text-red-700 border-red-300"
+                >
+                  <Icon icon="mdi:delete" className="w-4 h-4 mr-1" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* File uploader for new file */}
+          {(!existingDatasheetKey || isFileDeleted) && (
+            <FileUploader
+              label="Upload Asset Datasheet"
+              value={datasheetFile}
+              onChange={setDatasheetFile}
+              id="datasheet"
+            />
+          )}
+
+          {/* Option to replace existing file */}
+          {existingDatasheetKey && !isFileDeleted && (
+            <div className="mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="small"
+                onClick={() => {
+                  setIsFileDeleted(true);
+                  setValue("datasheet", undefined);
+                }}
+              >
+                Replace File
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end space-x-4 pt-4">
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button type="submit" loading={isSubmitting}>
-            Update Asset
+          <Button type="submit" loading={isSubmitting || isUploadingImage}>
+            {isUploadingImage ? "Uploading Image..." : "Update Asset"}
           </Button>
         </div>
       </form>

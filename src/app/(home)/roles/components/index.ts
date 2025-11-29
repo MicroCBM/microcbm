@@ -1,5 +1,11 @@
-export { RoleContent } from "./RoleContent";
+export { TabsContent } from "./TabsContent";
 export { RoleCards } from "./RoleCards";
 export { DeleteRoleModal } from "./DeleteRoleModal";
 export { AddRoleModal } from "./AddRoleModal";
 export { EditRoleModal } from "./EditRoleModal";
+export { Permissions } from "./Permissions";
+export { SingleRoleInfo } from "./SingleRoleInfo";
+export { EditPermissions } from "./RoleForm/EditPermissions";
+export { AddPermissionModal } from "./AddPermissionModal";
+export { UserRoleTable } from "./UserRoleTable";
+export { PermissionGroup } from "./RoleForm/PermissionGroup";

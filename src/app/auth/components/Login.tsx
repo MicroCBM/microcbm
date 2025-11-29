@@ -66,6 +66,7 @@ export default function Login() {
             <Text variant="p" className="text-gray">
               Don&apos;t have an account?
               <Link href={ROUTES.AUTH.REGISTER} className="text-blue">
+                {" "}
                 Sign up
               </Link>
             </Text>
@@ -98,7 +99,7 @@ export default function Login() {
                 </Button>
 
                 <p className="text-sm text-gray flex justify-end">
-                  Forgot password?
+                  Forgot password?{" "}
                   <Link href={ROUTES.AUTH.RESET_PASSWORD} className="text-blue">
                     {" "}
                     Reset password

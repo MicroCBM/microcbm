@@ -68,3 +68,13 @@ export interface EditRecommendationPayload {
     id: string;
   };
 }
+
+export interface RecommendationAnalytics {
+  month: string;
+  open_overdue_count: number;
+  open_overdue_trend_percentage: number;
+  overdue_count: number;
+  overdue_trend_percentage: number;
+  total_count: number;
+  total_trend_percentage: number;
+}

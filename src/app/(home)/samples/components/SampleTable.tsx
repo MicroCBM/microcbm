@@ -8,6 +8,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import dayjs from "dayjs";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/libs";
 import { cn } from "@/libs";
 import {
@@ -18,8 +19,7 @@ import {
   StatusBadge,
   Text,
 } from "@/components";
-import { Sample, Sites } from "@/types";
-import { ViewSampleModal } from "./ViewSampleModal";
+import { Asset, Sample, SamplingPoint, Sites } from "@/types";
 import { DeleteSampleModal } from "./DeleteSampleModal";
 import { deleteSampleService } from "@/app/actions";
 import { toast } from "sonner";
@@ -28,22 +28,24 @@ interface SampleTableProps {
   data: Sample[];
   className?: string;
   sites: Sites[];
+  assets: Asset[];
+  samplingPoints: SamplingPoint[];
 }
 
-export function SampleTable({ data, className }: SampleTableProps) {
+export function SampleTable({
+  data,
+  className,
+  assets,
+  sites,
+  samplingPoints,
+}: SampleTableProps) {
+  const router = useRouter();
   const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleViewSample = (sample: Sample) => {
-    setSelectedSample(sample);
-    setIsViewModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsViewModalOpen(false);
-    setSelectedSample(null);
+    router.push(`/samples/view/${sample.id}`);
   };
 
   const handleEditSample = (id: string) => {
@@ -86,48 +88,61 @@ export function SampleTable({ data, className }: SampleTableProps) {
   };
 
   const columns: ColumnDef<Sample>[] = [
+    // {
+    //   id: "serial_number",
+    //   header: "Serial Number",
+    //   cell: ({ row }) => (
+    //     <div className="flex items-center gap-3">
+    //       <span className="text-sm text-gray-900">
+    //         {row.original.serial_number}
+    //       </span>
+    //     </div>
+    //   ),
+    //   size: 150,
+    // },
     {
-      id: "serial_number",
-      header: "Serial Number",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-900">
-            {row.original.serial_number}
-          </span>
-        </div>
-      ),
+      accessorKey: "asset",
+      header: "Asset",
+      cell: ({ row }) => {
+        const asset = assets.find(
+          (asset: Asset) => asset.id === row.original.asset?.id
+        );
+        return (
+          <span className="text-sm text-gray-900">{asset?.name || "-"}</span>
+        );
+      },
       size: 150,
     },
     {
       accessorKey: "site",
       header: "Site",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
-          {row.original.site?.name || row.original.site?.id || "-"}
-        </span>
-      ),
+      cell: ({ row }) => {
+        {
+          const site = sites.find(
+            (site: Sites) => site.id === row.original.site?.id
+          );
+          return (
+            <span className="text-sm text-gray-900">{site?.name || "-"}</span>
+          );
+        }
+      },
       size: 150,
     },
-    {
-      accessorKey: "asset",
-      header: "Asset",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
-          {row.original.asset?.name || row.original.asset?.id || "-"}
-        </span>
-      ),
-      size: 150,
-    },
+
     {
       accessorKey: "sampling_point",
       header: "Sampling Point",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
-          {row.original.sampling_point?.name ||
-            row.original.sampling_point?.id ||
-            "-"}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const samplingPoint = samplingPoints.find(
+          (samplingPoint: SamplingPoint) =>
+            samplingPoint.id === row.original.sampling_point?.id
+        );
+        return (
+          <span className="text-sm text-gray-900">
+            {samplingPoint?.name || "-"}
+          </span>
+        );
+      },
       size: 150,
     },
     {
@@ -248,7 +263,7 @@ export function SampleTable({ data, className }: SampleTableProps) {
               </tr>
             ))}
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-200 bg-white">
             {table.getRowModel().rows.map((row) => (
               <tr
                 key={row.id}
@@ -273,12 +288,6 @@ export function SampleTable({ data, className }: SampleTableProps) {
           </tbody>
         </table>
       </div>
-
-      <ViewSampleModal
-        sample={selectedSample}
-        isOpen={isViewModalOpen}
-        onClose={handleCloseModal}
-      />
 
       <DeleteSampleModal
         sample={selectedSample}

@@ -14,23 +14,35 @@ import {
   SelectValue,
   SheetTrigger,
   SheetFooter,
+  ImageUpload,
 } from "@/components";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-import { addOrganizationService } from "@/app/actions";
+import {
+  addOrganizationService,
+  uploadImage,
+  getPresignedUrlService,
+} from "@/app/actions";
 import { toast } from "sonner";
 import { Icon } from "@/libs";
 import Input from "@/components/input/Input";
 import { ADD_ORGANIZATION_SCHEMA, AddOrganizationPayload } from "@/schema";
 import { INDUSTRIES } from "@/helpers";
+import { useRouter } from "next/navigation";
 
 type FormData = z.infer<typeof ADD_ORGANIZATION_SCHEMA>;
 
 export const AddOrganizationModal = () => {
+  const [file, setFile] = React.useState<File | null>(null);
+  const router = useRouter();
   const [isAddOrganizationModalOpen, setIsAddOrganizationModalOpen] =
     React.useState(false);
+  const [isUploadingImage, setIsUploadingImage] = React.useState(false);
+  const [uploadedFileName, setUploadedFileName] = React.useState<string | null>(
+    null
+  );
   const {
     handleSubmit,
     control,
@@ -50,7 +62,9 @@ export const AddOrganizationModal = () => {
           description: "The organization has been added to your list.",
         });
         reset();
+        router.refresh();
         setIsAddOrganizationModalOpen(false);
+        setUploadedFileName(null);
       } else {
         toast.error(
           response.message || "Failed to create organization. Please try again."
@@ -63,6 +77,41 @@ export const AddOrganizationModal = () => {
       );
     }
   };
+
+  async function handleImageUpload(file: File) {
+    setIsUploadingImage(true);
+
+    try {
+      const response = await uploadImage({ file });
+
+      if (response.success) {
+        // Extract filename from response
+        const fileKey = response.data?.data?.file_key;
+
+        if (fileKey && typeof fileKey === "string") {
+          // Get presigned URL using the uploaded filename
+          try {
+            const presignedUrlResponse = await getPresignedUrlService(fileKey);
+            setUploadedFileName(presignedUrlResponse?.presigned_url);
+          } catch (presignedError) {
+            console.error("Failed to get presigned URL:", presignedError);
+          }
+        }
+
+        toast.success("Image uploaded successfully", {
+          description: response.data?.message,
+        });
+        setFile(null);
+        router.refresh();
+      } else {
+        toast.error("Image upload failed. Please try again.");
+      }
+    } catch {
+      toast.error("Image upload failed. Please try again.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }
 
   return (
     <>
@@ -90,6 +139,13 @@ export const AddOrganizationModal = () => {
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col h-full px-6 overflow-y-auto gap-4"
           >
+            <ImageUpload
+              file={file}
+              onFileChange={setFile}
+              onUpload={handleImageUpload}
+              isUploading={isUploadingImage}
+              currentImageUrl={uploadedFileName || undefined}
+            />
             <Input
               label="Organization Name"
               placeholder="Enter organization name"

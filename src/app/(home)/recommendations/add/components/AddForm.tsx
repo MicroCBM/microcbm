@@ -14,7 +14,7 @@ import { ADD_RECOMMENDATION_SCHEMA, AddRecommendationPayload } from "@/schema";
 import { addRecommendationService } from "@/app/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Sites, Asset } from "@/types";
+import { Sites, Asset, SamplingPoint } from "@/types";
 import Input from "@/components/input/Input";
 import { Icon } from "@/libs";
 
@@ -80,9 +80,15 @@ interface AddFormProps {
   sites: Sites[];
   assets: Asset[];
   users: USER_TYPE[];
+  samplingPoints: SamplingPoint[];
 }
 
-export const AddForm = ({ sites, assets, users }: AddFormProps) => {
+export const AddForm = ({
+  sites,
+  assets,
+  users,
+  samplingPoints,
+}: AddFormProps) => {
   const router = useRouter();
   const {
     handleSubmit,
@@ -269,11 +275,36 @@ export const AddForm = ({ sites, assets, users }: AddFormProps) => {
                 )}
               />
 
-              <Input
-                label="Sampling Point"
-                placeholder="Enter sampling point ID"
-                {...register("sampling_point.id")}
-                error={errors.sampling_point?.id?.message}
+              <Controller
+                control={control}
+                name="sampling_point.id"
+                render={({ field }) => (
+                  <div>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger label="Sampling Point">
+                        <SelectValue placeholder="Select a sampling point" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {samplingPoints.map((samplingPoint) => (
+                          <SelectItem
+                            key={samplingPoint.id}
+                            value={samplingPoint.id}
+                          >
+                            {samplingPoint.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.sampling_point?.id && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.sampling_point.id.message}
+                      </p>
+                    )}
+                  </div>
+                )}
               />
 
               <Controller

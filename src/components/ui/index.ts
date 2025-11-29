@@ -6,3 +6,4 @@ export * from "./Dialog";
 export * from "./Command";
 export * from "./Checkbox";
 export * from "./Radio";
+export * from "./Switch";

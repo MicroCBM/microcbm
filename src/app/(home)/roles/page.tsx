@@ -1,18 +1,39 @@
 "use server";
 import React from "react";
-import { getPermissionsService, getRolesService } from "@/app/actions";
-import { RoleCards, RoleContent } from "./components";
+import {
+  getPermissionsByRoleIdService,
+  getPermissionsService,
+  getRolesService,
+} from "@/app/actions";
+import { TabsContent } from "./components";
 
-export default async function RolesPage() {
-  const roles = await getRolesService();
+interface RolesPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function RolesPage({ searchParams }: RolesPageProps) {
+  const params = await searchParams;
+  const name = typeof params.name === "string" ? params.name : undefined;
+  const roleId = typeof params.roleId === "string" ? params.roleId : undefined;
+
+  const roles = await getRolesService({ name });
+
+  // Only fetch permissions if roleId exists
+  const rolePermissions = roleId
+    ? await getPermissionsByRoleIdService(roleId)
+    : null;
+
   const permissions = await getPermissionsService();
-  console.log("roles", roles);
-  console.log("permissions", permissions);
+  console.log("data from page permissions", permissions);
 
   return (
     <main className="flex flex-col gap-4">
-      <RoleContent permissionsData={permissions} />
-      <RoleCards data={roles} />
+      <TabsContent
+        roles={roles}
+        permissions={permissions}
+        rolePermissions={rolePermissions}
+        selectedRoleId={roleId || null}
+      />
     </main>
   );
 }

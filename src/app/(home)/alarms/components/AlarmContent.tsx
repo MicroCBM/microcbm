@@ -4,6 +4,7 @@ import React from "react";
 import { Text } from "@/components";
 import { Sites } from "@/types";
 import { AddAlarmModal } from "./AddAlarmModal";
+import { ComponentGuard } from "@/components/content-guard";
 
 interface AlarmContentProps {
   sites: Sites[];
@@ -20,7 +21,9 @@ export function AlarmContent({ sites }: AlarmContentProps) {
           Manage and monitor system alarms
         </Text>
       </div>
-      <AddAlarmModal sites={sites} />
+      <ComponentGuard permissions="alarms:create">
+        <AddAlarmModal sites={sites} />
+      </ComponentGuard>
     </div>
   );
 }

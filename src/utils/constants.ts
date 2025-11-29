@@ -25,6 +25,29 @@ export const STATUSES = [
   },
 ];
 
+export const ASSET_STATUSES = [
+  {
+    label: "All",
+    value: "",
+  },
+  {
+    label: "High",
+    value: "high",
+  },
+  {
+    label: "Medium",
+    value: "medium",
+  },
+  {
+    label: "Low",
+    value: "low",
+  },
+  {
+    label: "Critical",
+    value: "critical",
+  },
+];
+
 export const ROLES = [
   {
     label: "All",
@@ -48,33 +71,85 @@ export const ROLES = [
   },
 ];
 
-export const SITE_ASSIGNED = [
+export const ASSET_TYPE_OPTIONS = [
   {
-    label: "All",
-    value: "all",
+    label: "Compressor",
+    value: "compressor",
   },
   {
-    label: "Offshore Platform Alpha",
-    value: "offshore-platform-alpha",
+    label: "Pump",
+    value: "pump",
   },
   {
-    label: "Bakken Compressor Station",
-    value: "bakken-compressor-station",
+    label: "Motor",
+    value: "motor",
   },
   {
-    label: "Hawk Energy",
-    value: "hawk-energy",
+    label: "Gearbox",
+    value: "gearbox",
   },
   {
-    label: "Kinder Morgan",
-    value: "kinder-morgan",
+    label: "Valve",
+    value: "valve",
   },
-  {
-    label: "Midland",
-    value: "midland",
-  },
-  {
-    label: "Pioneer",
-    value: "pioneer",
-  },
+];
+
+export const DEFAULT_QUERY = {
+  page: 1,
+  limit: 10,
+  search: "",
+  name: "",
+};
+
+export const CIRCUIT_TYPE_OPTIONS = [
+  "Circulating Oil (Recirculation System)",
+  "Static Oil (Sump System)",
+  "Hydraulic System",
+  "Gear System",
+  "Compressor System",
+  "Turbine System",
+  "Engine System",
+  "Other",
+];
+
+export const COMPONENT_TYPE_OPTIONS = [
+  "Gearbox",
+  "Engine",
+  "Hydraulic Pump",
+  "Compressor",
+  "Turbine",
+  "Motor",
+  "Bearing",
+  "Transmission",
+  "Other",
+];
+
+export const SAMPLE_FREQUENCY_OPTIONS = [
+  "Daily (≈8-24 Hours)",
+  "Weekly (≈40-168 Hours)",
+  "Monthly (≈250-500 Hours)",
+  "Quarterly (≈750-1500 Hours)",
+  "Semi-annually (≈1500-3000 Hours)",
+  "Annually (≈3000-6000 Hours)",
+  "As needed",
+];
+
+export const SYSTEM_CAPACITY_OPTIONS = [
+  "Small (< 5 L / < 1.3 Gal)",
+  "Medium (5 L - 50 L / 1.3 - 13 Gal)",
+  "Large (50 L - 500 L / 13 - 132 Gal)",
+  "Very Large (> 500 L / > 132 Gal)",
+];
+
+export const STATUS_OPTIONS = [
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
+  { value: "maintenance", label: "Under Maintenance" },
+];
+
+export const SEVERITY_OPTIONS = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "critical", label: "Critical" },
 ];

@@ -14,6 +14,7 @@ import {
 
 import { Asset } from "@/types";
 import dayjs from "dayjs";
+import { usePresignedUrl } from "@/hooks";
 
 interface ViewAssetModalProps {
   asset: Asset | null;
@@ -26,9 +27,18 @@ export const ViewAssetModal = ({
   isOpen,
   onClose,
 }: ViewAssetModalProps) => {
+  const datasheetFileKey = asset?.datasheet?.file_url;
+  const {
+    url: datasheetUrl,
+    isLoading: isDatasheetLoading,
+    error: datasheetError,
+  } = usePresignedUrl(datasheetFileKey, isOpen && !!datasheetFileKey);
+  console.log("datasheetUrl", datasheetUrl);
+
   if (!asset) return null;
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return "N/A";
     return dayjs(dateString).format("DD-MM-YYYY");
   };
 
@@ -111,7 +121,7 @@ export const ViewAssetModal = ({
                   Site
                 </Text>
                 <Text variant="p" className="text-gray-900">
-                  {asset.assignee.site.name || "Not assigned"}
+                  {asset?.assignee?.site?.name || "Not assigned"}
                 </Text>
               </div>
             </div>
@@ -303,6 +313,59 @@ export const ViewAssetModal = ({
               </Text>
             </div>
           </div>
+
+          {asset.datasheet?.file_url && (
+            <div className="p-4 border border-gray-100">
+              <Text variant="span" weight="medium">
+                Datasheet
+              </Text>
+              <div className="flex flex-col gap-3 mt-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <Text variant="span" className="text-gray-600 font-medium">
+                      {asset.datasheet.file_name || "Asset Datasheet"}
+                    </Text>
+                    {asset.datasheet.uploaded_at && (
+                      <Text
+                        variant="span"
+                        className="text-xs text-gray-500 block"
+                      >
+                        Uploaded on {formatDate(asset.datasheet.uploaded_at)}
+                      </Text>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="small"
+                    disabled={isDatasheetLoading || !datasheetUrl}
+                    onClick={() =>
+                      datasheetUrl &&
+                      window.open(datasheetUrl, "_blank", "noopener,noreferrer")
+                    }
+                  >
+                    {isDatasheetLoading ? "Loading..." : "Open Datasheet"}
+                  </Button>
+                </div>
+                {datasheetError && (
+                  <Text variant="span" className="text-sm text-red-500">
+                    {datasheetError}
+                  </Text>
+                )}
+                {datasheetUrl && !datasheetError && (
+                  <iframe
+                    src={datasheetUrl}
+                    title="Asset Datasheet"
+                    className="h-96 w-full rounded border border-gray-200"
+                  />
+                )}
+                {!datasheetUrl && !datasheetError && isDatasheetLoading && (
+                  <Text variant="span" className="text-sm text-gray-500">
+                    Loading preview...
+                  </Text>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <SheetFooter>

@@ -71,7 +71,7 @@ export function handleError(error: unknown): ApiResponse {
 export async function handleApiRequest(
   endpoint: string,
   body: unknown,
-  method: "POST" | "GET" | "PUT" | "DELETE" = "POST"
+  method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH" = "POST"
 ): Promise<ApiResponse> {
   try {
     console.log("API Request body:", body);

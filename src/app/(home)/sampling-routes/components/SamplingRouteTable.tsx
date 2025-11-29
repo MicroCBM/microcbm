@@ -75,6 +75,7 @@ export function SamplingRouteTable({
         toast.success("Sampling route deleted successfully", {
           description: "The sampling route has been permanently removed.",
         });
+        router.refresh();
         onSamplingRouteDeleted?.();
         handleCloseDeleteModal();
       } else {

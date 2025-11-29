@@ -5,10 +5,18 @@ import React from "react";
 import { Summary } from "./dashboard";
 import LineChart from "./dashboard/components/line-chart/LineChart";
 import { CustomTabComp } from "./dashboard/components/custom-tabs";
-import { getSitesService } from "../actions/inventory";
+import {
+  getAssetsAnalyticsService,
+  getSitesService,
+} from "../actions/inventory";
 import { getAssetsService } from "../actions/inventory";
 import { getOrganizationsService } from "../actions/organizations";
 import { getSamplingPointsService } from "../actions/sampling-points";
+import {
+  getAlarmsAnalyticsService,
+  getRecommendationAnalyticsService,
+} from "../actions";
+import { ComponentGuard } from "@/components/content-guard";
 
 // Sample chart data matching the image pattern
 
@@ -62,42 +70,91 @@ const contaminantsData = [
 ];
 
 export default async function Page() {
-  const sites = await getSitesService();
-  const assets = await getAssetsService();
-  const organizations = await getOrganizationsService();
-  const samplingPoints = await getSamplingPointsService();
+  // Fetch all data with error handling - wrap in Promise.all with catch to prevent crashes
+  const [
+    sites,
+    assets,
+    assetsAnalytics,
+    organizations,
+    samplingPoints,
+    alarmsAnalytics,
+    recommendationsAnalyticsArray,
+  ] = await Promise.all([
+    getSitesService().catch(() => []),
+    getAssetsService().catch(() => []),
+    getAssetsAnalyticsService().catch(() => null),
+    getOrganizationsService().catch(() => []),
+    getSamplingPointsService().catch(() => []),
+    getAlarmsAnalyticsService().catch(() => null),
+    getRecommendationAnalyticsService().catch(() => []),
+  ]);
+
+  // Extract first recommendation analytics item (or null if empty)
+  const recommendationsAnalytics =
+    Array.isArray(recommendationsAnalyticsArray) &&
+    recommendationsAnalyticsArray.length > 0
+      ? recommendationsAnalyticsArray[0]
+      : null;
+
   // const recommendations = await getRecommendationsService();
 
   return (
-    <main className="flex flex-col gap-4">
-      {/* summary section */}
-      <Summary />
+    <ComponentGuard
+      permissions="dashboard:read"
+      loadingFallback={
+        <main className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading...</p>
+          </div>
+        </main>
+      }
+      unauthorizedFallback={
+        <main className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-gray-600 text-lg">
+              You do not have permission to view the dashboard.
+            </p>
+          </div>
+        </main>
+      }
+    >
+      <main className="flex flex-col gap-4">
+        {/* summary section */}
+        <ComponentGuard permissions="assets:read">
+          <Summary
+            assetsAnalytics={assetsAnalytics}
+            alarmsAnalytics={alarmsAnalytics}
+            recommendationsAnalytics={recommendationsAnalytics}
+          />
+        </ComponentGuard>
 
-      <LineChart />
+        <LineChart />
 
-      {/* table */}
-      <section className="pt-[12.8px] flex flex-col gap-3">
-        <CustomTabComp
-          sites={sites}
-          organizations={organizations}
-          assetsList={assets}
-          samplingPoints={samplingPoints}
-        />
-        {/* <DataTable data={tableData} /> */}
-      </section>
+        {/* table */}
+        <section className="pt-[12.8px] flex flex-col gap-3">
+          <CustomTabComp
+            sites={sites}
+            organizations={organizations}
+            assetsList={assets}
+            samplingPoints={samplingPoints}
+          />
+          {/* <DataTable data={tableData} /> */}
+        </section>
 
-      {/* cards */}
+        {/* cards */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SeverityCard data={severityCardData} />
-        <PieChart
-          title="Contaminants"
-          subtitle="Total for the last 3 months"
-          data={contaminantsData}
-          centerValue={10}
-          centerLabel="Samples"
-        />
-      </div>
-    </main>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SeverityCard data={severityCardData} />
+          <PieChart
+            title="Contaminants"
+            subtitle="Total for the last 3 months"
+            data={contaminantsData}
+            centerValue={10}
+            centerLabel="Samples"
+          />
+        </div>
+      </main>
+    </ComponentGuard>
   );
 }

@@ -10,6 +10,8 @@ import {
   Label,
   RadioGroupItem,
   RadioGroup,
+  FileUploader,
+  CreatableCombobox,
 } from "@/components";
 import { ADD_ASSET_SCHEMA, AddAssetPayload } from "@/schema";
 import React from "react";
@@ -20,9 +22,11 @@ import Input from "@/components/input/Input";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addAssetService } from "@/app/actions";
+import { addAssetService, uploadImage } from "@/app/actions";
 import { Icon } from "@/libs";
 import { Sites } from "@/types";
+import { useState } from "react";
+import { ASSET_TYPE_OPTIONS } from "@/utils";
 
 interface USER_TYPE {
   country: string;
@@ -90,25 +94,151 @@ export const AddAssetForm = ({
   users: USER_TYPE[];
 }) => {
   const router = useRouter();
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [datasheetFile, setDatasheetFile] = useState<File | null>(null);
 
   const {
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
     register,
+    watch,
+    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(ADD_ASSET_SCHEMA),
     mode: "onSubmit",
   });
 
+  const selectedSiteId = watch("parent_site.id");
+  const currentAssigneeId = watch("assignee.id");
+
+  // Filter users based on selected site's organization
+  const filteredUsers = React.useMemo(() => {
+    if (!selectedSiteId) return users;
+
+    const selectedSite = sites.find((site) => site.id === selectedSiteId);
+    if (!selectedSite?.organization?.id) return users;
+
+    return users.filter(
+      (user) => user.organization?.id === selectedSite.organization.id
+    );
+  }, [selectedSiteId, sites, users]);
+
+  // Clear assignee if current assignee is not in filtered users
+  React.useEffect(() => {
+    if (currentAssigneeId && filteredUsers.length > 0) {
+      const isAssigneeValid = filteredUsers.some(
+        (user) => user.id === currentAssigneeId
+      );
+      if (!isAssigneeValid) {
+        setValue("assignee.id", "");
+      }
+    }
+  }, [filteredUsers, currentAssigneeId, setValue]);
+
+  const toTitleCase = (value?: string) =>
+    value
+      ? value
+          .split(" ")
+          .map((word) =>
+            word.length > 0
+              ? word[0].toUpperCase() + word.slice(1).toLowerCase()
+              : word
+          )
+          .join(" ")
+      : value;
+
+  const appendUnit = (value: string, unit: string) => {
+    if (!value) return value;
+    const normalized = value.trim();
+    if (!normalized) return normalized;
+    return normalized.toLowerCase().includes(unit.toLowerCase())
+      ? normalized
+      : `${normalized} ${unit}`;
+  };
+
+  const uploadImageFile = async (
+    file: File
+  ): Promise<{
+    file_url: string;
+    file_name: string;
+    uploaded_at: string;
+  } | null> => {
+    setIsUploadingImage(true);
+    try {
+      const response = await uploadImage({ file }, "asset-datasheets");
+
+      if (response.success) {
+        // Extract file key from response - same as sign-up flow
+        const fileKey = response.data?.data?.file_key;
+
+        if (fileKey && typeof fileKey === "string") {
+          // Use the file key directly as file_url (same as sign-up)
+          return {
+            file_url: fileKey,
+            file_name: file.name,
+            uploaded_at: new Date().toISOString(),
+          };
+        }
+        toast.error("Failed to get file key from upload response.");
+        return null;
+      } else {
+        toast.error(
+          response.message || "Image upload failed. Please try again."
+        );
+        return null;
+      }
+    } catch {
+      toast.error("Image upload failed. Please try again.");
+      return null;
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const onSubmit = async (data: AddAssetPayload) => {
-    console.log("submit data", data);
-    const response = await addAssetService(data);
+    // Upload image first if one is selected
+    let datasheetData: {
+      file_url: string;
+      file_name: string;
+      uploaded_at: string;
+    } | null = null;
+
+    if (datasheetFile) {
+      datasheetData = await uploadImageFile(datasheetFile);
+      if (!datasheetData) {
+        // If image upload fails, stop form submission
+        toast.error("Image upload failed. Please try again.");
+        return;
+      }
+    }
+
+    // Prepare the payload with datasheet
+    const payload: AddAssetPayload = {
+      ...data,
+      type: toTitleCase(data.type) as string,
+      criticality_level: toTitleCase(data.criticality_level) as string,
+      status: toTitleCase(data.status) as string,
+      power_rating: appendUnit(data.power_rating, "kW"),
+      speed: appendUnit(data.speed, "RPM"),
+      capacity: appendUnit(data.capacity, "m³/h"),
+      ...(datasheetData && {
+        datasheet: {
+          ...datasheetData,
+          // Use file_key directly as file_url (same as sign-up flow)
+          file_url: datasheetData.file_url,
+        },
+      }),
+    };
+
+    console.log("submit data", payload);
+    const response = await addAssetService(payload);
     try {
       if (response.success) {
         toast.success("Asset added successfully", {
           description: `${response.data?.message}`,
         });
+        router.push("/assets");
       } else {
         toast.error(
           response.message || "Asset addition failed. Please try again."
@@ -138,20 +268,10 @@ export const AddAssetForm = ({
 
           <Text variant="h6">Add Asset</Text>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button size="medium" variant="outline">
-            Discard
-          </Button>
-          <Button size="medium" variant="outline">
-            Save Draft
-          </Button>
-          <Button size="medium">Create Asset</Button>
-        </div>
       </section>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="max-w-[827.8px] p-6 flex flex-col gap-4"
+        className="max-w-[827.8px] flex flex-col gap-4"
       >
         <section className="flex flex-col gap-6 border border-gray-100 p-6">
           <Text variant="p">Basic Information</Text>
@@ -192,28 +312,22 @@ export const AddAssetForm = ({
               )}
             />
 
-            <Controller
-              control={control}
-              name="type"
-              render={({ field }) => (
-                <Select
-                  value={field.value as string}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger label="Asset Type">
-                    <SelectValue placeholder="Select a asset type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="compressor">Compressor</SelectItem>
-                    <SelectItem value="pump">Pump</SelectItem>
-                    <SelectItem value="motor">Motor</SelectItem>
-                    <SelectItem value="gearbox">Gearbox</SelectItem>
-                    <SelectItem value="valve">Valve</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
+            <div className="flex flex-col">
+              <Text as="span">Asset Type</Text>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <CreatableCombobox
+                    options={ASSET_TYPE_OPTIONS}
+                    onChange={field.onChange}
+                    value={field.value}
+                    placeholder="Select or type a asset type..."
+                    name={field.name}
+                  />
+                )}
+              />
+            </div>
 
             <Input
               label="Equipment Class (Optional)"
@@ -259,7 +373,7 @@ export const AddAssetForm = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
               <Input
                 label="Model Number"
                 placeholder="Enter model number"
@@ -297,7 +411,7 @@ export const AddAssetForm = ({
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
               <Input
                 label="Operting Hours (Since Last Oil Change)"
                 placeholder="Enter operating hours"
@@ -339,7 +453,9 @@ export const AddAssetForm = ({
               )}
             />
             <Input
+              type="textarea"
               label="Maintenance Strategy"
+              className="col-span-full"
               placeholder="Maintenance date"
               {...register("maintenance_strategy")}
               error={errors.maintenance_strategy?.message}
@@ -348,6 +464,7 @@ export const AddAssetForm = ({
             <Input
               type="date"
               label="Last Performed Maintenance"
+              className="sm:col-span-full md:col-span-1"
               placeholder="Last performed maintenance"
               max={new Date().toISOString().split("T")[0]}
               {...register("last_performed_maintenance")}
@@ -357,6 +474,7 @@ export const AddAssetForm = ({
             <Input
               type="date"
               label="Major Overhaul Date"
+              className="sm:col-span-full md:col-span-1"
               placeholder="Major overhaul date"
               max={new Date().toISOString().split("T")[0]}
               {...register("major_overhaul")}
@@ -366,6 +484,7 @@ export const AddAssetForm = ({
             <Input
               type="date"
               label="Last Date Overhaul"
+              className="col-span-full"
               placeholder="Last overhaul date"
               max={new Date().toISOString().split("T")[0]}
               {...register("last_date_overhaul")}
@@ -388,7 +507,7 @@ export const AddAssetForm = ({
                   <SelectValue placeholder="Select a assignee" />
                 </SelectTrigger>
                 <SelectContent>
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
                       {user.first_name} {user.last_name}
                     </SelectItem>
@@ -401,7 +520,7 @@ export const AddAssetForm = ({
 
         <section className="flex flex-col gap-6 border border-gray-100 p-6">
           <Text variant="p">Technical Specifications</Text>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-3 grid-cols-1 gap-4">
             <Input
               type="number"
               label="Power Rating (Kw)"
@@ -427,16 +546,20 @@ export const AddAssetForm = ({
         </section>
 
         <div className="flex flex-col gap-6 border border-gray-100 p-6">
-          {/* here is where you can upload the image */}
-          <Input type="file" label="Upload Image" placeholder="Upload image" />
+          <FileUploader
+            label="Upload Asset Datasheet"
+            value={datasheetFile}
+            onChange={setDatasheetFile}
+            id="datasheet"
+          />
         </div>
 
         <div className="flex justify-end space-x-4 pt-4">
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button type="submit" loading={isSubmitting}>
-            Create Asset
+          <Button type="submit" loading={isSubmitting || isUploadingImage}>
+            {isUploadingImage ? "Uploading Image..." : "Create Asset"}
           </Button>
         </div>
       </form>

@@ -128,7 +128,7 @@ export const AddNewUser = ({
           <form
             id="add-user-form"
             onSubmit={handleSubmit(onSubmit)}
-            className="p-6 grid grid-cols-2 gap-4"
+            className="p-6 grid grid-cols-2 gap-4 overflow-y-auto max-h-[80vh]"
           >
             <Input
               label="First Name"
