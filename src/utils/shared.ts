@@ -13,30 +13,7 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
-    label: "Inventory",
-    children: [
-      {
-        name: "Assets",
-        icon: "solar:database-bold-duotone",
-        path: "/assets",
-        permission: "assets:read",
-      },
-      {
-        name: "Sampling Points",
-        icon: "solar:database-bold-duotone",
-        path: "/sampling-points",
-        permission: "sampling_points:read",
-      },
-      {
-        name: "Sampling Routes",
-        icon: "solar:database-bold-duotone",
-        path: "/sampling-routes",
-        permission: "sampling_points:read",
-      },
-    ],
-  },
-  {
-    label: "Operations",
+    label: "Oil Analysis",
     children: [
       {
         name: "Samples",
@@ -58,6 +35,30 @@ const menuItems: MenuItem[] = [
       },
     ],
   },
+  {
+    label: "Equipment",
+    children: [
+      {
+        name: "Assets",
+        icon: "solar:database-bold-duotone",
+        path: "/assets",
+        permission: "assets:read",
+      },
+      {
+        name: "Sampling Points",
+        icon: "solar:database-bold-duotone",
+        path: "/sampling-points",
+        permission: "sampling_points:read",
+      },
+      {
+        name: "Sampling Routes",
+        icon: "solar:database-bold-duotone",
+        path: "/sampling-routes",
+        permission: "sampling_points:read",
+      },
+    ],
+  },
+
   {
     label: "Organizations",
     children: [
