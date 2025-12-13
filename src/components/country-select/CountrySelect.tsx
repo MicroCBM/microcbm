@@ -49,7 +49,7 @@ function CountrySelect({
         blacklist
       )
     );
-  }, []);
+  }, [priorityOptions, whitelist, blacklist]);
 
   return (
     <div className="flex flex-col gap-[6px]">

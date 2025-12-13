@@ -1,14 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Sample } from "@/types";
-import {
-  getSampleContaminantsAnalyticsService,
-  getSampleAnalysisGroupsAnalyticsService,
-} from "@/app/actions";
+import { getSampleAnalysisGroupsAnalyticsService } from "@/app/actions";
 import { CustomTabs } from "@/components/custom-tabs";
 import { Text } from "@/components";
 import { SampleAnalyticsChart } from "./SampleAnalyticsChart";
-import { SampleAnalyticsTable } from "./SampleAnalyticsTable";
+// import { SampleAnalyticsTable } from "./SampleAnalyticsTable";
 
 interface AnalyticsDataPoint {
   name?: string;
@@ -18,16 +15,6 @@ interface AnalyticsDataPoint {
   date?: string;
   timestamp?: number;
   label?: string;
-  [key: string]: unknown;
-}
-
-interface NestedAnalyticsData {
-  data?: number[] | AnalyticsDataPoint[];
-  labels?: string[];
-  series?: AnalyticsDataPoint[];
-  values?: AnalyticsDataPoint[];
-  items?: AnalyticsDataPoint[];
-  results?: AnalyticsDataPoint[];
   [key: string]: unknown;
 }
 
@@ -45,10 +32,19 @@ const CATEGORIES = [
   },
 ];
 
+// Map UI category names to API category names
+const CATEGORY_API_MAP: Record<string, string> = {
+  "Wear Metals": "Wear Metals",
+  Contaminants: "Contaminant",
+  "Additives & Lubricant Conditions": "Additive",
+  Viscosity: "Viscosity",
+  "Cummulative Particle Count/ml": "Particle Count",
+};
+
 const PERIOD_OPTIONS = [
-  { value: "3", label: "Last 3 months" },
-  { value: "30", label: "Last 30 days" },
   { value: "7", label: "Last 7 days" },
+  { value: "30", label: "Last 30 days" },
+  { value: "90", label: "Last 90 days" },
 ];
 
 interface SampleAnalyticsViewProps {
@@ -57,9 +53,8 @@ interface SampleAnalyticsViewProps {
 
 export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
   const [activeCategory, setActiveCategory] = useState("Wear Metals");
-  const [selectedPeriod, setSelectedPeriod] = useState("3");
+  const [selectedPeriod, setSelectedPeriod] = useState("90");
   const [chartData, setChartData] = useState<AnalyticsDataPoint[]>([]);
-  const [tableData, setTableData] = useState<AnalyticsDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedElement, setSelectedElement] =
     useState<string>("All Elements");
@@ -68,115 +63,66 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
     const fetchAnalytics = async () => {
       setIsLoading(true);
       try {
-        let response;
-        if (activeCategory === "Contaminants") {
-          response = await getSampleContaminantsAnalyticsService(
-            parseInt(selectedPeriod)
-          );
-          console.log("response in contaminants analytics", response);
-        } else {
-          const periodParam = selectedPeriod
-            ? parseInt(selectedPeriod)
-            : undefined;
-          response = await getSampleAnalysisGroupsAnalyticsService(
-            activeCategory,
-            periodParam
-          );
-        }
+        // Map UI category to API category
+        const apiCategory = CATEGORY_API_MAP[activeCategory] || activeCategory;
+        const periodParam = selectedPeriod
+          ? parseInt(selectedPeriod)
+          : undefined;
 
+        console.log("apiCategory", apiCategory);
+
+        const response = await getSampleAnalysisGroupsAnalyticsService(
+          apiCategory,
+          periodParam
+        );
+
+        console.log("response", response);
         if (response.success && response.data) {
-          // Process the data based on the API response structure
-          let data: AnalyticsDataPoint[] = [];
+          // Process the new API response structure
+          // Expected structure: { labels: string[], datasets: [{ label: string, data: number[] }] }
+          const responseData = response.data?.data as {
+            labels?: string[];
+            datasets?: Array<{ label: string; data: number[] }>;
+          };
 
-          // Handle nested structure: response.data.data.data and response.data.data.labels
-          const nestedData = response.data?.data as
-            | NestedAnalyticsData
-            | AnalyticsDataPoint[]
-            | unknown;
+          let chartData: AnalyticsDataPoint[] = [];
 
           if (
-            nestedData &&
-            typeof nestedData === "object" &&
-            !Array.isArray(nestedData)
+            responseData?.labels &&
+            Array.isArray(responseData.labels) &&
+            responseData?.datasets &&
+            Array.isArray(responseData.datasets)
           ) {
-            const typedNestedData = nestedData as NestedAnalyticsData;
+            // Transform labels and datasets into chart/table format
+            // Format: [{ date: "2025-11-02", "sodium": 10.5, "potassium": 5.2, ... }, ...]
+            chartData = responseData.labels.map((label, index) => {
+              const dataPoint: AnalyticsDataPoint = {
+                date: label,
+                label: label,
+              };
 
-            if (typedNestedData.data && Array.isArray(typedNestedData.data)) {
-              // If we have labels and data arrays, combine them
-              if (
-                typedNestedData.labels &&
-                Array.isArray(typedNestedData.labels)
-              ) {
-                // Check if data is array of numbers (for labels mapping)
-                if (
-                  typedNestedData.data.length > 0 &&
-                  typeof typedNestedData.data[0] === "number"
-                ) {
-                  data = (typedNestedData.data as number[]).map(
-                    (value: number, index: number) => ({
-                      name: typedNestedData.labels?.[index] || "",
-                      element: typedNestedData.labels?.[index] || "",
-                      value: value,
-                      label: typedNestedData.labels?.[index] || "",
-                    })
-                  );
-                } else {
-                  // Data is already array of objects
-                  data = typedNestedData.data as AnalyticsDataPoint[];
+              // Add each dataset's value for this label index as properties
+              responseData.datasets?.forEach((dataset) => {
+                if (dataset.data && dataset.data[index] !== undefined) {
+                  // Use dataset.label as the property key (e.g., "sodium", "potassium")
+                  dataPoint[dataset.label] = dataset.data[index];
                 }
-              } else {
-                // Just use the data array (might be numbers or objects)
-                if (
-                  typedNestedData.data.length > 0 &&
-                  typeof typedNestedData.data[0] === "number"
-                ) {
-                  // Convert numbers to objects
-                  data = (typedNestedData.data as number[]).map(
-                    (value: number) => ({
-                      value: value,
-                    })
-                  );
-                } else {
-                  data = typedNestedData.data as AnalyticsDataPoint[];
-                }
-              }
-            } else if (
-              typedNestedData.series &&
-              Array.isArray(typedNestedData.series)
-            ) {
-              data = typedNestedData.series;
-            } else if (
-              typedNestedData.values &&
-              Array.isArray(typedNestedData.values)
-            ) {
-              data = typedNestedData.values;
-            } else if (
-              typedNestedData.items &&
-              Array.isArray(typedNestedData.items)
-            ) {
-              data = typedNestedData.items;
-            } else if (
-              typedNestedData.results &&
-              Array.isArray(typedNestedData.results)
-            ) {
-              data = typedNestedData.results;
-            }
-          } else if (Array.isArray(nestedData)) {
-            // Direct array response
-            data = nestedData as AnalyticsDataPoint[];
-          } else if (Array.isArray(response.data)) {
-            // Fallback: response.data is directly an array
-            data = response.data as AnalyticsDataPoint[];
+              });
+
+              return dataPoint;
+            });
+          } else {
+            // Fallback for other response structures
+            chartData = [];
           }
 
-          setChartData(data);
-          setTableData(data);
+          setChartData(chartData);
         } else {
           setChartData([]);
-          setTableData([]);
         }
       } catch (error) {
         console.error("Error fetching analytics:", error);
+        setChartData([]);
       } finally {
         setIsLoading(false);
       }
@@ -249,8 +195,8 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
             </Text>
             <Text variant="p" className="text-sm text-gray-500">
               Total for the last{" "}
-              {selectedPeriod === "3"
-                ? "3 months"
+              {selectedPeriod === "90"
+                ? "90 days"
                 : selectedPeriod === "30"
                 ? "30 days"
                 : "7 days"}
@@ -299,13 +245,13 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
       </div>
 
       {/* Table Section */}
-      <div className="border border-gray-100">
+      {/* <div className="border border-gray-100">
         <SampleAnalyticsTable
           data={tableData}
           category={activeCategory}
           isLoading={isLoading}
         />
-      </div>
+      </div> */}
     </div>
   );
 }

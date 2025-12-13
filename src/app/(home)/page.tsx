@@ -15,59 +15,109 @@ import { getSamplingPointsService } from "../actions/sampling-points";
 import {
   getAlarmsAnalyticsService,
   getRecommendationAnalyticsService,
+  getSamplesService,
+  getRecommendationsService,
 } from "../actions";
 import { ComponentGuard } from "@/components/content-guard";
+import dayjs from "dayjs";
 
-// Sample chart data matching the image pattern
+// Helper function to calculate severity distribution from samples
+function calculateSeverityDistribution(samples: Array<{ severity: string }>) {
+  const severityMap: Record<string, number> = {
+    immediate: 0,
+    urgent: 0,
+    borderline: 0,
+    normal: 0,
+  };
 
-// Sample table data matching the image
+  samples.forEach((sample) => {
+    const severity = sample.severity?.toLowerCase() || "";
+    if (severity === "critical" || severity === "immediate") {
+      severityMap.immediate++;
+    } else if (severity === "urgent") {
+      severityMap.urgent++;
+    } else if (severity === "warning" || severity === "borderline") {
+      severityMap.borderline++;
+    } else if (severity === "normal" || severity === "low") {
+      severityMap.normal++;
+    }
+  });
 
-// Sample severity card data
-const severityCardData = {
-  title: "Recent Severity",
-  subtitle: "Result of sample #123434",
-  date: "12-05-2024",
-  severityLevels: [
+  return [
     {
       label: "Immediate",
-      value: 15,
-      color: "#DC2626", // dark red
-      bgColor: "#FEE2E2", // light red
+      value: severityMap.immediate,
+      color: "#DC2626",
+      bgColor: "#FEE2E2",
     },
     {
       label: "Urgent",
-      value: 15,
-      color: "#EA580C", // orange-red
-      bgColor: "#FED7AA", // light orange
+      value: severityMap.urgent,
+      color: "#EA580C",
+      bgColor: "#FED7AA",
     },
     {
       label: "Borderline",
-      value: 15,
-      color: "#F59E0B", // orange
-      bgColor: "#FEF3C7", // light yellow
+      value: severityMap.borderline,
+      color: "#F59E0B",
+      bgColor: "#FEF3C7",
     },
     {
       label: "Normal",
-      value: 15,
-      color: "#10B981", // green
-      bgColor: "#D1FAE5", // light green
+      value: severityMap.normal,
+      color: "#10B981",
+      bgColor: "#D1FAE5",
     },
-  ],
-  recommendation: {
-    text: "I was skeptical at first, but this product has completely changed my daily routine. The quality is outstanding and it's so easy to use.",
-    author: "Sarah J",
-    role: "Analyst",
-  },
-};
+  ];
+}
 
-// Sample pie chart data for contaminants
-const contaminantsData = [
-  { name: "Sample", value: 3, color: "#6B7280" }, // medium dark gray
-  { name: "Silicon", value: 2, color: "#4B5563" }, // dark gray
-  { name: "Potassium", value: 2, color: "#9CA3AF" }, // light gray
-  { name: "Water", value: 2, color: "#D1D5DB" }, // very light gray
-  { name: "Total Acid", value: 1, color: "#1F2937" }, // very dark gray/black
-];
+// Helper function to format contaminant names for display
+function formatContaminantName(name: string): string {
+  // Replace underscores with spaces and capitalize each word
+  return name
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
+// Helper function to aggregate contaminants from samples
+function aggregateContaminants(
+  samples: Array<{ contaminants?: Array<{ type: string; value: number }> }>
+) {
+  const contaminantMap: Record<string, number> = {};
+  // Color palette optimized for data visualization - distinct and accessible
+  const colors = [
+    "#3B82F6", // Blue - for water/primary elements
+    "#10B981", // Green - for natural/organic
+    "#F59E0B", // Amber - for warning/moderate
+    "#EF4444", // Red - for critical/high
+    "#8B5CF6", // Purple - for special compounds
+    "#06B6D4", // Cyan - for secondary elements
+    "#F97316", // Orange - for additional items
+    "#EC4899", // Pink - for rare elements
+  ];
+
+  samples.forEach((sample) => {
+    if (sample.contaminants && Array.isArray(sample.contaminants)) {
+      sample.contaminants.forEach((contaminant) => {
+        const type = contaminant.type || "Unknown";
+        contaminantMap[type] = (contaminantMap[type] || 0) + 1;
+      });
+    }
+  });
+
+  // Convert to array and sort by value
+  const contaminants = Object.entries(contaminantMap)
+    .map(([name, value], index) => ({
+      name: formatContaminantName(name),
+      value,
+      color: colors[index % colors.length],
+    }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5); // Top 5 contaminants
+
+  return contaminants;
+}
 
 export default async function Page() {
   // Fetch all data with error handling - wrap in Promise.all with catch to prevent crashes
@@ -79,6 +129,8 @@ export default async function Page() {
     samplingPoints,
     alarmsAnalytics,
     recommendationsAnalyticsArray,
+    samples,
+    recommendations,
   ] = await Promise.all([
     getSitesService().catch(() => []),
     getAssetsService().catch(() => []),
@@ -87,6 +139,8 @@ export default async function Page() {
     getSamplingPointsService().catch(() => []),
     getAlarmsAnalyticsService().catch(() => null),
     getRecommendationAnalyticsService().catch(() => []),
+    getSamplesService().catch(() => []),
+    getRecommendationsService({}).catch(() => []),
   ]);
 
   // Extract first recommendation analytics item (or null if empty)
@@ -96,7 +150,55 @@ export default async function Page() {
       ? recommendationsAnalyticsArray[0]
       : null;
 
-  // const recommendations = await getRecommendationsService();
+  // Prepare severity card data from real samples
+  const samplesArray = Array.isArray(samples) ? samples : [];
+  const severityLevels = calculateSeverityDistribution(samplesArray);
+
+  // Get the most recent sample for subtitle and date
+  const recentSample = samplesArray.sort(
+    (a, b) => (b.date_sampled || 0) - (a.date_sampled || 0)
+  )[0];
+
+  // Get the most recent recommendation
+  const recentRecommendation =
+    Array.isArray(recommendations) && recommendations.length > 0
+      ? recommendations.sort(
+          (a, b) =>
+            new Date(b.created_at_datetime).getTime() -
+            new Date(a.created_at_datetime).getTime()
+        )[0]
+      : null;
+
+  // Prepare severity card data
+  const severityCardData = {
+    title: "Recent Severity",
+    subtitle: recentSample
+      ? `Result of sample #${recentSample.serial_number || recentSample.id}`
+      : "No samples available",
+    date: recentSample
+      ? dayjs(recentSample.date_sampled * 1000).format("DD-MM-YYYY")
+      : dayjs().format("DD-MM-YYYY"),
+    severityLevels,
+    recommendation: recentRecommendation
+      ? {
+          text:
+            recentRecommendation.description || "No recommendation available.",
+          author: recentRecommendation.recommender?.name || "Unknown",
+          role: "Analyst",
+        }
+      : {
+          text: "No recommendations available at this time.",
+          author: "System",
+          role: "Analyst",
+        },
+  };
+
+  // Prepare contaminants data for pie chart
+  const contaminantsData = aggregateContaminants(samplesArray);
+  const totalContaminants = contaminantsData.reduce(
+    (sum, item) => sum + item.value,
+    0
+  );
 
   return (
     <ComponentGuard
@@ -129,7 +231,7 @@ export default async function Page() {
           />
         </ComponentGuard>
 
-        <LineChart />
+        <LineChart samples={samplesArray} />
 
         {/* table */}
         <section className="pt-[12.8px] flex flex-col gap-3">
@@ -149,8 +251,12 @@ export default async function Page() {
           <PieChart
             title="Contaminants"
             subtitle="Total for the last 3 months"
-            data={contaminantsData}
-            centerValue={10}
+            data={
+              contaminantsData.length > 0
+                ? contaminantsData
+                : [{ name: "No Data", value: 1, color: "#E5E7EB" }]
+            }
+            centerValue={totalContaminants || 0}
             centerLabel="Samples"
           />
         </div>

@@ -58,25 +58,6 @@ async function deleteSampleService(id: string): Promise<ApiResponse> {
   return handleApiRequest(`${commonEndpoint}samples/${id}`, {}, "DELETE");
 }
 
-async function getSampleContaminantsAnalyticsService(
-  period: number
-): Promise<ApiResponse> {
-  try {
-    const response = await requestWithAuth(
-      `${commonEndpoint}samples/contaminants/analytics?period=${period}`,
-      {
-        method: "GET",
-      }
-    );
-
-    const data = await response.json();
-    return { success: true, data };
-  } catch (error) {
-    console.error("Error fetching contaminants analytics:", error);
-    return handleError(error);
-  }
-}
-
 async function getSampleAnalysisGroupsAnalyticsService(
   category: string,
   period?: number
@@ -104,6 +85,5 @@ export {
   addSampleService,
   editSampleService,
   deleteSampleService,
-  getSampleContaminantsAnalyticsService,
   getSampleAnalysisGroupsAnalyticsService,
 };

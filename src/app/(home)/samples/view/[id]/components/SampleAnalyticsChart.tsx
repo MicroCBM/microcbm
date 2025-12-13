@@ -39,7 +39,52 @@ export function SampleAnalyticsChart({ data }: SampleAnalyticsChartProps) {
   const chartData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
-    // Group data by date if needed
+    // Check if data is already in grouped format (has series as properties)
+    const firstItem = data[0];
+    const isAlreadyGrouped = 
+      firstItem && 
+      typeof firstItem === "object" &&
+      firstItem.date &&
+      Object.keys(firstItem).some(key => 
+        key !== "date" && 
+        key !== "timestamp" && 
+        key !== "element" && 
+        key !== "name" && 
+        key !== "value" && 
+        key !== "count" &&
+        key !== "label" &&
+        key !== "created_at_datetime" &&
+        key !== "date_sampled" &&
+        typeof firstItem[key] === "number"
+      );
+
+    if (isAlreadyGrouped) {
+      // Data is already grouped, just format dates and return
+      return data.map((item: ChartDataPoint) => {
+        const dateKey = item.date 
+          ? dayjs(item.date).format("MMM DD")
+          : (item.timestamp
+              ? dayjs.unix(item.timestamp).format("MMM DD")
+              : dayjs(
+                  (item.created_at_datetime || item.date_sampled) as string
+                ).format("MMM DD"));
+        
+        const result: GroupedChartData = { date: dateKey };
+        
+        // Copy all numeric properties (series) to result
+        Object.keys(item).forEach(key => {
+          if (key !== "date" && key !== "timestamp" && key !== "label" && 
+              key !== "created_at_datetime" && key !== "date_sampled" &&
+              typeof item[key] === "number") {
+            result[key] = item[key] as number;
+          }
+        });
+        
+        return result;
+      });
+    }
+
+    // Legacy format: Group data by date
     const groupedByDate = data.reduce(
       (acc: Record<string, GroupedChartData>, item: ChartDataPoint) => {
         const dateKey =
@@ -70,10 +115,46 @@ export function SampleAnalyticsChart({ data }: SampleAnalyticsChartProps) {
   const seriesNames = React.useMemo(() => {
     if (!data || data.length === 0) return [];
     const names = new Set<string>();
-    data.forEach((item: ChartDataPoint) => {
-      if (item.element) names.add(item.element);
-      if (item.name) names.add(item.name);
-    });
+    
+    // Check if data is already grouped (has series as properties on each item)
+    const firstItem = data[0];
+    const hasGroupedFormat = 
+      firstItem && 
+      typeof firstItem === "object" &&
+      Object.keys(firstItem).some(key => 
+        key !== "date" && 
+        key !== "timestamp" && 
+        key !== "element" && 
+        key !== "name" && 
+        key !== "value" && 
+        key !== "count" &&
+        key !== "label" &&
+        key !== "created_at_datetime" &&
+        key !== "date_sampled" &&
+        typeof firstItem[key] === "number"
+      );
+
+    if (hasGroupedFormat) {
+      // Extract series names from property keys (exclude date and metadata fields)
+      const excludedKeys = new Set([
+        "date", "timestamp", "element", "name", "value", "count", 
+        "label", "created_at_datetime", "date_sampled"
+      ]);
+      data.forEach((item: ChartDataPoint) => {
+        Object.keys(item).forEach(key => {
+          if (!excludedKeys.has(key) && typeof item[key] === "number") {
+            names.add(key);
+          }
+        });
+      });
+    } else {
+      // Legacy format: extract from element/name fields
+      data.forEach((item: ChartDataPoint) => {
+        if (item.element) names.add(item.element);
+        if (item.name) names.add(item.name);
+      });
+    }
+    
     return Array.from(names);
   }, [data]);
 

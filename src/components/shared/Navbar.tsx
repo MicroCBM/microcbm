@@ -1,7 +1,10 @@
+"use client";
+
 import React from "react";
 import LogoColored from "../../../public/assets/svg/logo_colored.svg";
 import { Button } from "../button";
 import { Icon } from "@/libs";
+import { QuickCreateModal } from "./QuickCreateModal";
 
 export default function Navbar() {
   return (
@@ -11,10 +14,12 @@ export default function Navbar() {
       </div>
       <div className="py-[6.4px] pl-[27.2px] pr-[19.2px] flex justify-between items-center flex-1 border-b border-b-[#E5E5E5]">
         <p className="text-sm text-[#B3B3B3]">Recent</p>
-        <Button size="medium" className="rounded-full">
-          <Icon icon="mdi:plus-circle" className="text-white size-5" />
-          Quick Create
-        </Button>
+        <QuickCreateModal>
+          <Button size="medium" className="rounded-full">
+            <Icon icon="mdi:plus-circle" className="text-white size-5" />
+            Quick Create
+          </Button>
+        </QuickCreateModal>
       </div>
     </nav>
   );

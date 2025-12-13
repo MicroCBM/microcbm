@@ -1,6 +1,7 @@
 "use client";
 import React, { useRef, useState, useCallback } from "react";
 import { Control, useController } from "react-hook-form";
+import Image from "next/image";
 import { cn } from "@/libs";
 import { Icon } from "@/libs/icon";
 import { Label } from "../label";
@@ -167,9 +168,11 @@ const LogoUpload: React.FC<LogoUploadProps> = ({
         {preview ? (
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              <img
+              <Image
                 src={preview}
                 alt="Logo preview"
+                width={96}
+                height={96}
                 className="w-24 h-24 object-contain rounded-lg border border-grey"
               />
               <button
