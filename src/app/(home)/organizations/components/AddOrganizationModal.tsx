@@ -82,7 +82,10 @@ export const AddOrganizationModal = () => {
     setIsUploadingImage(true);
 
     try {
-      const response = await uploadImage({ file: file as File }, "organization-logos");
+      const response = await uploadImage(
+        { file: file as File },
+        "organization-logos"
+      );
 
       if (response.success) {
         // Extract filename from response
@@ -121,15 +124,16 @@ export const AddOrganizationModal = () => {
       >
         <SheetTrigger asChild>
           <Button
+            permissions="organizations:create"
             onClick={() => setIsAddOrganizationModalOpen(true)}
             size="medium"
-            className="rounded-full"
+            className="rounded-full cursor-pointer"
           >
             <Icon icon="mdi:plus-circle" className="text-white size-5" />
             Add New Organization
           </Button>
         </SheetTrigger>
-        <SheetContent className="!max-w-[540px]">
+        <SheetContent className="max-w-[540px]!">
           <SheetHeader>
             <SheetTitle>Add New Organization</SheetTitle>
           </SheetHeader>

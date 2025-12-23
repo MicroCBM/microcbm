@@ -320,15 +320,13 @@ export function AddSamplingPointForm({
 
   return (
     <div className="">
-      <div className="flex items-center gap-3 mb-2">
-        <button
-          onClick={handleCancel}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <Icon icon="mdi:arrow-left" className="w-5 h-5 text-gray-600" />
-        </button>
+      <Button
+        permissions="sampling-points:create"
+        className="flex items-center gap-3 mb-2 cursor-pointer"
+      >
+        <Icon icon="mdi:arrow-left" className="w-5 h-5 text-gray-600" />
         <Text variant="h6">Add New Sampling Point</Text>
-      </div>
+      </Button>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         <section className="flex flex-col md:flex-row gap-6">

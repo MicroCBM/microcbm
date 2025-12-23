@@ -6,7 +6,7 @@ import {
   getUsersService,
 } from "@/app/actions";
 import React from "react";
-import { UserContent, UserTable } from "./components";
+import { CreateCustomer, UserTable } from "./components";
 
 export default async function UserManagementPage() {
   const users = await getUsersService();
@@ -18,7 +18,7 @@ export default async function UserManagementPage() {
 
   return (
     <main className="flex flex-col gap-4">
-      <UserContent
+      <CreateCustomer
         rolesData={roles}
         organizations={organizations}
         sites={sites}

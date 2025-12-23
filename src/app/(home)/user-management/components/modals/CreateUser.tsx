@@ -1,5 +1,8 @@
 "use client";
-import { addUserService } from "@/app/actions";
+import React from "react";
+import { Organization, Sites } from "@/types";
+import { MODALS } from "@/utils/constants/modals";
+import { usePersistedModalState } from "@/hooks";
 import {
   Button,
   PhoneInput,
@@ -8,25 +11,24 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+} from "@/components";
+import {
   Sheet,
   SheetContent,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
-} from "@/components";
-import CountrySelect from "@/components/country-select/CountrySelect";
+  SheetFooter,
+} from "@/components/ui";
 import Input from "@/components/input/Input";
-import { Icon } from "@/libs";
-import { ADD_USER_SCHEMA } from "@/schema";
-import { Sites, Organization } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
-import * as RPNInput from "react-phone-number-input";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
+import { ADD_USER_SCHEMA } from "@/schema";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { addUserService } from "@/app/actions";
+import CountrySelect from "@/components/country-select/CountrySelect";
+import * as RPNInput from "react-phone-number-input";
+import { z } from "zod";
+import { toast } from "sonner";
 
 interface Role {
   id: string;
@@ -45,7 +47,7 @@ interface Permission {
   created_at: number;
   created_at_datetime: string;
 }
-export const AddNewUser = ({
+export function CreateCustomer({
   rolesData,
   organizations,
   sites,
@@ -53,9 +55,8 @@ export const AddNewUser = ({
   rolesData: Role[];
   organizations: Organization[];
   sites: Sites[];
-}) => {
+}) {
   const router = useRouter();
-  const [isOpen, setIsOpen] = React.useState(false);
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -70,8 +71,6 @@ export const AddNewUser = ({
       },
     },
   });
-
-  console.log("errors", errors);
 
   const onSubmit = async (data: z.infer<typeof ADD_USER_SCHEMA>) => {
     console.log("submit data", data);
@@ -103,7 +102,7 @@ export const AddNewUser = ({
       toast.success("User added successfully", {
         description: `${response.data?.message}`,
       });
-      setIsOpen(false);
+      modal.closeModal();
       router.refresh();
     } else {
       toast.error(
@@ -112,23 +111,35 @@ export const AddNewUser = ({
     }
   };
 
+  const modal = usePersistedModalState({
+    paramName: MODALS.USER.CHILDREN.CREATE,
+  });
+
+  const isOpen = modal.isModalOpen(MODALS.USER.CHILDREN.CREATE);
+
   return (
     <>
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild>
-          <Button size="medium" className="rounded-full">
-            <Icon icon="mdi:plus-circle" className="text-white size-5" />
-            Add New User
-          </Button>
-        </SheetTrigger>
-        <SheetContent className="!max-w-[540px]">
-          <SheetHeader>
-            <SheetTitle>Add User</SheetTitle>
+      <div className="flex justify-end">
+        <Button
+          permissions="users:create"
+          className="cursor-pointer"
+          size={"medium"}
+          onClick={() => modal.openModal(MODALS.USER.CHILDREN.CREATE)}
+        >
+          Create user
+        </Button>
+      </div>
+
+      <Sheet open={isOpen} onOpenChange={(open) => !open && modal.closeModal()}>
+        <SheetContent className="max-w-[864px]! flex flex-col gap-0 p-0">
+          <SheetHeader className="px-6 pt-6 pb-4">
+            <SheetTitle>Create user</SheetTitle>
           </SheetHeader>
+
           <form
             id="add-user-form"
             onSubmit={handleSubmit(onSubmit)}
-            className="p-6 grid grid-cols-2 gap-4 overflow-y-auto max-h-[80vh]"
+            className="px-6 grid grid-cols-2 gap-4 overflow-y-aut py-8"
           >
             <Input
               label="First Name"
@@ -275,16 +286,26 @@ export const AddNewUser = ({
               error={errors.password}
             />
           </form>
-          <SheetFooter>
-            <Button type="button" variant="outline">
-              Discard
+
+          <SheetFooter className="px-6 pb-6 pt-4">
+            <Button
+              onClick={modal.closeModal}
+              className="px-10"
+              variant="outline"
+            >
+              Cancel
             </Button>
-            <Button type="submit" form="add-user-form" loading={isSubmitting}>
-              Add User
+            <Button
+              className="px-20"
+              type="submit"
+              form="add-user-form"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Processing..." : "Add User"}
             </Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>
     </>
   );
-};
+}

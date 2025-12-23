@@ -92,7 +92,11 @@ export function AddPermissionModal({
     <>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
-          <Button size="medium" className="rounded-full">
+          <Button
+            permissions="permissions:create"
+            size="medium"
+            className="rounded-full cursor-pointer"
+          >
             <Icon icon="mdi:plus-circle" className="size-5 text-white" />
             Create Permission
           </Button>

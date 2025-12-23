@@ -104,6 +104,10 @@ const formatCurrency = (value: string) => {
   }
 };
 
+export function toKebabCase(str: string) {
+  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+}
+
 function transformStrToDropdownOptions(strs: string[]) {
   const output: DropdownOption[] = [];
   for (const item of strs) {

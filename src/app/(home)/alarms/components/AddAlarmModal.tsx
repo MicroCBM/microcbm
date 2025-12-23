@@ -107,9 +107,10 @@ export const AddAlarmModal = ({ sites }: AddAlarmModalProps) => {
       <Sheet open={isAddAlarmModalOpen} onOpenChange={setIsAddAlarmModalOpen}>
         <SheetTrigger asChild>
           <Button
+            permissions="alarms:create"
             onClick={() => setIsAddAlarmModalOpen(true)}
             size="medium"
-            className="rounded-full"
+            className="rounded-full cursor-pointer"
           >
             <Icon icon="mdi:plus-circle" className="text-white size-5" />
             Add New Alarm

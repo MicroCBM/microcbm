@@ -121,12 +121,22 @@ export function useContentGuard(
   }, []);
 
   if (isTesting) {
-    return { isAllowed: true, isLoading: false, userPermissions: [] };
+    return {
+      isAllowed: true,
+      isLoading: false,
+      userPermissions: [],
+      user: null,
+    };
   }
 
   // Wait for data to load before making authorization decisions
   if (isLoading) {
-    return { isAllowed: false, isLoading: true, userPermissions: [] };
+    return {
+      isAllowed: false,
+      isLoading: true,
+      userPermissions: [],
+      user: null,
+    };
   }
 
   // Check if user is SuperAdmin
@@ -134,7 +144,7 @@ export function useContentGuard(
 
   // If no permission check required, allow access
   if (!permission) {
-    return { isAllowed: true, isLoading: false, userPermissions };
+    return { isAllowed: true, isLoading: false, userPermissions, user };
   }
 
   // Convert permission(s) to array format for easier checking
@@ -144,11 +154,13 @@ export function useContentGuard(
 
   // Check if user has any of the required permissions
   const hasPermission = permissionsToCheck.some((perm) =>
-    userPermissions.includes(perm)
+    userPermissions.some(
+      (userPerm) => userPerm.toLowerCase() === perm.toLowerCase()
+    )
   );
 
   // User is allowed if they have the permission OR if they're SuperAdmin
   const isAllowed = hasPermission || isSuperAdmin;
 
-  return { isAllowed, isLoading: false, userPermissions };
+  return { isAllowed, isLoading: false, userPermissions, user };
 }

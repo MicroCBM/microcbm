@@ -22,12 +22,42 @@ async function getRecommendationsService(params: {
       }
     );
 
+    // Handle 403 Forbidden (permission denied) gracefully
+    if (response.status === 403) {
+      console.warn("User does not have permission to access recommendations");
+      return [];
+    }
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const errorData = await response.json().catch(() => null);
+        console.error(
+          "Error message:",
+          errorData?.message ||
+            `Failed to fetch recommendations: ${response.status} ${response.statusText}`
+        );
+      }
+      // Return empty array instead of throwing to prevent page crashes
+      return [];
+    }
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Response is not JSON, returning empty array");
+      return [];
+    }
+
     const data = await response.json();
 
-    return data?.data;
+    return data?.data || [];
   } catch (error) {
     console.error("Error fetching recommendations:", error);
-    throw error;
+    // Return empty array instead of throwing to prevent page crashes
+    return [];
   }
 }
 

@@ -52,3 +52,19 @@ body {
   font-family: var(--font-geist-sans), sans-serif;
   color: var(--color-black);
 }
+
+/* Hide print-view portal in normal view, show only when printing */
+.print-view {
+  display: none !important;
+}
+
+/* Hide no-print elements when printing */
+@media print {
+  .print-view {
+    display: block !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}

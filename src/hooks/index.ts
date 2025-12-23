@@ -3,3 +3,4 @@ export * from "./useUrlState";
 export * from "./useReducerSpread";
 export * from "./useContentGuard";
 export * from "./usePresignedUrl";
+export * from "./usePersistedModalState";

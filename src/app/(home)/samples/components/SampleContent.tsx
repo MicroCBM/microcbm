@@ -3,9 +3,8 @@
 import React from "react";
 import { Button, Text } from "@/components";
 import { Icon } from "@/libs";
-import Link from "next/link";
 import { Asset, SamplingPoint, Sites } from "@/types";
-import { ComponentGuard } from "@/components/content-guard";
+import { useRouter } from "next/navigation";
 
 export function SampleContent({
   sites,
@@ -16,6 +15,7 @@ export function SampleContent({
   assets: Asset[];
   samplingPoints: SamplingPoint[];
 }) {
+  const router = useRouter();
   console.log(sites, assets, samplingPoints);
   return (
     <div className="flex items-center justify-between">
@@ -27,14 +27,15 @@ export function SampleContent({
           Manage and monitor oil analysis samples
         </Text>
       </div>
-      <ComponentGuard permissions="samples:create">
-        <Link href="/samples/add">
-          <Button size="medium" className="rounded-full">
-            <Icon icon="mdi:plus-circle" className="text-white size-5" />
-            Add New Sample
-          </Button>
-        </Link>
-      </ComponentGuard>
+      <Button
+        permissions="samples:create"
+        onClick={() => router.push("/samples/add")}
+        size="medium"
+        className="rounded-full cursor-pointer"
+      >
+        <Icon icon="mdi:plus-circle" className="text-white size-5" />
+        Add New Sample
+      </Button>
     </div>
   );
 }

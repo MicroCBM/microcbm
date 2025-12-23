@@ -24,6 +24,8 @@ export const ViewSiteModal = ({
 }: ViewSiteModalProps) => {
   if (!site) return null;
 
+  console.log("site", site);
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="md:max-w-[540px]">

@@ -93,9 +93,10 @@ export const AddDepartmentModal = () => {
       >
         <SheetTrigger asChild>
           <Button
+            permissions="departments:create"
             onClick={() => setIsAddDepartmentModalOpen(true)}
             size="medium"
-            className="rounded-full"
+            className="rounded-full cursor-pointer"
           >
             <Icon icon="mdi:plus-circle" className="text-white size-5" />
             Add New Department

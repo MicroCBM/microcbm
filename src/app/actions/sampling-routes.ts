@@ -12,14 +12,44 @@ async function getSamplingRoutesService(): Promise<SamplingRoute[]> {
       method: "GET",
     });
 
+    // Handle 403 Forbidden (permission denied) gracefully
+    if (response.status === 403) {
+      console.warn("User does not have permission to access sampling routes");
+      return [];
+    }
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const errorData = await response.json().catch(() => null);
+        console.error(
+          "Error message:",
+          errorData?.message ||
+            `Failed to fetch sampling routes: ${response.status} ${response.statusText}`
+        );
+      }
+      // Return empty array instead of throwing to prevent page crashes
+      return [];
+    }
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Response is not JSON, returning empty array");
+      return [];
+    }
+
     const data = await response.json();
 
     console.log("data", data);
 
-    return data?.data;
+    return data?.data || [];
   } catch (error) {
     console.error("Error fetching sampling routes:", error);
-    throw error;
+    // Return empty array instead of throwing to prevent page crashes
+    return [];
   }
 }
 
@@ -56,6 +86,18 @@ async function getSamplingRouteService(id: string): Promise<SamplingRoute> {
         method: "GET",
       }
     );
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      throw new Error(`Failed to fetch sampling route: ${response.status} ${response.statusText}`);
+    }
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Response is not JSON");
+      throw new Error("Invalid response from server");
+    }
 
     const data = await response.json();
 

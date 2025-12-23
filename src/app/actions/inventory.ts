@@ -189,6 +189,21 @@ async function getAssetService(id: string): Promise<Asset> {
   }
 }
 
+async function getSiteService(id: string): Promise<Sites> {
+  try {
+    const response = await requestWithAuth(`${commonEndpoint}sites/${id}`, {
+      method: "GET",
+    });
+
+    const data = await response.json();
+
+    return data?.data;
+  } catch (error) {
+    console.error("Error fetching site by id:", error);
+    throw error;
+  }
+}
+
 export {
   getAssetsService,
   addAssetService,
@@ -197,6 +212,7 @@ export {
   editSiteService,
   deleteSiteService,
   getAssetService,
+  getSiteService,
   editAssetService,
   deleteAssetService,
   getSitesAnalyticsService,

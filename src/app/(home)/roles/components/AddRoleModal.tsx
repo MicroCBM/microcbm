@@ -24,6 +24,7 @@ import { AddRolePayload, ADD_ROLE_SCHEMA } from "@/schema";
 import { addRoleService } from "@/app/actions";
 import Input from "@/components/input/Input";
 import { useRouter } from "next/navigation";
+import { MODALS } from "@/utils/constants/modals";
 
 const ACTIVE_STATUS_OPTIONS = [
   { value: true, label: "Active" },
@@ -73,7 +74,11 @@ export function AddRoleModal() {
     <>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
-          <Button size="medium" className="rounded-full">
+          <Button
+            permissions="roles:create"
+            size="medium"
+            className="rounded-full cursor-pointer"
+          >
             <Icon icon="mdi:plus-circle" className="text-white size-5" />
             Create Role
           </Button>

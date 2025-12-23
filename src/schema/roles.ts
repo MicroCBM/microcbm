@@ -21,37 +21,3 @@ export type EditRolePayload = z.infer<typeof EDIT_ROLE_SCHEMA>;
 export type AddPermissionsToRolePayload = z.infer<
   typeof ADD_PERMISSIONS_TO_ROLE_SCHEMA
 >;
-
-export const PERMISSION_MODULES = [
-  "dashboard",
-  "alarms",
-  "assets",
-  "organizations",
-  "recommendations",
-  "reports",
-  "samples",
-  "sampling_points",
-  "sites",
-  "users",
-] as const;
-
-export const PERMISSION_KEYS = [
-  "create",
-  "read",
-  "update",
-  "delete",
-  "list",
-] as const;
-
-export const ALL_ROLES_AND_PERMISSIONS = PERMISSION_MODULES.map((module) => ({
-  module,
-  ...{
-    view: "view",
-    create: "create",
-    edit: "edit",
-    delete: "delete",
-    export: "export",
-    "approve/reject": "approve/reject",
-    "deactivate/activate": "deactivate/activate",
-  },
-}));

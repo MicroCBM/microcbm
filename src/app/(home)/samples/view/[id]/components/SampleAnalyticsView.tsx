@@ -55,6 +55,7 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
   const [activeCategory, setActiveCategory] = useState("Wear Metals");
   const [selectedPeriod, setSelectedPeriod] = useState("90");
   const [chartData, setChartData] = useState<AnalyticsDataPoint[]>([]);
+  const [tableData, setTableData] = useState<AnalyticsDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedElement, setSelectedElement] =
     useState<string>("All Elements");
@@ -86,6 +87,7 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
           };
 
           let chartData: AnalyticsDataPoint[] = [];
+          let tableData: AnalyticsDataPoint[] = [];
 
           if (
             responseData?.labels &&
@@ -111,18 +113,25 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
 
               return dataPoint;
             });
+
+            // Use same format for table (grouped by date with columns for each dataset)
+            tableData = chartData;
           } else {
             // Fallback for other response structures
             chartData = [];
+            tableData = [];
           }
 
           setChartData(chartData);
+          setTableData(tableData);
         } else {
           setChartData([]);
+          setTableData([]);
         }
       } catch (error) {
         console.error("Error fetching analytics:", error);
         setChartData([]);
+        setTableData([]);
       } finally {
         setIsLoading(false);
       }

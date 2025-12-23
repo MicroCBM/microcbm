@@ -47,12 +47,42 @@ async function getRolesService(queryParams?: {
       method: "GET",
     });
 
+    // Handle 403 Forbidden (permission denied) gracefully
+    if (response.status === 403) {
+      console.warn("User does not have permission to access roles");
+      return [];
+    }
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const errorData = await response.json().catch(() => null);
+        console.error(
+          "Error message:",
+          errorData?.message ||
+            `Failed to fetch roles: ${response.status} ${response.statusText}`
+        );
+      }
+      // Return empty array instead of throwing to prevent page crashes
+      return [];
+    }
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Response is not JSON, returning empty array");
+      return [];
+    }
+
     const data = await response.json();
 
     return data?.data || [];
   } catch (error) {
     console.error("Error fetching roles:", error);
-    throw error;
+    // Return empty array instead of throwing to prevent page crashes
+    return [];
   }
 }
 
@@ -62,9 +92,20 @@ async function getSingleRoleService(id: string): Promise<Role> {
       method: "GET",
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      throw new Error(`Failed to fetch role: ${response.status} ${response.statusText}`);
+    }
 
-    return data?.data || [];
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Response is not JSON");
+      throw new Error("Invalid response from server");
+    }
+
+    const data = await response.json();
+    return data?.data;
   } catch (error) {
     console.error("Error fetching single role:", error);
     throw error;
@@ -80,12 +121,23 @@ async function getUsersByRoleIdService(id: string): Promise<unknown[]> {
       }
     );
 
-    const data = await response.json();
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      return [];
+    }
 
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Response is not JSON, returning empty array");
+      return [];
+    }
+
+    const data = await response.json();
     return data?.data || [];
   } catch (error) {
     console.error("Error fetching users by role id:", error);
-    throw error;
+    return [];
   }
 }
 
@@ -94,6 +146,18 @@ async function getRoleService(id: string): Promise<Role> {
     const response = await requestWithAuth(`${commonEndpoint}roles/${id}`, {
       method: "GET",
     });
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      throw new Error(`Failed to fetch role: ${response.status} ${response.statusText}`);
+    }
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Response is not JSON");
+      throw new Error("Invalid response from server");
+    }
 
     const data = await response.json();
     return data?.data;
@@ -172,11 +236,41 @@ async function getPermissionsService(): Promise<Permission[]> {
       }
     );
 
+    // Handle 403 Forbidden (permission denied) gracefully
+    if (response.status === 403) {
+      console.warn("User does not have permission to access permissions");
+      return [];
+    }
+
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const errorData = await response.json().catch(() => null);
+        console.error(
+          "Error message:",
+          errorData?.message ||
+            `Failed to fetch permissions: ${response.status} ${response.statusText}`
+        );
+      }
+      // Return empty array instead of throwing to prevent page crashes
+      return [];
+    }
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.warn("Response is not JSON, returning empty array");
+      return [];
+    }
+
     const data = await response.json();
     return data?.data || [];
   } catch (error) {
     console.error("Error fetching permissions:", error);
-    throw error;
+    // Return empty array instead of throwing to prevent page crashes
+    return [];
   }
 }
 
