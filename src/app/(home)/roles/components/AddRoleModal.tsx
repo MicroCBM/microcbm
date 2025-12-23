@@ -24,7 +24,6 @@ import { AddRolePayload, ADD_ROLE_SCHEMA } from "@/schema";
 import { addRoleService } from "@/app/actions";
 import Input from "@/components/input/Input";
 import { useRouter } from "next/navigation";
-import { MODALS } from "@/utils/constants/modals";
 
 const ACTIVE_STATUS_OPTIONS = [
   { value: true, label: "Active" },

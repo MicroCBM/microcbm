@@ -55,7 +55,7 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
   const [activeCategory, setActiveCategory] = useState("Wear Metals");
   const [selectedPeriod, setSelectedPeriod] = useState("90");
   const [chartData, setChartData] = useState<AnalyticsDataPoint[]>([]);
-  const [tableData, setTableData] = useState<AnalyticsDataPoint[]>([]);
+  const [, setTableData] = useState<AnalyticsDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedElement, setSelectedElement] =
     useState<string>("All Elements");

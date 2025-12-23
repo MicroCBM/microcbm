@@ -35,7 +35,7 @@ export function SampleFilters() {
     <div className="flex items-center gap-2">
       <Search
         value={filters.search}
-        onChange={handleSearchChange}
+        onChange={(event) => handleSearchChange(event.target.value)}
         placeholder="Search samples"
         className="h-10 max-w-[296px]"
       />

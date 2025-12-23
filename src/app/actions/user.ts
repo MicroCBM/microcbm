@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ROUTES } from "@/utils";
 
-interface USER_TYPE {
+interface USER_TYPE extends Record<string, unknown> {
   country: string;
   created_at: number;
   created_at_datetime: string;

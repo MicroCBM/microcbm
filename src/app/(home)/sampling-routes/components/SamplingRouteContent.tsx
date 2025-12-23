@@ -10,7 +10,7 @@ export function SamplingRouteContent() {
       <div className="flex items-center justify-between">
         <Text variant="h6">Sampling Routes</Text>
         <Button
-          permissions="sampling-routes:create"
+          permissions="sampling_routes:create"
           size="medium"
           className="rounded-full cursor-pointer"
         >

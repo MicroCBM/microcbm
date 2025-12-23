@@ -14,7 +14,7 @@ export type DropdownOption = {
 export type MenuItem = {
   label: string;
   children: {
-    icon: IconNames;
+    icon: string;
     name: PageType;
     path: string;
     permission: PermissionType;
@@ -22,15 +22,15 @@ export type MenuItem = {
 };
 
 export type QueryType = typeof DEFAULT_QUERY;
-export type Func = (...args: any[]) => any;
+export type Func = (...args: unknown[]) => unknown;
 
-export type TableCellProps<T extends Record<string, any> = { id: string }> =
+export type TableCellProps<T extends Record<string, unknown> = { id: string }> =
   Readonly<{
-    getValue: () => any;
+    getValue: () => unknown;
     row: {
       original: {
         id: string;
-        [key: string]: any;
+        [key: string]: unknown;
       } & T;
     };
   }>;
@@ -132,7 +132,7 @@ export type OptionsConfigType = {
 
 export type generateCsvParams = {
   headers: Array<CsvHeader>;
-  data: Array<any>;
+  data: Array<unknown>;
   separator?: string;
   fileName?: string;
 };
@@ -140,5 +140,5 @@ export type generateCsvParams = {
 export type CsvHeader = {
   name: string;
   accessor: string;
-  transform?: (v: any) => string;
+  transform?: (v: unknown) => string;
 };

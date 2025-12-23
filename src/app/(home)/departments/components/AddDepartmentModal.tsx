@@ -93,7 +93,7 @@ export const AddDepartmentModal = () => {
       >
         <SheetTrigger asChild>
           <Button
-            permissions="departments:create"
+            permissions="organizations:create"
             onClick={() => setIsAddDepartmentModalOpen(true)}
             size="medium"
             className="rounded-full cursor-pointer"
@@ -102,7 +102,7 @@ export const AddDepartmentModal = () => {
             Add New Department
           </Button>
         </SheetTrigger>
-        <SheetContent className="!max-w-[540px]">
+        <SheetContent className="max-w-[540px]!">
           <SheetHeader>
             <SheetTitle>Add New Department</SheetTitle>
           </SheetHeader>

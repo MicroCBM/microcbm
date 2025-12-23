@@ -11,7 +11,7 @@ export function SamplingRouteFilters() {
         <Search
           placeholder="Search sampling routes..."
           value={searchValue}
-          onChange={setSearchValue}
+          onChange={(event) => setSearchValue(event.target.value)}
         />
       </div>
     </div>

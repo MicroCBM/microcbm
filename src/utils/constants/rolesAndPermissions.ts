@@ -7,8 +7,11 @@ export const PERMISSION_MODULES = [
   "reports",
   "samples",
   "sampling_points",
+  "sampling_routes",
   "sites",
   "users",
+  "roles",
+  "permissions",
 ] as const;
 
 export const PERMISSION_KEYS = [

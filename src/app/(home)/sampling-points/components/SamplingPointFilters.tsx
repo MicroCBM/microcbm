@@ -11,7 +11,7 @@ export function SamplingPointFilters() {
         <Search
           placeholder="Search sampling points..."
           value={searchValue}
-          onChange={setSearchValue}
+          onChange={(event) => setSearchValue(event.target.value)}
         />
       </div>
     </div>

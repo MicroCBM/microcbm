@@ -1,4 +1,4 @@
-import type { generateCsvParams } from '@/types';
+import type { generateCsvParams } from "@/types";
 
 export function generateAndDownloadCsv(options: generateCsvParams) {
   const file = generateCsv(options);
@@ -6,7 +6,7 @@ export function generateAndDownloadCsv(options: generateCsvParams) {
 }
 
 export function generateCsv(options: generateCsvParams) {
-  const { headers, data, separator = ',' } = options;
+  const { headers, data, separator = "," } = options;
   const rows = [];
 
   // add headers first
@@ -19,40 +19,42 @@ export function generateCsv(options: generateCsvParams) {
         .map((h) => {
           const transform = h.transform ?? String;
           return `"${transform(
-            h.accessor ? getTarget(row, h.accessor) : row,
+            h.accessor
+              ? getTarget(row as Record<string, unknown>, h.accessor)
+              : row
           )}"`;
         })
-        .join(separator),
+        .join(separator)
     );
   });
 
-  const csvContent = rows.join('\n');
-  return new Blob([csvContent], { type: 'text/csv;charset=utf-8,' });
+  const csvContent = rows.join("\n");
+  return new Blob([csvContent], { type: "text/csv;charset=utf-8," });
 }
 
-export function downloadFile(file: Blob | File, fileName: string = 'csv-file') {
+export function downloadFile(file: Blob | File, fileName: string = "csv-file") {
   // create link element
-  const linkElement = document.createElement('a');
+  const linkElement = document.createElement("a");
   const href = URL.createObjectURL(file);
 
   linkElement.href = href;
   linkElement.setAttribute(
-    'download',
-    fileName.includes('.csv') ? fileName : `${fileName}.csv`,
+    "download",
+    fileName.includes(".csv") ? fileName : `${fileName}.csv`
   );
-  linkElement.setAttribute('target', '_blank');
+  linkElement.setAttribute("target", "_blank");
   linkElement.click();
 
   URL.revokeObjectURL(href);
 }
 
 function getTarget(
-  inputObj: Record<string, any>,
-  path: string | string[],
-): any {
-  const pathArr = Array.isArray(path) ? path : path?.split('.');
-  return pathArr.reduce(
-    (target, currentPath) => target?.[currentPath],
-    inputObj,
-  );
+  inputObj: Record<string, unknown>,
+  path: string | string[]
+): unknown {
+  const pathArr = Array.isArray(path) ? path : path?.split(".");
+  return pathArr.reduce<unknown>((target, currentPath) => {
+    const obj = target as Record<string, unknown> | undefined;
+    return obj?.[currentPath];
+  }, inputObj as unknown);
 }

@@ -10,8 +10,8 @@ import type { TableCellProps } from "@/types";
 import styles from "./Table.module.scss";
 
 type Props = Readonly<{
-  columns: ColumnDef<any, any>[];
-  data: Record<string, any>[];
+  columns: ColumnDef<unknown, unknown>[];
+  data: Record<string, unknown>[];
   onRowClick?: (rowData: TableCellProps["row"]["original"]) => void;
 }>;
 
@@ -45,7 +45,9 @@ export function Table({ columns, data, onRowClick }: Props) {
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              onClick={() => onRowClick?.(row.original)}
+              onClick={() =>
+                onRowClick?.(row.original as TableCellProps["row"]["original"])
+              }
               className={`transmooth ${onRowClick ? "cursor-pointer" : ""}`}
             >
               {row.getVisibleCells().map((cell) => (

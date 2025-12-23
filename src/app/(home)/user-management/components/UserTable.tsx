@@ -13,7 +13,7 @@ import { useUserManagementBase } from "../hooks";
 import { OPTIONS } from "@/utils/constants/filter";
 import { useContentGuard } from "@/hooks";
 
-interface USER_TYPE {
+interface USER_TYPE extends Record<string, unknown> {
   country: string;
   created_at: number;
   created_at_datetime: string;
@@ -162,7 +162,7 @@ export function UserTable({
           User Management ({data?.length ?? 0})
         </Text>
       </div>
-      <PaginatedTable
+      <PaginatedTable<USER_TYPE>
         filterWrapperClassName="lg:absolute lg:top-0 lg:right-[2px]"
         columns={userListColumns}
         data={data}

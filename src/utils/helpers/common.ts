@@ -9,14 +9,16 @@ export function toKebabCase(str: string) {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 export function getTarget(
-  inputObj: Record<string, any>,
+  inputObj: Record<string, unknown>,
   path: string | string[]
-): any {
+): unknown {
   const pathArr = Array.isArray(path) ? path : path?.split(".");
-  return pathArr.reduce(
-    (target, currentPath) => target?.[currentPath],
-    inputObj
-  );
+  return pathArr.reduce<unknown>((target, currentPath) => {
+    if (target && typeof target === "object" && currentPath in target) {
+      return (target as Record<string, unknown>)[currentPath];
+    }
+    return undefined;
+  }, inputObj);
 }
 
 export function getFullName(customer: {
@@ -26,14 +28,14 @@ export function getFullName(customer: {
   return [customer.first_name, customer.last_name].filter(Boolean).join(" ");
 }
 
-export function getQueryString(obj?: Record<string, any>) {
+export function getQueryString(obj?: Record<string, unknown>) {
   if (!obj || typeof obj !== "object") return "";
 
   return Object.entries(obj)
     .filter(([, value]) => value != null && value !== "") // Exclude null, undefined, and empty string
     .map(
       ([key, value]) =>
-        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
     )
     .join("&");
 }
@@ -121,9 +123,11 @@ export function getStatusText(status?: string) {
   }
 }
 
+import { IAdmin } from "@/types/entities";
+
 export function getAdminRoles(roles?: IAdmin["roles"]) {
   if (!roles) return [];
-  const outArr = [];
+  const outArr: Array<{ label: string; value: string }> = [];
 
   for (const item of roles) {
     outArr.push({ label: item.name, value: item.id });
@@ -144,36 +148,6 @@ export function formatFileSize(sizeInBytes: number): string {
     return `${(sizeInBytes / megabyte).toFixed(2)} MB`;
   }
 }
-
-type ExtractedMerchantInfo = {
-  basic_info: {
-    business_type: string | null;
-    cac_number: string | null;
-    tin_number: string | null;
-    kyc_status: string | null;
-  };
-  director_info: {
-    director_full_name: string | null;
-    director_nin: string | null;
-    director_bvn: string | null;
-  };
-  location: {
-    business_address: string | null;
-  };
-};
-
-type ExtractedCustomerInfo = {
-  basic_info: {
-    nin: string | null;
-  };
-  personal_info: {
-    bvn: string | null;
-    liveness_check: boolean;
-  };
-  location: {
-    address: string | null;
-  };
-};
 
 /**
  * Masks a phone number by showing only the first 3 and last 2 digits
@@ -233,7 +207,14 @@ export const formatRoleNames = (arr: Array<{ name: string }>) =>
     ? arr.map((a) => a.name).join(", ")
     : `${arr[0].name}, ${arr[1].name} +${arr.length - 2} more`;
 
-export const transformStaffCsvData = (data: any[]) =>
+interface StaffCsvDataItem {
+  staffName: string;
+  emailAddress: string;
+  phoneNumber: string | number;
+  assignedRole: string;
+}
+
+export const transformStaffCsvData = (data: StaffCsvDataItem[]) =>
   data.map(({ staffName, emailAddress, phoneNumber, assignedRole }) => {
     const [first_name, last_name] = staffName.split(" ");
     return {

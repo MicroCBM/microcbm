@@ -102,7 +102,7 @@ export function AddPermissionModal({
           </Button>
         </SheetTrigger>
 
-        <SheetContent className="!max-w-[704px]">
+        <SheetContent className="max-w-[704px]!">
           <SheetHeader>
             <SheetTitle>Create New Permission</SheetTitle>
           </SheetHeader>

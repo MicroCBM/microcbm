@@ -1,7 +1,7 @@
-import React from "react";
-import { createPortal } from "react-dom";
+import React from 'react';
+import { createPortal } from 'react-dom';
 
-import { isTesting } from "@/utils/constants";
+import { isTesting } from '@/utils/constants';
 
 export const PrintView = ({ children }: React.PropsWithChildren) => {
   return (
@@ -10,7 +10,7 @@ export const PrintView = ({ children }: React.PropsWithChildren) => {
       {!isTesting
         ? createPortal(
             <div className="print-view">{children}</div>,
-            document.body
+            document.body,
           )
         : null}
     </>

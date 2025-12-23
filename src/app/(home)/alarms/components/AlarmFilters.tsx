@@ -17,8 +17,8 @@ export function AlarmFilters() {
     acknowledged_status: "",
   });
 
-  const handleSearchChange = (value: string) => {
-    setFilters({ ...filters, search: value });
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters({ ...filters, search: event.target.value });
   };
 
   const handleParameterChange = (value: string) => {

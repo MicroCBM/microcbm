@@ -5,8 +5,8 @@ import { Search } from "@/components";
 export function DepartmentFilters() {
   const [search, setSearch] = useState("");
 
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
   };
 
   return (

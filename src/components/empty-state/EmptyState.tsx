@@ -1,10 +1,11 @@
 import Image from "next/image";
+import type { StaticImageData } from "next/image";
 import { Text } from "../text";
 
 type Props = {
   title: string;
   description: string;
-  image: any;
+  image: string | StaticImageData;
 };
 export function EmptyState({ image, title, description }: Readonly<Props>) {
   return (

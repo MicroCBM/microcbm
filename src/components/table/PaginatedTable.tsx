@@ -40,9 +40,9 @@ type FilterType = {
     | Array<{ queryKey: keyof Omit<QueryType, DateOmits>; label?: string }>;
 };
 
-type Props = Readonly<{
-  columns: ColumnDef<any, any>[];
-  data?: Record<string, any>[];
+type Props<TData = unknown> = Readonly<{
+  columns: ColumnDef<TData, unknown>[];
+  data?: TData[];
   loading: boolean;
   total?: number;
   query: QueryType;
@@ -56,11 +56,11 @@ type Props = Readonly<{
   noSearch?: boolean;
   noExport?: boolean;
   exportPermission?: PermissionType | PermissionType[];
-  onRowClick?: (rowData: Record<string, any>) => void;
+  onRowClick?: (rowData: TData) => void;
   filterWrapperClassName?: string;
 }>;
 
-export function PaginatedTable({
+export function PaginatedTable<TData = unknown>({
   data,
   loading,
   total,
@@ -78,7 +78,7 @@ export function PaginatedTable({
   onRowClick,
   filterWrapperClassName,
   exportPermission,
-}: Props) {
+}: Props<TData>) {
   const memoisedColumns = React.useMemo(() => columns, [columns]);
   const memoisedData = React.useMemo(() => data ?? [], [data]);
 
@@ -241,7 +241,7 @@ export function PaginatedTable({
           <div className="">
             <Dropdown actions={actions}>
               <Button
-                permission={exportPermission}
+                permissions={exportPermission}
                 variant="outline"
                 icon="hugeicons:arrow-down-01"
                 iconPosition="right"
@@ -295,7 +295,7 @@ export function PaginatedTable({
                     {table.getRowModel().rows.map((row) => (
                       <tr
                         key={row.id}
-                        onClick={() => onRowClick?.(row.original)}
+                        onClick={() => onRowClick?.(row.original as TData)}
                         className={`border-t border-gray-200 hover:bg-gray-50 transition-colors ${
                           onRowClick ? "cursor-pointer" : ""
                         }`}

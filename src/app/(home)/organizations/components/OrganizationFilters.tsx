@@ -18,8 +18,8 @@ export function OrganizationFilters() {
     team_strength: "",
   });
 
-  const handleSearchChange = (value: string) => {
-    setFilters({ ...filters, search: value });
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters({ ...filters, search: event.target.value });
   };
 
   // const handleIndustryChange = (value: string) => {

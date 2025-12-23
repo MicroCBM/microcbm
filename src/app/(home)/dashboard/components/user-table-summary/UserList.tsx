@@ -2,7 +2,7 @@ import { UserTable } from "@/app/(home)/user-management/components";
 import { Organization, Sites } from "@/types";
 import React from "react";
 
-interface USER_TYPE {
+interface USER_TYPE extends Record<string, unknown> {
   country: string;
   created_at: number;
   created_at_datetime: string;

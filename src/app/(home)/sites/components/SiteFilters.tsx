@@ -23,7 +23,7 @@ export function SiteFilters({
     <div className="flex items-center gap-2">
       <Search
         value={search}
-        onChange={setSearch}
+        onChange={(event) => setSearch(event.target.value)}
         placeholder="Search sites"
         className="h-10 max-w-[296px]"
       />

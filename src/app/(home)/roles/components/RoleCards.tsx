@@ -173,7 +173,7 @@ export function RoleCards({
       {/* Role Cards Grid */}
       <Search
         value={searchName}
-        onChange={setSearchName}
+        onChange={(event) => setSearchName(event.target.value)}
         placeholder="Search roles"
         className="h-10 max-w-[296px]"
       />
