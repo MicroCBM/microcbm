@@ -1,11 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 
-import { cn } from '@/libs';
-import { generateDottedPages } from '@/utils/helpers';
-
-import { Button } from '../Button';
-
-const DOT_REPRESENTATION = '...';
+import { cn } from "@/libs";
+import { Button } from "../button";
+import { generateDottedPages } from "@/utils/helpers/pagination";
+const DOT_REPRESENTATION = "...";
 
 type Props = Readonly<{
   limit: number;
@@ -32,7 +30,7 @@ export function SimplePagination({
         totalPages,
         dotRepresentation: DOT_REPRESENTATION,
       }),
-    [page, totalPages],
+    [page, totalPages]
   );
 
   function handleNextPage() {
@@ -48,9 +46,9 @@ export function SimplePagination({
       <Button
         size="small"
         variant="outline"
-        icon={'hugeicons:arrow-left-01'}
+        icon={"hugeicons:arrow-left-01"}
         iconPosition="left"
-        iconProps={{ width: '16' }}
+        iconProps={{ width: "16" }}
         className="text-xs leading-6 mr-2.5"
         disabled={page === 1}
         onClick={handlePrevPage}
@@ -71,11 +69,11 @@ export function SimplePagination({
             <button
               key={pageItem}
               className={cn(
-                'text-xs leading-6 w-8 h-8 rounded-lg hover:bg-neutral-grey-50',
+                "text-xs leading-6 w-8 h-8 rounded-lg hover:bg-neutral-grey-50",
                 {
-                  'bg-neutral-grey-100 hover:bg-neutral-grey-100':
+                  "bg-neutral-grey-100 hover:bg-neutral-grey-100":
                     +pageItem === page,
-                },
+                }
               )}
               onClick={() => setPage(+pageItem)}
             >
@@ -88,9 +86,9 @@ export function SimplePagination({
       <Button
         size="small"
         variant="outline"
-        icon={'hugeicons:arrow-right-01'}
+        icon={"hugeicons:arrow-right-01"}
         iconPosition="right"
-        iconProps={{ width: '16' }}
+        iconProps={{ width: "16" }}
         className="text-xs leading-6 ml-2.5"
         disabled={page === totalPages}
         onClick={handleNextPage}
