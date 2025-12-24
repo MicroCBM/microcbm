@@ -1,5 +1,5 @@
 export type PageType =
-  | "Dashboards"
+  | "Trends"
   | "Samples"
   | "Alarms"
   | "Recommendations"

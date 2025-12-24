@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/libs";
 import { PaginatedTable, Text } from "@/components";
 import { Organization, Sites } from "@/types";
@@ -101,6 +102,7 @@ export function UserTable({
   organizations,
   sites,
 }: UserTableProps) {
+  const router = useRouter();
   const [selectedUser, setSelectedUser] = useState<USER_TYPE | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -118,8 +120,7 @@ export function UserTable({
     const result = await activateUserService(id);
     if (result.success) {
       toast.success("User approved and activated successfully!");
-      // Optionally refresh the page or update the user data
-      window.location.reload();
+      router.refresh();
     } else {
       toast.error(result.message || "Failed to approve user");
     }

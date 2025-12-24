@@ -140,7 +140,7 @@ export const ViewSampleModal = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Text variant="span" className="text-gray-700">
-                  Oil in Service
+                  Oil in Service (hours)
                 </Text>
                 <Text variant="p" className="text-gray-900">
                   {sample.oil_in_service}

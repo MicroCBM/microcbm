@@ -198,6 +198,35 @@ export const AddSiteForm = ({
         </section>
 
         <section className="flex flex-col gap-6 border border-gray-100 p-6">
+          <Text variant="p">Organizational Fields</Text>
+          <div className="grid grid-cols-2 gap-4">
+            <Controller
+              control={control}
+              name="organization"
+              render={({ field }) => (
+                <Select
+                  value={field.value?.id as string}
+                  onValueChange={(value) => {
+                    field.onChange({ id: value });
+                  }}
+                >
+                  <SelectTrigger className="col-span-full" label="Organization">
+                    <SelectValue placeholder="Select a organization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizations.map((organization) => (
+                      <SelectItem key={organization.id} value={organization.id}>
+                        {organization.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-6 border border-gray-100 p-6">
           <Text variant="p">Contact Information</Text>
           <div className="flex flex-col gap-4">
             <Input
@@ -233,35 +262,6 @@ export const AddSiteForm = ({
               {...register("manager_location")}
               placeholder="Enter location"
               error={errors.manager_location?.message}
-            />
-          </div>
-        </section>
-
-        <section className="flex flex-col gap-6 border border-gray-100 p-6">
-          <Text variant="p">Organizational Fields</Text>
-          <div className="grid grid-cols-2 gap-4">
-            <Controller
-              control={control}
-              name="organization"
-              render={({ field }) => (
-                <Select
-                  value={field.value?.id as string}
-                  onValueChange={(value) => {
-                    field.onChange({ id: value });
-                  }}
-                >
-                  <SelectTrigger className="col-span-full" label="Organization">
-                    <SelectValue placeholder="Select a organization" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations.map((organization) => (
-                      <SelectItem key={organization.id} value={organization.id}>
-                        {organization.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
             />
           </div>
         </section>

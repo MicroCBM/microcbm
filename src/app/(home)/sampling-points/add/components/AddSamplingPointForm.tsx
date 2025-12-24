@@ -321,7 +321,7 @@ export function AddSamplingPointForm({
   return (
     <div className="">
       <Button
-        permissions="sampling_points:create"
+        onClick={() => router.back()}
         className="flex items-center gap-3 mb-2 cursor-pointer"
       >
         <Icon icon="mdi:arrow-left" className="w-5 h-5 text-gray-600" />

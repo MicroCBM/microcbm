@@ -79,7 +79,7 @@ export default function SampleInformationForm({
           </div>
 
           <Input
-            label="Oil in Service *"
+            label="Oil in Service (hours)*"
             placeholder="e.g., 5000"
             {...register("oil_in_service")}
             error={errors.oil_in_service?.message}

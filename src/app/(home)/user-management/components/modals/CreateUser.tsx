@@ -201,6 +201,25 @@ export function CreateCustomer({
               )}
             />
             <Controller
+              name="user.organization.id"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="col-span-full" label="Organization">
+                    <SelectValue placeholder="Select an organization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizations.map((organization) => (
+                      <SelectItem key={organization.id} value={organization.id}>
+                        {organization.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+
+            <Controller
               name="user.site.id"
               control={control}
               render={({ field }) => (
@@ -234,25 +253,6 @@ export function CreateCustomer({
                     {rolesData.map((role) => (
                       <SelectItem key={role.id} value={role.name}>
                         {role.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-
-            <Controller
-              name="user.organization.id"
-              control={control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="col-span-full" label="Organization">
-                    <SelectValue placeholder="Select an organization" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations.map((organization) => (
-                      <SelectItem key={organization.id} value={organization.id}>
-                        {organization.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

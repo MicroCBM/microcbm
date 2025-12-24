@@ -2,10 +2,10 @@ import { MenuItem } from "@/types";
 
 const menuItems: MenuItem[] = [
   {
-    label: "Main",
+    label: "Dashboard",
     children: [
       {
-        name: "Dashboards",
+        name: "Trends",
         icon: "solar:widget-4-bold-duotone",
         path: "/",
         permission: "dashboard:read",
@@ -45,16 +45,16 @@ const menuItems: MenuItem[] = [
         permission: "assets:read",
       },
       {
-        name: "Sampling Points",
-        icon: "solar:database-bold-duotone",
-        path: "/sampling-points",
-        permission: "sampling_points:read",
-      },
-      {
         name: "Sampling Routes",
         icon: "solar:database-bold-duotone",
         path: "/sampling-routes",
         permission: "sampling_routes:read",
+      },
+      {
+        name: "Sampling Points",
+        icon: "solar:database-bold-duotone",
+        path: "/sampling-points",
+        permission: "sampling_points:read",
       },
     ],
   },

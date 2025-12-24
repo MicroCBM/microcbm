@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Button,
   Sheet,
@@ -29,6 +30,7 @@ import { Organization } from "@/types";
 type FormData = z.infer<typeof ADD_DEPARTMENT_SCHEMA>;
 
 export const AddDepartmentModal = () => {
+  const router = useRouter();
   const [isAddDepartmentModalOpen, setIsAddDepartmentModalOpen] =
     React.useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -72,6 +74,7 @@ export const AddDepartmentModal = () => {
         });
         reset();
         setIsAddDepartmentModalOpen(false);
+        router.refresh();
       } else {
         toast.error(
           response.message || "Failed to create department. Please try again."
