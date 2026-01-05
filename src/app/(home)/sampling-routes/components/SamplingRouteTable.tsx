@@ -12,6 +12,7 @@ import { Icon } from "@/libs";
 import { cn } from "@/libs";
 import {
   Button,
+  DescriptionCell,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -106,10 +107,8 @@ export function SamplingRouteTable({
     {
       accessorKey: "description",
       header: "Description",
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-900">
-          {row.original.description}
-        </span>
+      cell: ({ getValue }) => (
+        <DescriptionCell getValue={() => String(getValue() || "")} />
       ),
       size: 250,
     },

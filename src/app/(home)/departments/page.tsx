@@ -10,7 +10,6 @@ import {
 
 export default async function DepartmentsPage() {
   const departments = await getDepartmentsService();
-  console.log("departments", departments);
 
   return (
     <main className="flex flex-col gap-4">

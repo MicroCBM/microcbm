@@ -148,8 +148,6 @@ export const EditNewUser = ({
     mode: "onSubmit",
   });
 
-  // console.log("user in edit new user", user);
-
   React.useEffect(() => {
     if (!user) return;
     reset({

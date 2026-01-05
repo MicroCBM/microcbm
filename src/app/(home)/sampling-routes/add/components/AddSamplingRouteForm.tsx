@@ -16,7 +16,7 @@ import {
 import { Icon } from "@/libs";
 import { AddSamplingRoutePayload, ADD_SAMPLING_ROUTE_SCHEMA } from "@/schema";
 import { addSamplingRouteService } from "@/app/actions";
-import { Sites } from "@/types";
+import { Sites, Organization } from "@/types";
 import Input from "@/components/input/Input";
 
 interface USER_TYPE {
@@ -83,12 +83,17 @@ const STATUS_OPTIONS = [
 export function AddSamplingRouteForm({
   technicians,
   sites,
+  organizations,
 }: {
   technicians: USER_TYPE[];
   sites: Sites[];
+  organizations: Organization[];
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<
+    string | null
+  >(null);
 
   const {
     register,
@@ -103,31 +108,56 @@ export function AddSamplingRouteForm({
     },
   });
 
-  const selectedSiteId = watch("site_id");
   const currentTechnicianId = watch("technician_id");
+  const previousOrganizationRef = React.useRef<string | null>(null);
 
-  // Filter technicians based on selected site
+  // Filter sites based on selected organization
+  const filteredSites = React.useMemo(() => {
+    if (!selectedOrganizationId) return sites;
+    return sites.filter(
+      (site) => site.organization?.id === selectedOrganizationId
+    );
+  }, [selectedOrganizationId, sites]);
+
+  // Clear site when organization changes
+  React.useEffect(() => {
+    if (
+      previousOrganizationRef.current !== selectedOrganizationId &&
+      previousOrganizationRef.current !== null
+    ) {
+      setValue("site_id", "", { shouldDirty: false });
+    }
+    previousOrganizationRef.current = selectedOrganizationId;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOrganizationId]);
+
+  // Filter technicians based on selected organization
   const filteredTechnicians = React.useMemo(() => {
-    if (!selectedSiteId) return technicians;
+    if (!selectedOrganizationId) return [];
 
     return technicians.filter(
-      (technician) => technician.site?.id === selectedSiteId
+      (technician) => technician.organization?.id === selectedOrganizationId
     );
-  }, [selectedSiteId, technicians]);
+  }, [selectedOrganizationId, technicians]);
 
-  // Clear technician if current technician is not in filtered list when site changes
+  // Clear technician if current technician is not in filtered list when organization changes
   React.useEffect(() => {
-    if (selectedSiteId && currentTechnicianId) {
+    if (selectedOrganizationId && currentTechnicianId) {
       const isTechnicianValid = filteredTechnicians.some(
         (technician) => technician.id === currentTechnicianId
       );
       if (!isTechnicianValid) {
         setValue("technician_id", "", { shouldValidate: false });
       }
-    } else if (!selectedSiteId && currentTechnicianId) {
+    } else if (!selectedOrganizationId && currentTechnicianId) {
       setValue("technician_id", "", { shouldValidate: false });
     }
-  }, [selectedSiteId, filteredTechnicians, currentTechnicianId, setValue]);
+  }, [
+    selectedOrganizationId,
+    filteredTechnicians,
+    currentTechnicianId,
+    setValue,
+  ]);
 
   const onSubmit = async (data: AddSamplingRoutePayload) => {
     console.log("submit data", data);
@@ -208,14 +238,44 @@ export function AddSamplingRouteForm({
               <div className="flex flex-col gap-4">
                 <div className="space-y-2">
                   <Select
-                    value={watch("site_id") || ""}
-                    onValueChange={(value) => setValue("site_id", value)}
+                    value={selectedOrganizationId || ""}
+                    onValueChange={setSelectedOrganizationId}
                   >
-                    <SelectTrigger label="Site">
-                      <SelectValue placeholder="Select site" />
+                    <SelectTrigger label="Organization">
+                      <SelectValue placeholder="Select an organization" />
                     </SelectTrigger>
                     <SelectContent>
-                      {sites.map((site) => (
+                      {organizations.map((organization) => (
+                        <SelectItem
+                          key={organization.id}
+                          value={organization.id}
+                        >
+                          {organization.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Select
+                    value={watch("site_id") || ""}
+                    onValueChange={(value) => setValue("site_id", value)}
+                    disabled={!selectedOrganizationId}
+                  >
+                    <SelectTrigger label="Site">
+                      <SelectValue
+                        placeholder={
+                          !selectedOrganizationId
+                            ? "Select an organization first"
+                            : filteredSites.length === 0
+                            ? "No sites available"
+                            : "Select site"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredSites.map((site) => (
                         <SelectItem key={site.id} value={site.id}>
                           {site.name} ({site.tag})
                         </SelectItem>
@@ -234,16 +294,17 @@ export function AddSamplingRouteForm({
                     value={watch("technician_id") || ""}
                     onValueChange={(value) => setValue("technician_id", value)}
                     disabled={
-                      !selectedSiteId || filteredTechnicians.length === 0
+                      !selectedOrganizationId ||
+                      filteredTechnicians.length === 0
                     }
                   >
                     <SelectTrigger label="Technician">
                       <SelectValue
                         placeholder={
-                          !selectedSiteId
-                            ? "Select a site first"
+                          !selectedOrganizationId
+                            ? "Select an organization first"
                             : filteredTechnicians.length === 0
-                            ? "No technicians available for this site"
+                            ? "No technicians available for this organization"
                             : "Select technician"
                         }
                       />
@@ -258,12 +319,13 @@ export function AddSamplingRouteForm({
                         ))}
                     </SelectContent>
                   </Select>
-                  {selectedSiteId && filteredTechnicians.length === 0 && (
-                    <Text variant="span" className="text-amber-600 text-sm">
-                      No technicians found for the selected site. Please select
-                      a different site.
-                    </Text>
-                  )}
+                  {selectedOrganizationId &&
+                    filteredTechnicians.length === 0 && (
+                      <Text variant="span" className="text-amber-600 text-sm">
+                        No technicians found for the selected organization.
+                        Please select a different organization.
+                      </Text>
+                    )}
                   {errors.technician_id && (
                     <Text variant="span" className="text-red-500 text-sm">
                       {errors.technician_id.message}

@@ -72,7 +72,7 @@ async function editSiteService(
 }
 
 async function deleteSiteService(id: string): Promise<ApiResponse> {
-  return handleApiRequest(`${commonEndpoint}sites/${id}`, { method: "DELETE" });
+  return handleApiRequest(`${commonEndpoint}sites/${id}`, {}, "DELETE");
 }
 
 async function getSitesService(): Promise<Sites[]> {

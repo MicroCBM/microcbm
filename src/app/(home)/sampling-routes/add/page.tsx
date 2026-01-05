@@ -1,35 +1,34 @@
 "use server";
 import React from "react";
-import { getUsersService, getSitesService } from "@/app/actions";
+import {
+  getUsersService,
+  getSitesService,
+  getOrganizationsService,
+} from "@/app/actions";
 import { AddSamplingRouteForm } from "./components";
 
 export default async function AddSamplingRoutePage() {
-  const users = await getUsersService();
-  const sites = await getSitesService();
+  const [users, sites, organizations] = await Promise.all([
+    getUsersService(),
+    getSitesService(),
+    getOrganizationsService(),
+  ]);
 
   console.log("users", users);
 
-  const technicians = users.filter((user) =>
-    user.role.toLowerCase().includes("viewer")
+  const technicians = users.filter(
+    (user) => user.role_id === "2ae0bde9-b900-49dc-b137-83e424bad3c6"
   );
-  //   const [users, sites] = await Promise.all([
-  //     getUsersService(),
-  //     getSitesService(),
-  //   ]);
 
-  // Filter users to only include technicians
-  //   const technicians = users.filter(
-  //     (user) =>
-  //       user.role.toLowerCase().includes("technician") ||
-  //       user.role.toLowerCase().includes("tech")
-  //   );
-
-  //   console.log("technicians", technicians);
-  console.log("sites", sites);
+  console.log("technicians", technicians);
 
   return (
     <main className="flex flex-col gap-4">
-      <AddSamplingRouteForm technicians={technicians} sites={sites} />
+      <AddSamplingRouteForm
+        technicians={technicians}
+        sites={sites}
+        organizations={organizations}
+      />
     </main>
   );
 }

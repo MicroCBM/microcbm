@@ -24,13 +24,31 @@ import { EditSite } from "./EditSite";
 import { deleteSiteService } from "@/app/actions";
 import { toast } from "sonner";
 
+interface UserType {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  organization?: {
+    id: string;
+    name: string;
+  };
+}
+
 interface SiteTableProps {
   sites: Sites[];
   className?: string;
   organizations: Organization[];
+  users: UserType[];
 }
 
-export function SiteTable({ sites, className, organizations }: SiteTableProps) {
+export function SiteTable({
+  sites,
+  className,
+  organizations,
+  users,
+}: SiteTableProps) {
   const [selectedSite, setSelectedSite] = useState<Sites | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -41,6 +59,7 @@ export function SiteTable({ sites, className, organizations }: SiteTableProps) {
 
   const handleCloseModal = () => {
     setIsViewModalOpen(false);
+    setIsEditModalOpen(false);
     setSelectedSite(null);
   };
 
@@ -199,7 +218,23 @@ export function SiteTable({ sites, className, organizations }: SiteTableProps) {
   }
 
   const groupedData = sites.reduce((acc, site) => {
-    const createdDate = dayjs(site.created_at_datetime);
+    // Use created_at_datetime if available and valid, otherwise fall back to created_at timestamp
+    let createdDate: dayjs.Dayjs;
+    if (site.created_at_datetime && site.created_at_datetime.trim() !== "") {
+      createdDate = dayjs(site.created_at_datetime);
+    } else if (site.created_at) {
+      // Fall back to timestamp (in seconds, convert to milliseconds)
+      createdDate = dayjs(site.created_at * 1000);
+    } else {
+      // If neither exists, use current date
+      createdDate = dayjs();
+    }
+
+    // Check if date is valid
+    if (!createdDate.isValid()) {
+      createdDate = dayjs();
+    }
+
     const today = dayjs().startOf("day");
     const yesterday = today.subtract(1, "day");
 
@@ -318,6 +353,7 @@ export function SiteTable({ sites, className, organizations }: SiteTableProps) {
         isOpen={isEditModalOpen}
         onClose={handleCloseModal}
         organizations={organizations}
+        users={users}
       />
     </div>
   );

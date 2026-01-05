@@ -4,6 +4,7 @@ import { SiteTable } from "@/app/(home)/sites/components";
 import { AssetTable } from "@/app/(home)/assets/components";
 import { SamplingPointTable } from "@/app/(home)/sampling-points/components";
 import { Asset, Organization, SamplingPoint, Sites } from "@/types";
+import { USER_TYPE } from "@/app/actions";
 import { useContentGuard } from "@/hooks";
 import React from "react";
 
@@ -12,6 +13,7 @@ interface CustomTabCompProps {
   organizations: Organization[];
   assetsList: Asset[];
   samplingPoints: SamplingPoint[];
+  users: USER_TYPE[];
 }
 
 export const CustomTabComp = ({
@@ -19,6 +21,7 @@ export const CustomTabComp = ({
   organizations,
   assetsList,
   samplingPoints,
+  users,
 }: CustomTabCompProps) => {
   // Check permissions for each tab
   const { isAllowed: hasSitesPermission } = useContentGuard("sites:read");
@@ -102,7 +105,7 @@ export const CustomTabComp = ({
         </Text>
       </div>
       {selectedTab === "site" && hasSitesPermission && (
-        <SiteTable sites={sites} organizations={organizations} />
+        <SiteTable sites={sites} organizations={organizations} users={users} />
       )}
       {selectedTab === "assets" && hasAssetsPermission && (
         <AssetTable data={assetsList} />

@@ -48,6 +48,17 @@ export const ADD_SAMPLE_SCHEMA = z.object({
       })
     )
     .optional(),
+  additives: z
+    .union([
+      z.record(z.string(), z.string()),
+      z.array(
+        z.object({
+          additive: getRequiredStringSchema("Additive"),
+          value: getRequiredStringSchema("Value"),
+        })
+      ),
+    ])
+    .optional(),
 });
 
 export const EDIT_SAMPLE_SCHEMA = z.object({
@@ -96,6 +107,17 @@ export const EDIT_SAMPLE_SCHEMA = z.object({
         unit: getRequiredStringSchema("Unit"),
       })
     )
+    .optional(),
+  additives: z
+    .union([
+      z.record(z.string(), z.string()),
+      z.array(
+        z.object({
+          additive: getRequiredStringSchema("Additive"),
+          value: getRequiredStringSchema("Value"),
+        })
+      ),
+    ])
     .optional(),
 });
 

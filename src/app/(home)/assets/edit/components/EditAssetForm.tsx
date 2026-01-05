@@ -160,8 +160,6 @@ export const EditAssetForm = ({
     }
   }, [filteredUsers, currentAssigneeId, setValue]);
 
-  console.log("edit asset", asset);
-
   React.useEffect(() => {
     if (asset && assetId) {
       reset({
@@ -393,7 +391,8 @@ export const EditAssetForm = ({
               control={control}
               render={({ field }) => (
                 <Select
-                  value={field.value as string}
+                  key={`site-${assetId}-${field.value}`}
+                  value={field.value || ""}
                   onValueChange={field.onChange}
                 >
                   <SelectTrigger className="col-span-full" label="Site">
@@ -497,6 +496,7 @@ export const EditAssetForm = ({
               name="criticality_level"
               render={({ field }) => (
                 <Select
+                  key={`criticality-${assetId}-${field.value}`}
                   value={field.value || ""}
                   onValueChange={field.onChange}
                 >
@@ -539,6 +539,7 @@ export const EditAssetForm = ({
               name="status"
               render={({ field }) => (
                 <Select
+                  key={`status-${assetId}-${field.value}`}
                   value={field.value || ""}
                   onValueChange={field.onChange}
                 >
@@ -595,7 +596,11 @@ export const EditAssetForm = ({
             control={control}
             name="assignee.id"
             render={({ field }) => (
-              <Select value={field.value || ""} onValueChange={field.onChange}>
+              <Select
+                key={`assignee-${assetId}-${field.value}`}
+                value={field.value || ""}
+                onValueChange={field.onChange}
+              >
                 <SelectTrigger className="col-span-full" label="Assignee">
                   <SelectValue placeholder="Select a assignee" />
                 </SelectTrigger>

@@ -61,7 +61,7 @@ export function AddPermissionModal({
   };
 
   const onSubmit = async (data: AddPermissionPayload) => {
-    console.log("data in add permission modal", data);
+    // console.log("data in add permission modal", data);
     setIsSubmitting(true);
     try {
       const response = await addPermissionService(data);

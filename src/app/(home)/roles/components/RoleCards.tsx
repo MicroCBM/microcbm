@@ -130,14 +130,17 @@ export function RoleCards({
 
   const handleConfirmDelete = async (roleId: string) => {
     setIsDeleting(true);
+    console.log("roleId", roleId);
     try {
       const response = await deleteRoleService(roleId);
+      console.log("response in handleConfirmDelete", response);
       if (response.success) {
         toast.success("Role deleted successfully", {
           description: "The role has been permanently removed.",
         });
         onRoleDeleted?.();
         handleCloseDeleteModal();
+        router.refresh();
       } else {
         toast.error(
           response.message || "Failed to delete role. Please try again."

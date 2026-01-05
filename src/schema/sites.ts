@@ -3,13 +3,11 @@ import { z } from "zod";
 export const ADD_SITES_SCHEMA = z.object({
   name: z.string().min(1, "Name is required"),
   tag: z.string().min(1, "Tag is required"),
-  installation_enviroment: z
-    .string()
-    .min(1, "Installation enviroment is required"),
+  installation_enviroment: z.string().optional(),
   regulations_and_standards: z
     .array(z.string())
     .min(1, "Regulations and standards are required"),
-  description: z.string().min(1, "Description is required"),
+  description: z.string().optional(),
   country: z.string().min(1, "Country is required"),
   city: z.string().min(1, "City is required"),
   address: z.string().min(1, "Address is required"),
@@ -19,7 +17,7 @@ export const ADD_SITES_SCHEMA = z.object({
   manager_name: z.string().min(1, "Manager name is required"),
   manager_email: z.string().email("Invalid email address"),
   manager_phone_number: z.string().min(1, "Manager phone number is required"),
-  manager_location: z.string().min(1, "Manager location is required"),
+  manager_location: z.string().optional(),
   attachments: z
     .array(
       z.object({
@@ -33,13 +31,11 @@ export const ADD_SITES_SCHEMA = z.object({
 export const EDIT_SITE_SCHEMA = z.object({
   name: z.string().min(1, "Name is required"),
   tag: z.string().min(1, "Tag is required"),
-  installation_enviroment: z
-    .string()
-    .min(1, "Installation enviroment is required"),
+  installation_enviroment: z.string().optional(),
   regulations_and_standards: z
     .array(z.string())
     .min(1, "Regulations and standards are required"),
-  description: z.string().min(1, "Description is required"),
+  description: z.string().optional(),
   country: z.string().min(1, "Country is required"),
   city: z.string().min(1, "City is required"),
   address: z.string().min(1, "Address is required"),
@@ -49,7 +45,7 @@ export const EDIT_SITE_SCHEMA = z.object({
   manager_name: z.string().min(1, "Manager name is required"),
   manager_email: z.string().email("Invalid email address"),
   manager_phone_number: z.string().min(1, "Manager phone number is required"),
-  manager_location: z.string().min(1, "Manager location is required"),
+  manager_location: z.string().optional(),
   attachments: z
     .array(
       z.object({

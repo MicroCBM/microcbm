@@ -14,11 +14,12 @@ import {
   SelectValue,
   ErrorText,
   FileUploader,
+  CreatableCombobox,
 } from "@/components";
 import { Icon } from "@/libs";
 import { AddSamplingPointPayload, ADD_SAMPLING_POINT_SCHEMA } from "@/schema";
 import { addSamplingPointService, uploadImage } from "@/app/actions";
-import { Asset } from "@/types";
+import { Asset, Organization, Sites } from "@/types";
 import Input from "@/components/input/Input";
 import { SamplingRoute } from "@/types";
 import { useState } from "react";
@@ -102,6 +103,18 @@ const COMPONENT_TYPES = [
   "Other",
 ];
 
+// Convert CIRCUIT_TYPES to DropdownOption format
+const CIRCUIT_TYPE_OPTIONS = CIRCUIT_TYPES.map((type) => ({
+  label: type,
+  value: type,
+}));
+
+// Convert COMPONENT_TYPES to DropdownOption format
+const COMPONENT_TYPE_OPTIONS = COMPONENT_TYPES.map((type) => ({
+  label: type,
+  value: type,
+}));
+
 const SAMPLE_FREQUENCIES = [
   "Daily (≈8-24 Hours)",
   "Weekly (≈40-168 Hours)",
@@ -136,16 +149,23 @@ export function AddSamplingPointForm({
   users,
   sampling_routes,
   assets,
+  organizations,
+  sites,
 }: {
   users: USER_TYPE[];
   sampling_routes: SamplingRoute[];
   assets: Asset[];
+  organizations: Organization[];
+  sites: Sites[];
 }) {
   console.log("assets", assets);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<
+    string | null
+  >(null);
 
   const {
     register,
@@ -163,39 +183,56 @@ export function AddSamplingPointForm({
     },
   });
 
-  const selectedAssetId = watch("parent_asset.id");
   const currentAssigneeId = watch("assignee.id");
+  const previousOrganizationRef = React.useRef<string | null>(null);
 
-  // Filter users based on selected asset's organization
+  // Filter assets based on selected organization
+  const filteredAssets = React.useMemo(() => {
+    if (!selectedOrganizationId) return assets;
+
+    // Find sites for the selected organization
+    const organizationSites = sites.filter(
+      (site) => site.organization?.id === selectedOrganizationId
+    );
+    const organizationSiteIds = new Set(
+      organizationSites.map((site) => site.id)
+    );
+
+    // Filter assets that belong to sites in the selected organization
+    return assets.filter((asset) =>
+      organizationSiteIds.has(asset.parent_site?.id)
+    );
+  }, [selectedOrganizationId, assets, sites]);
+
+  // Clear asset when organization changes
+  React.useEffect(() => {
+    if (
+      previousOrganizationRef.current !== selectedOrganizationId &&
+      previousOrganizationRef.current !== null
+    ) {
+      setValue("parent_asset.id", "", { shouldDirty: false });
+    }
+    previousOrganizationRef.current = selectedOrganizationId;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOrganizationId]);
+
+  // Filter users based on selected organization
   const filteredUsers = React.useMemo(() => {
-    if (!selectedAssetId) {
-      return users;
-    }
-
-    const selectedAsset = assets.find((asset) => asset.id === selectedAssetId);
-    if (!selectedAsset) {
-      return users;
-    }
-
-    // Get organization ID from asset's assignee
-    const assetOrganizationId = selectedAsset?.assignee?.organization?.id;
-
-    if (!assetOrganizationId) {
-      console.warn("Selected asset does not have an organization ID");
-      return users;
+    if (!selectedOrganizationId) {
+      return [];
     }
 
     // Filter users by matching organization ID
     const filtered = users.filter(
-      (user) => user.organization?.id === assetOrganizationId
+      (user) => user.organization?.id === selectedOrganizationId
     );
 
     return filtered;
-  }, [selectedAssetId, assets, users]);
+  }, [selectedOrganizationId, users]);
 
-  // Clear assignee if current assignee is not in filtered users or when asset changes
+  // Clear assignee if current assignee is not in filtered users or when organization changes
   React.useEffect(() => {
-    if (selectedAssetId) {
+    if (selectedOrganizationId) {
       if (currentAssigneeId) {
         const isAssigneeValid = filteredUsers.some(
           (user) => user.id === currentAssigneeId
@@ -205,12 +242,12 @@ export function AddSamplingPointForm({
         }
       }
     } else {
-      // If no asset is selected, clear assignee
+      // If no organization is selected, clear assignee
       if (currentAssigneeId) {
         setValue("assignee.id", "", { shouldValidate: false });
       }
     }
-  }, [selectedAssetId, filteredUsers, currentAssigneeId, setValue]);
+  }, [selectedOrganizationId, filteredUsers, currentAssigneeId, setValue]);
 
   const uploadImageFile = async (
     file: File
@@ -320,13 +357,13 @@ export function AddSamplingPointForm({
 
   return (
     <div className="">
-      <Button
+      <button
         onClick={() => router.back()}
         className="flex items-center gap-3 mb-2 cursor-pointer"
       >
         <Icon icon="mdi:arrow-left" className="w-5 h-5 text-gray-600" />
         <Text variant="h6">Add New Sampling Point</Text>
-      </Button>
+      </button>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         <section className="flex flex-col md:flex-row gap-6">
@@ -350,6 +387,27 @@ export function AddSamplingPointForm({
                 />
 
                 <div>
+                  <Select
+                    value={selectedOrganizationId || ""}
+                    onValueChange={setSelectedOrganizationId}
+                  >
+                    <SelectTrigger label="Organization">
+                      <SelectValue placeholder="Select an organization" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizations.map((organization) => (
+                        <SelectItem
+                          key={organization.id}
+                          value={organization.id}
+                        >
+                          {organization.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <Controller
                     control={control}
                     name="parent_asset"
@@ -357,12 +415,21 @@ export function AddSamplingPointForm({
                       <Select
                         value={field.value?.id || ""}
                         onValueChange={(value) => field.onChange({ id: value })}
+                        disabled={!selectedOrganizationId}
                       >
                         <SelectTrigger label="Parent Asset">
-                          <SelectValue placeholder="Select an asset" />
+                          <SelectValue
+                            placeholder={
+                              !selectedOrganizationId
+                                ? "Select an organization first"
+                                : filteredAssets.length === 0
+                                ? "No assets available"
+                                : "Select an asset"
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          {assets.map((asset) => (
+                          {filteredAssets.map((asset) => (
                             <SelectItem key={asset.id} value={asset.id}>
                               {asset.name} ({asset.tag})
                             </SelectItem>
@@ -380,37 +447,29 @@ export function AddSamplingPointForm({
 
             {/* Lubrication System Details */}
             <section className="flex flex-col gap-6 border border-gray-200 p-6">
-              <Text variant="h6" className="mb-4">
-                Lubrication System Details
-              </Text>
+              <Text variant="h6">Lubrication System Details</Text>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Controller
                     control={control}
                     name="circuit_type"
                     render={({ field }) => (
-                      <Select
+                      <CreatableCombobox
+                        label="Circuit Type"
+                        placeholder="Select or type a circuit type..."
+                        options={CIRCUIT_TYPE_OPTIONS}
                         value={field.value || ""}
-                        onValueChange={(value) => {
+                        onChange={(event: unknown) => {
+                          const value =
+                            (event as { target?: { value?: string } })?.target
+                              ?.value || "";
                           field.onChange(value);
                         }}
-                      >
-                        <SelectTrigger label="Circuit Type">
-                          <SelectValue placeholder="Select a circuit type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CIRCUIT_TYPES.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        name={field.name}
+                        error={errors.circuit_type?.message}
+                      />
                     )}
                   />
-                  {errors.circuit_type && (
-                    <ErrorText error={errors.circuit_type.message} />
-                  )}
                 </div>
 
                 <div>
@@ -418,28 +477,22 @@ export function AddSamplingPointForm({
                     control={control}
                     name="component_type"
                     render={({ field }) => (
-                      <Select
+                      <CreatableCombobox
+                        label="Component Type"
+                        placeholder="Select or type a component type..."
+                        options={COMPONENT_TYPE_OPTIONS}
                         value={field.value || ""}
-                        onValueChange={(value) => {
-                          field.onChange(value || "");
+                        onChange={(event: unknown) => {
+                          const value =
+                            (event as { target?: { value?: string } })?.target
+                              ?.value || "";
+                          field.onChange(value);
                         }}
-                      >
-                        <SelectTrigger label="Component Type">
-                          <SelectValue placeholder="Select a component type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COMPONENT_TYPES.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        name={field.name}
+                        error={errors.component_type?.message}
+                      />
                     )}
                   />
-                  {errors.component_type && (
-                    <ErrorText error={errors.component_type.message} />
-                  )}
                 </div>
 
                 <div>
@@ -526,9 +579,7 @@ export function AddSamplingPointForm({
 
             {/* Scheduling & Logistics */}
             <section className="flex flex-col gap-6 border border-gray-200 p-6">
-              <Text variant="h6" className="mb-4">
-                Scheduling & Logistics
-              </Text>
+              <Text variant="h6">Scheduling & Logistics</Text>
               <div className="flex flex-col gap-4">
                 <Input
                   type="date"
@@ -553,12 +604,24 @@ export function AddSamplingPointForm({
                               field.onChange({ id: "" });
                             }
                           }}
+                          disabled={
+                            !selectedOrganizationId ||
+                            filteredUsers.length === 0
+                          }
                         >
                           <SelectTrigger
                             className="col-span-full"
                             label="Assignee"
                           >
-                            <SelectValue placeholder="Select an assignee" />
+                            <SelectValue
+                              placeholder={
+                                !selectedOrganizationId
+                                  ? "Select an organization first"
+                                  : filteredUsers.length === 0
+                                  ? "No users available"
+                                  : "Select an assignee"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
                             {filteredUsers.length > 0 &&
@@ -569,12 +632,13 @@ export function AddSamplingPointForm({
                               ))}
                           </SelectContent>
                         </Select>
-                        {selectedAssetId && filteredUsers.length === 0 && (
-                          <p className="text-sm text-amber-600 mt-1">
-                            No users found in the selected asset&apos;s
-                            organization. Please select a different asset.
-                          </p>
-                        )}
+                        {selectedOrganizationId &&
+                          filteredUsers.length === 0 && (
+                            <p className="text-sm text-amber-600 mt-1">
+                              No users found for the selected organization.
+                              Please select a different organization.
+                            </p>
+                          )}
                       </div>
                     )}
                   />
@@ -631,14 +695,12 @@ export function AddSamplingPointForm({
                   {...register("lab_destination")}
                   error={errors.lab_destination?.message}
                 />
-
                 <Input
                   label="Sampling volume (ml)"
                   placeholder="Enter sampling volume"
                   {...register("sampling_volume")}
                   error={errors.sampling_volume?.message}
                 />
-
                 <Input
                   label="Special Instructions/Safety Notes"
                   type="textarea"

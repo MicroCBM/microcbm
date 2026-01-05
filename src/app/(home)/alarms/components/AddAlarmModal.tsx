@@ -60,8 +60,6 @@ export const AddAlarmModal = ({ sites }: AddAlarmModalProps) => {
     },
   });
 
-  console.log("errors in add alarm modal", errors);
-
   const onSubmit = async (data: AddAlarmPayload) => {
     try {
       // Convert datetime-local to RFC3339 format

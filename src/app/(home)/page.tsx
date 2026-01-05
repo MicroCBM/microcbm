@@ -12,6 +12,7 @@ import {
 import { getAssetsService } from "../actions/inventory";
 import { getOrganizationsService } from "../actions/organizations";
 import { getSamplingPointsService } from "../actions/sampling-points";
+import { getUsersService } from "../actions";
 import {
   getAlarmsAnalyticsService,
   getRecommendationAnalyticsService,
@@ -131,6 +132,7 @@ export default async function Page() {
     recommendationsAnalyticsArray,
     samples,
     recommendations,
+    users,
   ] = await Promise.all([
     getSitesService().catch(() => []),
     getAssetsService().catch(() => []),
@@ -141,6 +143,7 @@ export default async function Page() {
     getRecommendationAnalyticsService().catch(() => []),
     getSamplesService().catch(() => []),
     getRecommendationsService({}).catch(() => []),
+    getUsersService().catch(() => []),
   ]);
 
   // Extract first recommendation analytics item (or null if empty)
@@ -240,6 +243,7 @@ export default async function Page() {
             organizations={organizations}
             assetsList={assets}
             samplingPoints={samplingPoints}
+            users={users}
           />
           {/* <DataTable data={tableData} /> */}
         </section>

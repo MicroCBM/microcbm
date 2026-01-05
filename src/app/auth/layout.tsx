@@ -1,6 +1,6 @@
 import { Icon } from "@/libs";
 import BgImage from "../../../public/assets/images/Bg.webp";
-import Logo from "../../../public/assets/svg/logo_white.svg";
+import Logo from "../../../public/assets/svg/new_logo_white.svg";
 import CheckCircle from "../../../public/assets/svg/check_circle.svg";
 import EndQuote from "../../../public/assets/svg/end_quote.svg";
 import Link from "next/link";

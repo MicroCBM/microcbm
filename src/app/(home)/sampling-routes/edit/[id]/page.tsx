@@ -5,6 +5,7 @@ import {
   getUsersService,
   getSitesService,
   getSamplingRouteService,
+  getOrganizationsService,
 } from "@/app/actions";
 import { notFound } from "next/navigation";
 
@@ -19,22 +20,17 @@ export default async function EditSamplingRoutePage({
 }: EditSamplingRoutePageProps) {
   try {
     const { id } = await params;
-    const [users, sites, samplingRoute] = await Promise.all([
+    const [users, sites, samplingRoute, organizations] = await Promise.all([
       getUsersService(),
       getSitesService(),
       getSamplingRouteService(id),
+      getOrganizationsService(),
     ]);
 
-    // Filter users to only include technicians
+    // Filter users to only include technicians by role_id
     const technicians = users.filter(
-      (user) =>
-        user.role.toLowerCase().includes("technician") ||
-        user.role.toLowerCase().includes("tech")
+      (user) => user.role_id === "2ae0bde9-b900-49dc-b137-83e424bad3c6"
     );
-
-    console.log("technicians", technicians);
-    console.log("sites", sites);
-    console.log("samplingRoute", samplingRoute);
 
     return (
       <main className="flex flex-col gap-4">
@@ -42,6 +38,7 @@ export default async function EditSamplingRoutePage({
           technicians={technicians}
           sites={sites}
           samplingRoute={samplingRoute}
+          organizations={organizations}
         />
       </main>
     );

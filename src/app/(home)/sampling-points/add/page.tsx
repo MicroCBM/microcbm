@@ -5,12 +5,19 @@ import {
   getAssetsService,
   getSamplingRoutesService,
   getUsersService,
+  getOrganizationsService,
+  getSitesService,
 } from "@/app/actions";
 
 export default async function AddSamplingPointPage() {
-  const users = await getUsersService();
-  const samplingRoutes = await getSamplingRoutesService();
-  const assets = await getAssetsService();
+  const [users, samplingRoutes, assets, organizations, sites] =
+    await Promise.all([
+      getUsersService(),
+      getSamplingRoutesService(),
+      getAssetsService(),
+      getOrganizationsService(),
+      getSitesService(),
+    ]);
 
   return (
     <main className="flex flex-col gap-4">
@@ -18,6 +25,8 @@ export default async function AddSamplingPointPage() {
         users={users}
         sampling_routes={samplingRoutes}
         assets={assets}
+        organizations={organizations}
+        sites={sites}
       />
     </main>
   );

@@ -3,13 +3,17 @@ import {
   getSitesService,
   getAssetsService,
   getSamplingPointsService,
+  getOrganizationsService,
 } from "@/app/actions";
 import { AddSampleForm } from "./components/AddSampleForm";
 
 export default async function AddSamplePage() {
-  const sites = await getSitesService();
-  const assets = await getAssetsService();
-  const samplingPoints = await getSamplingPointsService();
+  const [sites, assets, samplingPoints, organizations] = await Promise.all([
+    getSitesService(),
+    getAssetsService(),
+    getSamplingPointsService(),
+    getOrganizationsService(),
+  ]);
 
   return (
     <main className="flex flex-col gap-4">
@@ -17,6 +21,7 @@ export default async function AddSamplePage() {
         sites={sites}
         assets={assets}
         samplingPoints={samplingPoints}
+        organizations={organizations}
       />
     </main>
   );

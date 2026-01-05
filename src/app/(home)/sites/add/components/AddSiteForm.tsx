@@ -18,13 +18,15 @@ import Input from "@/components/input/Input";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addSiteService } from "@/app/actions";
+import { addSiteService, uploadImage } from "@/app/actions";
 import * as RPNInput from "react-phone-number-input";
 import CountrySelect from "@/components/country-select/CountrySelect";
+import RegionSelect from "@/components/region-select/RegionSelect";
 import { Icon } from "@/libs";
 import { Organization } from "@/types";
-import ComboSelect from "@/components/combo-select/ComboSelect";
+import { CreatableCombobox } from "@/components";
 import { DropdownOption, transformStrToDropdownOptions } from "@/utils/helpers";
+import { useEffect, useRef, useState } from "react";
 
 type FormData = z.infer<typeof ADD_SITES_SCHEMA>;
 
@@ -37,10 +39,24 @@ const regulationsAndStandardsOptions = [
   "ISO 22301",
 ];
 
+interface UserType {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  organization?: {
+    id: string;
+    name: string;
+  };
+}
+
 export const AddSiteForm = ({
   organizations,
+  users,
 }: {
   organizations: Organization[];
+  users: UserType[];
 }) => {
   const router = useRouter();
 
@@ -50,21 +66,119 @@ export const AddSiteForm = ({
     formState: { errors, isSubmitting },
     register,
     setValue,
+    watch,
   } = useForm<FormData>({
     resolver: zodResolver(ADD_SITES_SCHEMA),
     mode: "onSubmit",
   });
 
-  function handleMulti(options: DropdownOption[]) {
-    setValue(
-      "regulations_and_standards",
-      options.map((option) => option.value)
-    );
-  }
+  const selectedCountry = watch("country");
+  const selectedOrganization = watch("organization");
+  const previousCountryRef = useRef<string | undefined>(selectedCountry);
+  const previousOrganizationRef = useRef<string | undefined>(
+    selectedOrganization?.id
+  );
+
+  // Clear region when country changes
+  useEffect(() => {
+    if (
+      previousCountryRef.current !== selectedCountry &&
+      previousCountryRef.current !== undefined
+    ) {
+      setValue("city", "", { shouldDirty: false });
+    }
+    previousCountryRef.current = selectedCountry;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCountry]);
+
+  // Clear manager name when organization changes
+  useEffect(() => {
+    if (
+      previousOrganizationRef.current !== selectedOrganization?.id &&
+      previousOrganizationRef.current !== undefined
+    ) {
+      setValue("manager_name", "", { shouldDirty: false });
+    }
+    previousOrganizationRef.current = selectedOrganization?.id;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOrganization?.id]);
+
+  // Filter users by selected organization
+  const organizationUsers = selectedOrganization?.id
+    ? users.filter((user) => user.organization?.id === selectedOrganization.id)
+    : [];
+
+  // Transform users to dropdown options
+  const userOptions: DropdownOption[] = organizationUsers.map((user) => ({
+    label: `${user.first_name} ${user.last_name}`,
+    value: `${user.first_name} ${user.last_name}`,
+  }));
+
+  const regulationsOptions = transformStrToDropdownOptions(
+    regulationsAndStandardsOptions
+  );
+
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const uploadImageFile = async (file: File): Promise<string | null> => {
+    setIsUploadingImage(true);
+    try {
+      const response = await uploadImage({ file }, "site-attachments");
+
+      if (response.success) {
+        // Extract file key from response
+        const fileKey = response.data?.data?.file_key;
+
+        if (fileKey && typeof fileKey === "string") {
+          // Return the file key as URL (same pattern as other forms)
+          return fileKey;
+        }
+        toast.error("Failed to get file key from upload response.");
+        return null;
+      } else {
+        toast.error(
+          response.message || "Image upload failed. Please try again."
+        );
+        return null;
+      }
+    } catch {
+      toast.error("Image upload failed. Please try again.");
+      return null;
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const onSubmit = async (data: AddSitesPayload) => {
-    console.log("submit data", data);
-    const response = await addSiteService(data);
+    // Upload attachment if one is selected
+    let siteMapUrl: string | null = null;
+
+    if (attachmentFile) {
+      siteMapUrl = await uploadImageFile(attachmentFile);
+      if (!siteMapUrl) {
+        // If file upload fails, stop form submission
+        toast.error("File upload failed. Please try again.");
+        return;
+      }
+    }
+
+    // Prepare the payload with attachment
+    const payload: AddSitesPayload = {
+      ...data,
+      ...(siteMapUrl
+        ? {
+            attachments: [
+              {
+                site_map: siteMapUrl,
+              },
+            ],
+          }
+        : {}),
+    };
+
+    console.log("submit data", payload);
+    const response = await addSiteService(payload);
     try {
       if (response.success) {
         toast.success("Asset added successfully", {
@@ -166,11 +280,20 @@ export const AddSiteForm = ({
                 )}
               />
 
-              <Input
-                label="Region/State"
-                placeholder="Enter region or state"
-                error={errors.city?.message}
-                {...register("city")}
+              <Controller
+                control={control}
+                name="city"
+                render={({ field }) => (
+                  <RegionSelect
+                    country={selectedCountry}
+                    label="Region/State"
+                    className="col-span-full w-full"
+                    placeholder="Select region or state"
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={errors.city?.message}
+                  />
+                )}
               />
 
               <Input
@@ -182,17 +305,53 @@ export const AddSiteForm = ({
               />
             </div>
 
-            <ComboSelect
-              isSearchable
-              label="Regulations and Standards"
-              placeholder="Select regulations and standards..."
-              options={transformStrToDropdownOptions(
-                regulationsAndStandardsOptions
-              )}
-              isMulti
-              defaultValue={[]}
-              onChange={(options) => handleMulti(options as DropdownOption[])}
-              error={errors.regulations_and_standards?.message}
+            <Controller
+              control={control}
+              name="regulations_and_standards"
+              render={({ field }) => {
+                const selectedValues = field.value || [];
+                // Find options from the predefined list
+                const selectedFromOptions = regulationsOptions.filter(
+                  (option) => selectedValues.includes(option.value)
+                );
+                // Find values that aren't in the predefined options (newly created)
+                const createdValues = selectedValues.filter(
+                  (value) =>
+                    !regulationsOptions.some((option) => option.value === value)
+                );
+                // Create options for newly created values
+                const createdOptions = createdValues.map((value) => ({
+                  label: value,
+                  value: value,
+                }));
+                // Combine both
+                const selectedOptions = [
+                  ...selectedFromOptions,
+                  ...createdOptions,
+                ];
+
+                return (
+                  <CreatableCombobox
+                    isSearchable
+                    label="Regulations and Standards"
+                    placeholder="Select regulations and standards..."
+                    options={regulationsOptions}
+                    isMulti
+                    value={selectedOptions}
+                    onChange={(options) => {
+                      // For multi-select, CreatableCombobox passes array of DropdownOption directly
+                      const selectedOptions = options as
+                        | DropdownOption[]
+                        | null;
+                      const values = selectedOptions
+                        ? selectedOptions.map((option) => option.value)
+                        : [];
+                      field.onChange(values);
+                    }}
+                    error={errors.regulations_and_standards?.message}
+                  />
+                );
+              }}
             />
           </div>
         </section>
@@ -229,11 +388,69 @@ export const AddSiteForm = ({
         <section className="flex flex-col gap-6 border border-gray-100 p-6">
           <Text variant="p">Contact Information</Text>
           <div className="flex flex-col gap-4">
-            <Input
-              label="Site Manager name"
-              placeholder="Enter full name of the site manager (e.g. John Doe)"
-              {...register("manager_name")}
-              error={errors.manager_name?.message}
+            <Controller
+              control={control}
+              name="manager_name"
+              render={({ field }) => {
+                const selectedValue = field.value || "";
+
+                return (
+                  <CreatableCombobox
+                    label="Site Manager name"
+                    placeholder={
+                      !selectedOrganization?.id
+                        ? "Select an organization first"
+                        : "Select or create site manager name"
+                    }
+                    options={userOptions}
+                    value={selectedValue}
+                    onChange={(event: unknown) => {
+                      // For single select, CreatableCombobox passes { target: { value, name } }
+                      const eventObj = event as {
+                        target?: { value?: string };
+                        value?: string;
+                        label?: string;
+                      } | null;
+                      const value =
+                        eventObj?.target?.value ??
+                        eventObj?.value ??
+                        eventObj?.label ??
+                        "";
+                      field.onChange(value);
+
+                      // If a user is selected (not a newly created value), populate phone and email
+                      if (value) {
+                        const selectedUser = organizationUsers.find(
+                          (user) =>
+                            `${user.first_name} ${user.last_name}` === value
+                        );
+                        if (selectedUser) {
+                          setValue(
+                            "manager_phone_number",
+                            selectedUser.phone || "",
+                            {
+                              shouldDirty: false,
+                            }
+                          );
+                          setValue("manager_email", selectedUser.email || "", {
+                            shouldDirty: false,
+                          });
+                        } else {
+                          // If it's a newly created value, clear phone and email
+                          setValue("manager_phone_number", "", {
+                            shouldDirty: false,
+                          });
+                          setValue("manager_email", "", {
+                            shouldDirty: false,
+                          });
+                        }
+                      }
+                    }}
+                    error={errors.manager_name?.message}
+                    isDisabled={!selectedOrganization?.id}
+                  />
+                );
+              }}
             />
 
             <Controller
@@ -267,15 +484,30 @@ export const AddSiteForm = ({
         </section>
 
         <div className="flex flex-col gap-6 border border-gray-100 p-6">
-          {/* here is where you can upload the image */}
-          <Input type="file" label="Upload Image" placeholder="Upload image" />
+          <Input
+            type="file"
+            label="Upload Image"
+            placeholder="Upload image"
+            accept="image/*"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setAttachmentFile(file);
+              }
+            }}
+          />
+          {attachmentFile && (
+            <Text variant="p" className="text-sm text-gray-600">
+              Selected: {attachmentFile.name}
+            </Text>
+          )}
         </div>
 
         <div className="flex justify-end space-x-4 pt-4">
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button type="submit" loading={isSubmitting}>
+          <Button type="submit" loading={isSubmitting || isUploadingImage}>
             Create Site
           </Button>
         </div>

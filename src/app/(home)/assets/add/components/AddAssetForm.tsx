@@ -24,8 +24,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addAssetService, uploadImage } from "@/app/actions";
 import { Icon } from "@/libs";
-import { Sites } from "@/types";
-import { useState } from "react";
+import { Sites, Organization } from "@/types";
+import { useState, useRef } from "react";
 import { ASSET_TYPE_OPTIONS } from "@/utils";
 
 interface USER_TYPE {
@@ -89,13 +89,18 @@ type FormData = z.infer<typeof ADD_ASSET_SCHEMA>;
 export const AddAssetForm = ({
   sites,
   users,
+  organizations,
 }: {
   sites: Sites[];
   users: USER_TYPE[];
+  organizations: Organization[];
 }) => {
   const router = useRouter();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [datasheetFile, setDatasheetFile] = useState<File | null>(null);
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<
+    string | null
+  >(null);
 
   const {
     handleSubmit,
@@ -111,6 +116,27 @@ export const AddAssetForm = ({
 
   const selectedSiteId = watch("parent_site.id");
   const currentAssigneeId = watch("assignee.id");
+  const previousOrganizationRef = useRef<string | null>(null);
+
+  // Filter sites based on selected organization
+  const filteredSites = React.useMemo(() => {
+    if (!selectedOrganizationId) return sites;
+    return sites.filter(
+      (site) => site.organization?.id === selectedOrganizationId
+    );
+  }, [selectedOrganizationId, sites]);
+
+  // Clear site when organization changes
+  React.useEffect(() => {
+    if (
+      previousOrganizationRef.current !== selectedOrganizationId &&
+      previousOrganizationRef.current !== null
+    ) {
+      setValue("parent_site.id", "", { shouldDirty: false });
+    }
+    previousOrganizationRef.current = selectedOrganizationId;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOrganizationId]);
 
   // Filter users based on selected site's organization
   const filteredUsers = React.useMemo(() => {
@@ -231,7 +257,6 @@ export const AddAssetForm = ({
       }),
     };
 
-    console.log("submit data", payload);
     const response = await addAssetService(payload);
     try {
       if (response.success) {
@@ -290,6 +315,22 @@ export const AddAssetForm = ({
               error={errors.tag?.message}
             />
 
+            <Select
+              value={selectedOrganizationId || undefined}
+              onValueChange={setSelectedOrganizationId}
+            >
+              <SelectTrigger className="col-span-full" label="Organization">
+                <SelectValue placeholder="Select an organization" />
+              </SelectTrigger>
+              <SelectContent>
+                {organizations.map((organization) => (
+                  <SelectItem key={organization.id} value={organization.id}>
+                    {organization.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Controller
               name="parent_site.id"
               control={control}
@@ -297,12 +338,21 @@ export const AddAssetForm = ({
                 <Select
                   value={field.value as string}
                   onValueChange={field.onChange}
+                  disabled={!selectedOrganizationId}
                 >
                   <SelectTrigger className="col-span-full" label="Site">
-                    <SelectValue placeholder="Select a site" />
+                    <SelectValue
+                      placeholder={
+                        !selectedOrganizationId
+                          ? "Select an organization first"
+                          : filteredSites.length === 0
+                          ? "No sites available"
+                          : "Select a site"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {sites.map((site) => (
+                    {filteredSites.map((site) => (
                       <SelectItem key={site.id} value={site.id}>
                         {site.name}
                       </SelectItem>

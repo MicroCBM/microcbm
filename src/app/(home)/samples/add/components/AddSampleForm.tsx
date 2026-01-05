@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button, Text } from "@/components";
 import { AddSamplePayload, ADD_SAMPLE_SCHEMA } from "@/schema";
 import { addSampleService } from "@/app/actions";
-import { Sites, Asset, SamplingPoint } from "@/types";
+import { Sites, Asset, SamplingPoint, Organization } from "@/types";
 import dayjs from "dayjs";
 import { Icon } from "@/libs";
 import SampleLocationForm from "./SampleLocationForm";
@@ -22,12 +22,14 @@ interface AddSampleFormProps {
   sites: Sites[];
   assets: Asset[];
   samplingPoints: SamplingPoint[];
+  organizations: Organization[];
 }
 
 export function AddSampleForm({
   sites,
   assets,
   samplingPoints,
+  organizations,
 }: AddSampleFormProps) {
   const router = useRouter();
   const [, setIsSubmitting] = useState(false);
@@ -230,6 +232,55 @@ export function AddSampleForm({
         }
       }
 
+      // Transform additives object into array format
+      const additivesArray: Array<{
+        additive: string;
+        value: string;
+      }> = [];
+
+      const additivesMap: Record<string, string> = {
+        magnesium: "Magnesium (Mg)",
+        calcium: "Calcium (Ca)",
+        molybdenum: "Molybdenum (Mo)",
+        zinc: "Zinc (Zn)",
+        phosphorus: "Phosphorus (P)",
+        sulfur: "Sulfur (S)",
+        boron: "Boron (B)",
+      };
+
+      // Handle additives as either object (from form) or array (already transformed)
+      const additivesData = (
+        data as AddSamplePayload & {
+          additives?:
+            | Record<string, string>
+            | Array<{ additive: string; value: string }>;
+        }
+      ).additives as
+        | Record<string, string>
+        | Array<{ additive: string; value: string }>
+        | undefined;
+
+      if (additivesData) {
+        if (Array.isArray(additivesData)) {
+          additivesArray.push(...additivesData);
+        } else if (typeof additivesData === "object") {
+          Object.entries(additivesData).forEach(([key, value]) => {
+            if (
+              value !== undefined &&
+              value !== null &&
+              value !== "" &&
+              additivesMap[key]
+            ) {
+              // Format value as "{value} ppm"
+              additivesArray.push({
+                additive: additivesMap[key],
+                value: `${value} ppm`,
+              });
+            }
+          });
+        }
+      }
+
       // Convert filter_changed and oil_drained from "yes"/"no" to boolean
       const filterChanged =
         typeof data.filter_changed === "string"
@@ -264,6 +315,9 @@ export function AddSampleForm({
         ...(viscosityLevelsArray.length > 0 && {
           viscosity_levels: viscosityLevelsArray,
         }),
+        ...(additivesArray.length > 0 && {
+          additives: additivesArray,
+        }),
         // Add collection_date from date_sampled in ISO format
         collection_date: dayjs(
           (data.date_sampled as unknown as string) || new Date()
@@ -274,6 +328,7 @@ export function AddSampleForm({
       const response = await addSampleService(
         payload as unknown as AddSamplePayload
       );
+      console.log("response in add sample", response);
       if (response.success) {
         toast.success("Sample created successfully", {
           description: "The sample has been added to your system.",
@@ -331,7 +386,73 @@ export function AddSampleForm({
         </div>
       </section>
 
-      <div>something here</div>
+      {/* Progress Bar */}
+      <div className="w-full py-6">
+        <div className="flex items-center justify-between mb-2">
+          <Text variant="span" className="text-sm text-gray-600">
+            Step {steps} of 7
+          </Text>
+          <Text variant="span" className="text-sm text-gray-600">
+            {Math.round((steps / 7) * 100)}%
+          </Text>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${(steps / 7) * 100}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between mt-4">
+          {[
+            "Location",
+            "Information",
+            "Wear Metals",
+            "Contaminants",
+            "Particle Count",
+            "Viscosity",
+            "Additives",
+          ].map((label, index) => {
+            const stepNumber = index + 1;
+            const isActive = stepNumber === steps;
+            const isCompleted = stepNumber < steps;
+
+            return (
+              <div
+                key={stepNumber}
+                className="flex flex-col items-center flex-1 max-w-[120px]"
+              >
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+                    isActive
+                      ? "bg-blue-600 text-white"
+                      : isCompleted
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  {isCompleted ? (
+                    <Icon icon="mdi:check" className="w-4 h-4" />
+                  ) : (
+                    stepNumber
+                  )}
+                </div>
+                <Text
+                  variant="span"
+                  className={`text-xs mt-2 text-center ${
+                    isActive
+                      ? "text-blue-600 font-medium"
+                      : isCompleted
+                      ? "text-green-600"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {label}
+                </Text>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       <FormProvider {...form}>
         {steps === 1 && (
@@ -340,6 +461,7 @@ export function AddSampleForm({
             sites={sites}
             assets={assets}
             samplingPoints={samplingPoints}
+            organizations={organizations}
           />
         )}
         {steps === 2 && (

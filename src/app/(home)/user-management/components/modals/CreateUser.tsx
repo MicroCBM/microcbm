@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Organization, Sites } from "@/types";
 import { MODALS } from "@/utils/constants/modals";
 import { usePersistedModalState } from "@/hooks";
@@ -62,6 +62,8 @@ export function CreateCustomer({
     formState: { errors, isSubmitting },
     register,
     control,
+    watch,
+    setValue,
   } = useForm<z.infer<typeof ADD_USER_SCHEMA>>({
     resolver: zodResolver(ADD_USER_SCHEMA),
     mode: "onSubmit",
@@ -71,6 +73,29 @@ export function CreateCustomer({
       },
     },
   });
+
+  const selectedOrganizationId = watch("user.organization.id");
+  const previousOrganizationRef = useRef<string | null>(null);
+
+  // Filter sites based on selected organization
+  const filteredSites = useMemo(() => {
+    if (!selectedOrganizationId) return sites;
+    return sites.filter(
+      (site) => site.organization?.id === selectedOrganizationId
+    );
+  }, [selectedOrganizationId, sites]);
+
+  // Clear site when organization changes
+  useEffect(() => {
+    if (
+      previousOrganizationRef.current !== selectedOrganizationId &&
+      previousOrganizationRef.current !== null
+    ) {
+      setValue("user.site.id", "", { shouldDirty: false });
+    }
+    previousOrganizationRef.current = selectedOrganizationId;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOrganizationId]);
 
   const onSubmit = async (data: z.infer<typeof ADD_USER_SCHEMA>) => {
     console.log("submit data", data);
@@ -223,15 +248,27 @@ export function CreateCustomer({
               name="user.site.id"
               control={control}
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select
+                  value={field.value || ""}
+                  onValueChange={field.onChange}
+                  disabled={!selectedOrganizationId}
+                >
                   <SelectTrigger
                     className="col-span-full"
                     label="Site Assigned"
                   >
-                    <SelectValue placeholder="Select a site" />
+                    <SelectValue
+                      placeholder={
+                        !selectedOrganizationId
+                          ? "Select an organization first"
+                          : filteredSites.length === 0
+                          ? "No sites available"
+                          : "Select a site"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {sites.map((site) => (
+                    {filteredSites.map((site) => (
                       <SelectItem key={site.id} value={site.id}>
                         {site.name}
                       </SelectItem>
