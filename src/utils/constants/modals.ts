@@ -100,4 +100,29 @@ export const MODALS = {
       REJECT_DAILY_LIMIT: "reject-daily-limit",
     },
   },
+  RECOMMENDATION: {
+    PARAM_NAME: "recommendation",
+    CHILDREN: {
+      VIEW: "view",
+      EDIT: "edit",
+      DELETE: "delete",
+    },
+  },
+  ALARM: {
+    PARAM_NAME: "alarm",
+    CHILDREN: {
+      VIEW: "view",
+      EDIT: "edit",
+      DELETE: "delete",
+      CREATE: "create",
+    },
+  },
+  SAMPLE: {
+    PARAM_NAME: "sample",
+    CHILDREN: {
+      VIEW: "view",
+      EDIT: "edit",
+      DELETE: "delete",
+    },
+  },
 };

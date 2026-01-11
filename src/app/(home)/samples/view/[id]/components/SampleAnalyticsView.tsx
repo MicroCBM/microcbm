@@ -1,7 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Sample } from "@/types";
-import { getSampleAnalysisGroupsAnalyticsService } from "@/app/actions";
+import { Sample, Asset, SamplingPoint } from "@/types";
+import {
+  getSampleAnalysisGroupsAnalyticsService,
+  getAssetService,
+  getSamplingPointService,
+} from "@/app/actions";
 import { CustomTabs } from "@/components/custom-tabs";
 import { Text } from "@/components";
 import { SampleAnalyticsChart } from "./SampleAnalyticsChart";
@@ -42,9 +46,10 @@ const CATEGORY_API_MAP: Record<string, string> = {
 };
 
 const PERIOD_OPTIONS = [
-  { value: "7", label: "Last 7 days" },
-  { value: "30", label: "Last 30 days" },
-  { value: "90", label: "Last 90 days" },
+  { value: "3", label: "Last 3 months" },
+  { value: "6", label: "Last 6 months" },
+  { value: "9", label: "Last 9 months" },
+  { value: "12", label: "Last 12 months" },
 ];
 
 interface SampleAnalyticsViewProps {
@@ -53,12 +58,44 @@ interface SampleAnalyticsViewProps {
 
 export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
   const [activeCategory, setActiveCategory] = useState("Wear Metals");
-  const [selectedPeriod, setSelectedPeriod] = useState("90");
+  const [selectedPeriod, setSelectedPeriod] = useState("12");
   const [chartData, setChartData] = useState<AnalyticsDataPoint[]>([]);
   const [, setTableData] = useState<AnalyticsDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedElement, setSelectedElement] =
     useState<string>("All Elements");
+  const [asset, setAsset] = useState<Asset | null>(null);
+  const [samplingPoint, setSamplingPoint] = useState<SamplingPoint | null>(
+    null
+  );
+  const [isLoadingDetails, setIsLoadingDetails] = useState(true);
+
+  // Fetch asset and sampling point details
+  useEffect(() => {
+    if (sample) {
+      setIsLoadingDetails(true);
+      const fetchDetails = async () => {
+        try {
+          const [assetData, samplingPointData] = await Promise.all([
+            sample.asset?.id
+              ? getAssetService(sample.asset.id)
+              : Promise.resolve(null),
+            sample.sampling_point?.id
+              ? getSamplingPointService(sample.sampling_point.id)
+              : Promise.resolve(null),
+          ]);
+
+          setAsset(assetData);
+          setSamplingPoint(samplingPointData);
+        } catch (error) {
+          console.error("Failed to fetch sample details:", error);
+        } finally {
+          setIsLoadingDetails(false);
+        }
+      };
+      fetchDetails();
+    }
+  }, [sample]);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -79,16 +116,20 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
 
         console.log("response", response);
         if (response.success && response.data) {
-          // Process the new API response structure
-          // Expected structure: { labels: string[], datasets: [{ label: string, data: number[] }] }
-          const responseData = response.data?.data as {
+          // Handle nested data structure (response.data.data.data)
+          const nestedData = response.data?.data;
+          const responseData = (nestedData?.data ||
+            nestedData ||
+            response.data?.data) as {
             labels?: string[];
             datasets?: Array<{ label: string; data: number[] }>;
+            data?: number[];
           };
 
           let chartData: AnalyticsDataPoint[] = [];
           let tableData: AnalyticsDataPoint[] = [];
 
+          // Check if we have the datasets format (time-series data)
           if (
             responseData?.labels &&
             Array.isArray(responseData.labels) &&
@@ -114,7 +155,30 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
               return dataPoint;
             });
 
-            // Use same format for table (grouped by date with columns for each dataset)
+            tableData = chartData;
+          }
+          // Check if we have the simple format (aggregated data: labels + data arrays)
+          else if (
+            responseData?.labels &&
+            Array.isArray(responseData.labels) &&
+            responseData?.data &&
+            Array.isArray(responseData.data) &&
+            responseData.labels.length === responseData.data.length
+          ) {
+            // This is aggregated data format (like Contaminants)
+            // Create a single data point with all elements as properties
+            const dataPoint: AnalyticsDataPoint = {
+              date: new Date().toISOString().split("T")[0],
+              label: "Current",
+            };
+
+            responseData.labels.forEach((label, index) => {
+              if (responseData.data && responseData.data[index] !== undefined) {
+                dataPoint[label] = responseData.data[index];
+              }
+            });
+
+            chartData = [dataPoint];
             tableData = chartData;
           } else {
             // Fallback for other response structures
@@ -148,27 +212,99 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
     const uniqueElements = new Set<string>();
     chartData.forEach((item: AnalyticsDataPoint) => {
       if (item && typeof item === "object") {
+        // Check for element/name fields
         if (item.element && typeof item.element === "string") {
           uniqueElements.add(item.element);
         }
         if (item.name && typeof item.name === "string") {
           uniqueElements.add(item.name);
         }
+        // Also check for properties that are numeric (these are element names in aggregated format)
+        Object.keys(item).forEach((key) => {
+          if (
+            key !== "date" &&
+            key !== "timestamp" &&
+            key !== "element" &&
+            key !== "name" &&
+            key !== "value" &&
+            key !== "count" &&
+            key !== "label" &&
+            key !== "created_at_datetime" &&
+            key !== "date_sampled" &&
+            typeof item[key] === "number"
+          ) {
+            uniqueElements.add(key);
+          }
+        });
       }
     });
     return ["All Elements", ...Array.from(uniqueElements)];
   }, [chartData]);
 
-  // Filter chart data based on selected element
+  // Filter chart data based on selected element (client-side filtering)
   const filteredChartData = React.useMemo(() => {
-    if (!Array.isArray(chartData)) return [];
+    if (!Array.isArray(chartData) || chartData.length === 0) return [];
     if (selectedElement === "All Elements") return chartData;
-    return chartData.filter(
-      (item: AnalyticsDataPoint) =>
-        item &&
-        typeof item === "object" &&
-        (item.element === selectedElement || item.name === selectedElement)
-    );
+
+    // For aggregated format (like Contaminants), filter by property name
+    // Check if data is in aggregated format (has element names as properties)
+    const firstItem = chartData[0];
+    const isAggregatedFormat =
+      firstItem &&
+      typeof firstItem === "object" &&
+      selectedElement in firstItem &&
+      typeof firstItem[selectedElement] === "number";
+
+    if (isAggregatedFormat) {
+      // Create filtered data points with only the selected element
+      return chartData.map((item: AnalyticsDataPoint) => {
+        const filteredItem: AnalyticsDataPoint = {
+          date: item.date,
+          label: item.label,
+          timestamp: item.timestamp,
+        };
+        // Only include the selected element's value
+        if (
+          selectedElement in item &&
+          typeof item[selectedElement] === "number"
+        ) {
+          filteredItem[selectedElement] = item[selectedElement];
+        }
+        return filteredItem;
+      });
+    }
+
+    // For time-series format, filter by element/name fields or property keys
+    return chartData
+      .map((item: AnalyticsDataPoint) => {
+        // Check if this item has the selected element
+        if (
+          item &&
+          typeof item === "object" &&
+          (item.element === selectedElement ||
+            item.name === selectedElement ||
+            (selectedElement in item &&
+              typeof item[selectedElement] === "number"))
+        ) {
+          // If it's a property-based format, create a filtered version
+          if (
+            selectedElement in item &&
+            typeof item[selectedElement] === "number"
+          ) {
+            const filteredItem: AnalyticsDataPoint = {
+              date: item.date,
+              label: item.label,
+              timestamp: item.timestamp,
+              [selectedElement]: item[selectedElement],
+            };
+            return filteredItem;
+          }
+          // Otherwise return as-is (element/name field format)
+          return item;
+        }
+        return null;
+      })
+      .filter((item): item is AnalyticsDataPoint => item !== null);
   }, [chartData, selectedElement]);
 
   return (
@@ -197,6 +333,55 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
 
       {/* Chart Section */}
       <div className="border border-gray-100 p-6">
+        {/* Asset and Sampling Point Info */}
+        <div className="mb-4 pb-4 border-b border-gray-200">
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            {asset && (
+              <div className="flex items-center gap-2">
+                <Text variant="span" className="text-gray-600 font-medium">
+                  Asset:
+                </Text>
+                <Text variant="span" className="text-gray-900">
+                  {asset.name || "N/A"}
+                </Text>
+                {asset.tag && (
+                  <>
+                    <Text variant="span" className="text-gray-400">
+                      •
+                    </Text>
+                    <Text variant="span" className="text-gray-600 font-medium">
+                      Tag:
+                    </Text>
+                    <Text variant="span" className="text-gray-900">
+                      {asset.tag}
+                    </Text>
+                  </>
+                )}
+              </div>
+            )}
+            {samplingPoint && (
+              <div className="flex items-center gap-2">
+                {asset && (
+                  <Text variant="span" className="text-gray-400">
+                    •
+                  </Text>
+                )}
+                <Text variant="span" className="text-gray-600 font-medium">
+                  Sampling Point:
+                </Text>
+                <Text variant="span" className="text-gray-900">
+                  {samplingPoint.name || "N/A"}
+                </Text>
+              </div>
+            )}
+            {isLoadingDetails && (
+              <Text variant="span" className="text-gray-500 text-sm">
+                Loading details...
+              </Text>
+            )}
+          </div>
+        </div>
+
         <div className="flex items-center justify-between mb-4">
           <div>
             <Text variant="h6" className="text-gray-900">
@@ -204,11 +389,13 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
             </Text>
             <Text variant="p" className="text-sm text-gray-500">
               Total for the last{" "}
-              {selectedPeriod === "90"
-                ? "90 days"
-                : selectedPeriod === "30"
-                ? "30 days"
-                : "7 days"}
+              {selectedPeriod === "12"
+                ? "12 months"
+                : selectedPeriod === "9"
+                ? "9 months"
+                : selectedPeriod === "6"
+                ? "6 months"
+                : "3 months"}
             </Text>
           </div>
           <div className="flex items-center gap-2">

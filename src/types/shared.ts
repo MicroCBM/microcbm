@@ -1,7 +1,6 @@
 import type { Tag } from "@/components";
 import type { DEFAULT_QUERY } from "@/utils/constants";
 
-import type { IconNames } from "./icon-names";
 import type { PermissionType } from "./roles";
 import { IAdmin } from "./entities";
 import { PageType } from "./page";

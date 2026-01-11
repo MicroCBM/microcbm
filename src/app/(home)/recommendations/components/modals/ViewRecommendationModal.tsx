@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Sheet,
@@ -12,21 +12,108 @@ import {
   Switch,
 } from "@/components";
 import { Icon } from "@/libs";
-import { Recommendation } from "@/types";
+import { Recommendation, Sites, Asset, SamplingPoint } from "@/types";
 import dayjs from "dayjs";
+import { usePersistedModalState } from "@/hooks";
+import { MODALS } from "@/utils/constants/modals";
+import {
+  getSiteService,
+  getAssetService,
+  getSamplingPointService,
+  getUserByIdService,
+} from "@/app/actions";
 
-interface ViewRecommendationModalProps {
-  recommendation: Recommendation | null;
-  isOpen: boolean;
-  onClose: () => void;
-}
+export function ViewRecommendationModal() {
+  const modal = usePersistedModalState<{ recommendation: Recommendation }>({
+    paramName: MODALS.RECOMMENDATION.PARAM_NAME,
+  });
 
-export function ViewRecommendationModal({
-  recommendation,
-  isOpen,
-  onClose,
-}: ViewRecommendationModalProps) {
-  if (!recommendation) return null;
+  const isOpen = modal.isModalOpen(MODALS.RECOMMENDATION.CHILDREN.VIEW);
+  const recommendation = modal.modalData?.recommendation;
+
+  const [site, setSite] = useState<Sites | null>(null);
+  const [asset, setAsset] = useState<Asset | null>(null);
+  const [samplingPoint, setSamplingPoint] = useState<SamplingPoint | null>(
+    null
+  );
+  const [recommender, setRecommender] = useState<{
+    first_name: string;
+    last_name: string;
+    email: string;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!recommendation || !isOpen) return;
+
+    const fetchRelatedData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch all related data in parallel
+        const promises = [];
+
+        if (recommendation.site?.id) {
+          promises.push(
+            getSiteService(recommendation.site.id)
+              .then(setSite)
+              .catch((error) => {
+                console.error("Error fetching site:", error);
+                setSite(null);
+              })
+          );
+        }
+
+        if (recommendation.asset?.id) {
+          promises.push(
+            getAssetService(recommendation.asset.id)
+              .then(setAsset)
+              .catch((error) => {
+                console.error("Error fetching asset:", error);
+                setAsset(null);
+              })
+          );
+        }
+
+        if (recommendation.sampling_point?.id) {
+          promises.push(
+            getSamplingPointService(recommendation.sampling_point.id)
+              .then(setSamplingPoint)
+              .catch((error) => {
+                console.error("Error fetching sampling point:", error);
+                setSamplingPoint(null);
+              })
+          );
+        }
+
+        if (recommendation.recommender?.id) {
+          promises.push(
+            getUserByIdService(recommendation.recommender.id)
+              .then((user) => {
+                setRecommender({
+                  first_name: user.first_name || "",
+                  last_name: user.last_name || "",
+                  email: user.email || "",
+                });
+              })
+              .catch((error) => {
+                console.error("Error fetching recommender:", error);
+                setRecommender(null);
+              })
+          );
+        }
+
+        await Promise.all(promises);
+      } catch (error) {
+        console.error("Error fetching related data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRelatedData();
+  }, [recommendation, isOpen]);
+
+  if (!recommendation || !isOpen) return null;
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "N/A";
@@ -34,7 +121,7 @@ export function ViewRecommendationModal({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={isOpen} onOpenChange={modal.closeModal}>
       <SheetContent className="md:max-w-[580px]">
         <SheetHeader>
           <SheetTitle>Recommendation Details</SheetTitle>
@@ -75,7 +162,10 @@ export function ViewRecommendationModal({
                 </Text>
                 <div className="mt-1">
                   <Switch
-                    checked={recommendation.severity === "critical" || recommendation.severity === "high"}
+                    checked={
+                      recommendation.severity === "critical" ||
+                      recommendation.severity === "high"
+                    }
                     disabled
                     className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-gray-300"
                   />
@@ -93,8 +183,7 @@ export function ViewRecommendationModal({
                         .replace("_", " ")
                         .split(" ")
                         .map(
-                          (word) =>
-                            word.charAt(0).toUpperCase() + word.slice(1)
+                          (word) => word.charAt(0).toUpperCase() + word.slice(1)
                         )
                         .join(" ")}
                     </span>
@@ -106,7 +195,10 @@ export function ViewRecommendationModal({
                 <Text variant="span" className="text-xs text-gray-500">
                   Title
                 </Text>
-                <Text variant="p" className="text-gray-900 font-medium line-clamp-1">
+                <Text
+                  variant="p"
+                  className="text-gray-900 font-medium line-clamp-1"
+                >
                   {recommendation.title}
                 </Text>
               </div>
@@ -133,7 +225,10 @@ export function ViewRecommendationModal({
               </Text>
               <div className="flex items-center gap-2">
                 <Switch
-                  checked={recommendation.severity === "critical" || recommendation.severity === "high"}
+                  checked={
+                    recommendation.severity === "critical" ||
+                    recommendation.severity === "high"
+                  }
                   disabled
                   className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-gray-300"
                 />
@@ -144,11 +239,14 @@ export function ViewRecommendationModal({
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-2">
-              <Text variant="span" className="text-gray-600 font-medium">
+            <div className="pt-2">
+              <Text
+                variant="span"
+                className="text-gray-600 font-medium block mb-2"
+              >
                 Description:
               </Text>
-              <Text variant="span" className="text-gray-900 text-right max-w-[60%]">
+              <Text variant="span" className="text-gray-900 block">
                 {recommendation.description}
               </Text>
             </div>
@@ -164,7 +262,9 @@ export function ViewRecommendationModal({
                 Site:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {recommendation.site?.name || "N/A"}
+                {isLoading
+                  ? "Loading..."
+                  : site?.name || recommendation.site?.name || "N/A"}
               </Text>
             </div>
 
@@ -173,7 +273,9 @@ export function ViewRecommendationModal({
                 Asset:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {recommendation.asset?.name || "N/A"}
+                {isLoading
+                  ? "Loading..."
+                  : asset?.name || recommendation.asset?.name || "N/A"}
               </Text>
             </div>
 
@@ -182,7 +284,11 @@ export function ViewRecommendationModal({
                 Sampling Point:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {recommendation.sampling_point?.name || "N/A"}
+                {isLoading
+                  ? "Loading..."
+                  : samplingPoint?.name ||
+                    recommendation.sampling_point?.name ||
+                    "N/A"}
               </Text>
             </div>
           </div>
@@ -197,7 +303,13 @@ export function ViewRecommendationModal({
                 Recommender:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {recommendation.recommender?.name || "N/A"}
+                {isLoading
+                  ? "Loading..."
+                  : recommender
+                  ? `${recommender.first_name} ${recommender.last_name}`.trim() ||
+                    recommender.email ||
+                    "N/A"
+                  : recommendation.recommender?.name || "N/A"}
               </Text>
             </div>
 
@@ -210,9 +322,7 @@ export function ViewRecommendationModal({
                   {recommendation.status
                     .replace("_", " ")
                     .split(" ")
-                    .map(
-                      (word) => word.charAt(0).toUpperCase() + word.slice(1)
-                    )
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(" ")}
                 </span>
               ) : (
@@ -283,7 +393,7 @@ export function ViewRecommendationModal({
         </div>
 
         <SheetFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={modal.closeModal}>
             Close
           </Button>
         </SheetFooter>

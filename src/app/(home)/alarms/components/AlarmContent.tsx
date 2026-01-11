@@ -3,7 +3,7 @@
 import React from "react";
 import { Text } from "@/components";
 import { Sites } from "@/types";
-import { AddAlarmModal } from "./AddAlarmModal";
+import { AddAlarmModal } from "./modals";
 import { ComponentGuard } from "@/components/content-guard";
 
 interface AlarmContentProps {

@@ -7,6 +7,8 @@ import {
 } from "@/app/actions";
 import { AddSamplingRouteForm } from "./components";
 
+export const dynamic = "force-dynamic";
+
 export default async function AddSamplingRoutePage() {
   const [users, sites, organizations] = await Promise.all([
     getUsersService(),

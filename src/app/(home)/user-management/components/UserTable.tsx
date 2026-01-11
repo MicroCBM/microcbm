@@ -130,8 +130,7 @@ export function UserTable({
     const result = await deleteUserService(id);
     if (result.success) {
       toast.success("User deleted successfully!");
-      // Optionally refresh the page or update the user data
-      window.location.reload();
+      router.refresh();
     } else {
       toast.error(result.message || "Failed to delete user");
     }

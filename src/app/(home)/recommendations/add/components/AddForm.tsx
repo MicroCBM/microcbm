@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import {
   Button,
   Select,
@@ -96,10 +97,87 @@ export const AddForm = ({
     formState: { errors, isSubmitting },
     register,
     reset,
+    watch,
+    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(ADD_RECOMMENDATION_SCHEMA),
     mode: "onSubmit",
   });
+
+  const selectedSiteId = watch("site.id");
+  const selectedAssetId = watch("asset.id");
+
+  // Filter assets based on selected site
+  const filteredAssets = React.useMemo(() => {
+    if (!selectedSiteId) return assets;
+    return assets.filter((asset) => asset.parent_site?.id === selectedSiteId);
+  }, [selectedSiteId, assets]);
+
+  // Filter sampling points based on selected site and asset
+  const filteredSamplingPoints = React.useMemo(() => {
+    let filtered = samplingPoints;
+    if (selectedSiteId) {
+      filtered = filtered.filter(
+        (sp) => sp.parent_asset?.parent_site?.id === selectedSiteId
+      );
+    }
+    if (selectedAssetId) {
+      filtered = filtered.filter(
+        (sp) => sp.parent_asset?.id === selectedAssetId
+      );
+    }
+    return filtered;
+  }, [selectedSiteId, selectedAssetId, samplingPoints]);
+
+  // Filter users based on selected site
+  const filteredUsers = React.useMemo(() => {
+    if (!selectedSiteId) return users;
+    return users.filter((user) => user.site?.id === selectedSiteId);
+  }, [selectedSiteId, users]);
+
+  // Clear asset and sampling point when site changes
+  React.useEffect(() => {
+    if (selectedSiteId) {
+      // Check if current asset is valid for the selected site
+      if (selectedAssetId) {
+        const isAssetValid = filteredAssets.some(
+          (asset) => asset.id === selectedAssetId
+        );
+        if (!isAssetValid) {
+          setValue("asset.id", "", { shouldValidate: false });
+          setValue("sampling_point.id", "", { shouldValidate: false });
+        }
+      }
+    } else {
+      // Clear asset and sampling point if no site is selected
+      if (selectedAssetId) {
+        setValue("asset.id", "", { shouldValidate: false });
+      }
+      setValue("sampling_point.id", "", { shouldValidate: false });
+    }
+  }, [selectedSiteId, filteredAssets, selectedAssetId, setValue]);
+
+  // Clear sampling point when asset changes
+  const selectedSamplingPointId = watch("sampling_point.id");
+  React.useEffect(() => {
+    if (selectedAssetId) {
+      const isSamplingPointValid = filteredSamplingPoints.some(
+        (sp) => sp.id === selectedSamplingPointId
+      );
+      if (selectedSamplingPointId && !isSamplingPointValid) {
+        setValue("sampling_point.id", "", { shouldValidate: false });
+      }
+    } else {
+      if (selectedSamplingPointId) {
+        setValue("sampling_point.id", "", { shouldValidate: false });
+      }
+    }
+  }, [
+    selectedAssetId,
+    filteredSamplingPoints,
+    selectedSamplingPointId,
+    setValue,
+  ]);
 
   const onSubmit = async (data: AddRecommendationPayload) => {
     console.log("submit data", data);
@@ -205,15 +283,6 @@ export const AddForm = ({
                 />
               </div>
             </section>
-
-            <section className="flex flex-col gap-6 border border-gray-100 p-6">
-              {/* here is where you can upload the image */}
-              <Input
-                type="file"
-                label="Upload Image"
-                placeholder="Upload image"
-              />
-            </section>
           </div>
           <div className="flex flex-col gap-6 border border-gray-100 p-6 max-w-[300px] w-full">
             <Text variant="p">Assets Associated</Text>
@@ -225,7 +294,11 @@ export const AddForm = ({
                   <div>
                     <Select
                       value={field.value || ""}
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Clear asset when site changes
+                        setValue("asset.id", "", { shouldValidate: false });
+                      }}
                     >
                       <SelectTrigger label="Site">
                         <SelectValue placeholder="Select a site" />
@@ -253,17 +326,36 @@ export const AddForm = ({
                   <div>
                     <Select
                       value={field.value || ""}
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Clear sampling point when asset changes
+                        setValue("sampling_point.id", "", {
+                          shouldValidate: false,
+                        });
+                      }}
+                      disabled={!selectedSiteId || filteredAssets.length === 0}
                     >
-                      <SelectTrigger label="Asset">
-                        <SelectValue placeholder="Select an asset" />
+                      <SelectTrigger
+                        label="Asset"
+                        error={errors.asset?.id?.message}
+                      >
+                        <SelectValue
+                          placeholder={
+                            !selectedSiteId
+                              ? "Select a site first"
+                              : filteredAssets.length === 0
+                              ? "No assets available for this site"
+                              : "Select an asset"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {assets.map((asset) => (
-                          <SelectItem key={asset.id} value={asset.id}>
-                            {asset.name}
-                          </SelectItem>
-                        ))}
+                        {filteredAssets.length > 0 &&
+                          filteredAssets.map((asset) => (
+                            <SelectItem key={asset.id} value={asset.id}>
+                              {asset.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     {errors.asset?.id && (
@@ -283,19 +375,38 @@ export const AddForm = ({
                     <Select
                       value={field.value || ""}
                       onValueChange={field.onChange}
+                      disabled={
+                        !selectedSiteId ||
+                        !selectedAssetId ||
+                        filteredSamplingPoints.length === 0
+                      }
                     >
-                      <SelectTrigger label="Sampling Point">
-                        <SelectValue placeholder="Select a sampling point" />
+                      <SelectTrigger
+                        label="Sampling Point"
+                        error={errors.sampling_point?.id?.message}
+                      >
+                        <SelectValue
+                          placeholder={
+                            !selectedSiteId
+                              ? "Select a site first"
+                              : !selectedAssetId
+                              ? "Select an asset first"
+                              : filteredSamplingPoints.length === 0
+                              ? "No sampling points available"
+                              : "Select a sampling point"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {samplingPoints.map((samplingPoint) => (
-                          <SelectItem
-                            key={samplingPoint.id}
-                            value={samplingPoint.id}
-                          >
-                            {samplingPoint.name}
-                          </SelectItem>
-                        ))}
+                        {filteredSamplingPoints.length > 0 &&
+                          filteredSamplingPoints.map((samplingPoint) => (
+                            <SelectItem
+                              key={samplingPoint.id}
+                              value={samplingPoint.id}
+                            >
+                              {samplingPoint.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     {errors.sampling_point?.id && (
@@ -315,16 +426,29 @@ export const AddForm = ({
                     <Select
                       value={field.value || ""}
                       onValueChange={field.onChange}
+                      disabled={!selectedSiteId || filteredUsers.length === 0}
                     >
-                      <SelectTrigger label="Recommender">
-                        <SelectValue placeholder="Select a recommender" />
+                      <SelectTrigger
+                        label="Recommender"
+                        error={errors.recommender?.id?.message}
+                      >
+                        <SelectValue
+                          placeholder={
+                            !selectedSiteId
+                              ? "Select a site first"
+                              : filteredUsers.length === 0
+                              ? "No users available for this site"
+                              : "Select a recommender"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {users.map((user) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.first_name} {user.last_name}
-                          </SelectItem>
-                        ))}
+                        {filteredUsers.length > 0 &&
+                          filteredUsers.map((user) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.first_name} {user.last_name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     {errors.recommender?.id && (

@@ -1,38 +1,94 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
   Text,
   Button,
 } from "@/components";
-import { Sample } from "@/types";
+import { Sample, Sites, Asset, SamplingPoint } from "@/types";
 import dayjs from "dayjs";
+import { usePersistedModalState } from "@/hooks";
+import { MODALS } from "@/utils/constants/modals";
+import {
+  getSiteService,
+  getAssetService,
+  getSamplingPointService,
+} from "@/app/actions";
 
-interface ViewSampleModalProps {
-  sample: Sample | null;
-  isOpen: boolean;
-  onClose: () => void;
-}
+export function ViewSampleModal() {
+  const modal = usePersistedModalState<{ sample: Sample }>({
+    paramName: MODALS.SAMPLE.PARAM_NAME,
+  });
 
-export const ViewSampleModal = ({
-  sample,
-  isOpen,
-  onClose,
-}: ViewSampleModalProps) => {
-  if (!sample) return null;
+  const isOpen = modal.isModalOpen(MODALS.SAMPLE.CHILDREN.VIEW);
+  const sample = modal.modalData?.sample;
+
+  const [fetchedSite, setFetchedSite] = useState<Sites | null>(null);
+  const [fetchedAsset, setFetchedAsset] = useState<Asset | null>(null);
+  const [fetchedSamplingPoint, setFetchedSamplingPoint] =
+    useState<SamplingPoint | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(true);
+
+  useEffect(() => {
+    if (isOpen && sample) {
+      setIsLoadingDetails(true);
+      const fetchData = async () => {
+        try {
+          const [siteData, assetData, samplingPointData] = await Promise.all([
+            sample.site?.id
+              ? getSiteService(sample.site.id)
+              : Promise.resolve(null),
+            sample.asset?.id
+              ? getAssetService(sample.asset.id)
+              : Promise.resolve(null),
+            sample.sampling_point?.id
+              ? getSamplingPointService(sample.sampling_point.id)
+              : Promise.resolve(null),
+          ]);
+
+          setFetchedSite(siteData);
+          setFetchedAsset(assetData);
+          setFetchedSamplingPoint(samplingPointData);
+        } catch (error) {
+          console.error("Failed to fetch sample details:", error);
+        } finally {
+          setIsLoadingDetails(false);
+        }
+      };
+      fetchData();
+    } else {
+      setFetchedSite(null);
+      setFetchedAsset(null);
+      setFetchedSamplingPoint(null);
+      setIsLoadingDetails(true);
+    }
+  }, [isOpen, sample]);
+
+  if (!sample || !isOpen) return null;
+
+  const siteName = isLoadingDetails
+    ? "Loading..."
+    : fetchedSite?.name || sample.site?.name || "N/A";
+  const assetName = isLoadingDetails
+    ? "Loading..."
+    : fetchedAsset?.name || sample.asset?.name || "N/A";
+  const samplingPointName = isLoadingDetails
+    ? "Loading..."
+    : fetchedSamplingPoint?.name || sample.sampling_point?.name || "N/A";
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Sample Details</DialogTitle>
-        </DialogHeader>
+    <Sheet open={isOpen} onOpenChange={modal.closeModal}>
+      <SheetContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Sample Details</SheetTitle>
+        </SheetHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 p-6">
           {/* Sample Header */}
           <div className="flex items-start gap-4">
             <div className="flex-1">
@@ -75,7 +131,7 @@ export const ViewSampleModal = ({
                   Site
                 </Text>
                 <Text variant="p" className="text-gray-900">
-                  {sample.site?.name || sample.site?.id || "N/A"}
+                  {siteName}
                 </Text>
               </div>
               <div>
@@ -83,7 +139,7 @@ export const ViewSampleModal = ({
                   Asset
                 </Text>
                 <Text variant="p" className="text-gray-900">
-                  {sample.asset?.name || sample.asset?.id || "N/A"}
+                  {assetName}
                 </Text>
               </div>
             </div>
@@ -93,9 +149,7 @@ export const ViewSampleModal = ({
                 Sampling Point
               </Text>
               <Text variant="p" className="text-gray-900">
-                {sample.sampling_point?.name ||
-                  sample.sampling_point?.id ||
-                  "N/A"}
+                {samplingPointName}
               </Text>
             </div>
 
@@ -234,12 +288,12 @@ export const ViewSampleModal = ({
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <Button type="button" variant="outline" onClick={onClose}>
+        <SheetFooter>
+          <Button type="button" variant="outline" onClick={modal.closeModal}>
             Close
           </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
-};
+}

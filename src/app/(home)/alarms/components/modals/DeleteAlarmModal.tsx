@@ -10,30 +10,50 @@ import {
   Button,
 } from "@/components";
 import { Alarm } from "@/types";
+import { usePersistedModalState } from "@/hooks";
+import { MODALS } from "@/utils/constants/modals";
+import { deleteAlarmService } from "@/app/actions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-interface DeleteAlarmModalProps {
-  alarm: Alarm | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (alarmId: string) => void;
-  isDeleting: boolean;
-}
+export function DeleteAlarmModal() {
+  const router = useRouter();
+  const modal = usePersistedModalState<{ alarm: Alarm }>({
+    paramName: MODALS.ALARM.PARAM_NAME,
+  });
 
-export const DeleteAlarmModal = ({
-  alarm,
-  isOpen,
-  onClose,
-  onConfirm,
-  isDeleting,
-}: DeleteAlarmModalProps) => {
-  if (!alarm) return null;
+  const isOpen = modal.isModalOpen(MODALS.ALARM.CHILDREN.DELETE);
+  const alarm = modal.modalData?.alarm;
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
-  const handleConfirm = () => {
-    onConfirm(alarm.id);
+  if (!alarm || !isOpen) return null;
+
+  const handleConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await deleteAlarmService(alarm.id);
+      if (response.success) {
+        toast.success("Alarm deleted successfully", {
+          description: "The alarm has been permanently removed.",
+        });
+        router.refresh();
+        modal.closeModal();
+      } else {
+        toast.error(
+          response.message || "Failed to delete alarm. Please try again."
+        );
+      }
+    } catch (error) {
+      toast.error(
+        (error as Error).message || "Failed to delete alarm. Please try again."
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={modal.closeModal}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Delete Alarm</DialogTitle>
@@ -69,7 +89,7 @@ export const DeleteAlarmModal = ({
           <Button
             type="button"
             variant="outline"
-            onClick={onClose}
+            onClick={modal.closeModal}
             disabled={isDeleting}
           >
             Cancel
@@ -86,4 +106,4 @@ export const DeleteAlarmModal = ({
       </DialogContent>
     </Dialog>
   );
-};
+}

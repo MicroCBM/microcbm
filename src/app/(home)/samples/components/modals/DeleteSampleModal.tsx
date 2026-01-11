@@ -10,30 +10,50 @@ import {
   Button,
 } from "@/components";
 import { Sample } from "@/types";
+import { usePersistedModalState } from "@/hooks";
+import { MODALS } from "@/utils/constants/modals";
+import { deleteSampleService } from "@/app/actions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-interface DeleteSampleModalProps {
-  sample: Sample | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (sampleId: string) => void;
-  isDeleting: boolean;
-}
+export function DeleteSampleModal() {
+  const router = useRouter();
+  const modal = usePersistedModalState<{ sample: Sample }>({
+    paramName: MODALS.SAMPLE.PARAM_NAME,
+  });
 
-export const DeleteSampleModal = ({
-  sample,
-  isOpen,
-  onClose,
-  onConfirm,
-  isDeleting,
-}: DeleteSampleModalProps) => {
-  if (!sample) return null;
+  const isOpen = modal.isModalOpen(MODALS.SAMPLE.CHILDREN.DELETE);
+  const sample = modal.modalData?.sample;
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
-  const handleConfirm = () => {
-    onConfirm(sample.id);
+  if (!sample || !isOpen) return null;
+
+  const handleConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await deleteSampleService(sample.id);
+      if (response.success) {
+        toast.success("Sample deleted successfully", {
+          description: "The sample has been permanently removed.",
+        });
+        router.refresh();
+        modal.closeModal();
+      } else {
+        toast.error(
+          response.message || "Failed to delete sample. Please try again."
+        );
+      }
+    } catch (error) {
+      toast.error(
+        (error as Error).message || "Failed to delete sample. Please try again."
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={modal.closeModal}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Delete Sample</DialogTitle>
@@ -69,7 +89,7 @@ export const DeleteSampleModal = ({
           <Button
             type="button"
             variant="outline"
-            onClick={onClose}
+            onClick={modal.closeModal}
             disabled={isDeleting}
           >
             Cancel
@@ -86,4 +106,4 @@ export const DeleteSampleModal = ({
       </DialogContent>
     </Dialog>
   );
-};
+}

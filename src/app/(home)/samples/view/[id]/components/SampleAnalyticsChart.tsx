@@ -34,7 +34,19 @@ interface SampleAnalyticsChartProps {
   category?: string;
 }
 
-export function SampleAnalyticsChart({ data }: SampleAnalyticsChartProps) {
+// Map categories to their units
+const CATEGORY_UNITS: Record<string, string> = {
+  "Wear Metals": "ppm",
+  Contaminants: "ppm",
+  "Additives & Lubricant Conditions": "ppm",
+  Viscosity: "cSt",
+  "Cummulative Particle Count/ml": "particles/ml",
+  "Particle Count": "particles/ml",
+};
+
+export function SampleAnalyticsChart({ data, category }: SampleAnalyticsChartProps) {
+  // Get the unit for the current category
+  const unit = category ? CATEGORY_UNITS[category] || "ppm" : "ppm";
   // Transform data for the chart
   const chartData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -180,24 +192,26 @@ export function SampleAnalyticsChart({ data }: SampleAnalyticsChartProps) {
     );
   }
 
-  // Calculate max value for Y-axis
-  const maxValue = Math.max(
-    ...chartData.flatMap((d: GroupedChartData) =>
-      seriesNames.map((name) => {
-        const value = d[name];
-        return typeof value === "number" ? value : 0;
-      })
-    ),
-    1
+  // Calculate max value for Y-axis with better range handling
+  const allValues = chartData.flatMap((d: GroupedChartData) =>
+    seriesNames.map((name) => {
+      const value = d[name];
+      return typeof value === "number" ? value : 0;
+    })
   );
-  const yAxisMax = Math.ceil(maxValue * 1.1);
+  
+  const maxValue = allValues.length > 0 ? Math.max(...allValues) : 1;
+  // Add 10% padding, but ensure minimum range for better visualization
+  const yAxisMax = maxValue > 0 
+    ? Math.ceil(maxValue * 1.1) 
+    : 10; // Default to 10 if all values are 0
 
   return (
     <div className="w-full h-80 relative">
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart
           data={chartData}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          margin={{ top: 10, right: 30, left: 50, bottom: 0 }}
         >
           <CartesianGrid
             strokeDasharray="3 3"
@@ -218,6 +232,12 @@ export function SampleAnalyticsChart({ data }: SampleAnalyticsChartProps) {
             tickLine={false}
             axisLine={false}
             domain={[0, yAxisMax]}
+            label={{ 
+              value: unit, 
+              angle: -90, 
+              position: "insideLeft", 
+              style: { textAnchor: "middle", fontSize: "12px" } 
+            }}
           />
           <Tooltip
             contentStyle={{
@@ -227,7 +247,7 @@ export function SampleAnalyticsChart({ data }: SampleAnalyticsChartProps) {
               fontSize: "12px",
             }}
             formatter={(value: number, name: string) => [
-              typeof value === "number" ? value.toFixed(2) : value,
+              typeof value === "number" ? `${value.toFixed(2)} ${unit}` : `${value} ${unit}`,
               name,
             ]}
           />

@@ -1,36 +1,53 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetFooter,
   StatusBadge,
   Text,
   Button,
 } from "@/components";
 import { Alarm, Sites } from "@/types";
 import dayjs from "dayjs";
+import { usePersistedModalState } from "@/hooks";
+import { MODALS } from "@/utils/constants/modals";
+import { getSiteService } from "@/app/actions";
 
-interface ViewAlarmModalProps {
-  alarm: Alarm | null;
-  isOpen: boolean;
-  onClose: () => void;
-  sites?: Sites[];
-}
+export function ViewAlarmModal() {
+  const modal = usePersistedModalState<{ alarm: Alarm }>({
+    paramName: MODALS.ALARM.PARAM_NAME,
+  });
 
-export const ViewAlarmModal = ({
-  alarm,
-  isOpen,
-  onClose,
-  sites = [],
-}: ViewAlarmModalProps) => {
-  if (!alarm) return null;
+  const isOpen = modal.isModalOpen(MODALS.ALARM.CHILDREN.VIEW);
+  const alarm = modal.modalData?.alarm;
 
-  // Find the site by matching the alarm's site id
-  const site = sites.find((s) => s.id === alarm.site?.id);
+  const [site, setSite] = useState<Sites | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!alarm?.site?.id || !isOpen) return;
+
+    const fetchSite = async () => {
+      setIsLoading(true);
+      try {
+        const siteData = await getSiteService(alarm.site.id);
+        setSite(siteData);
+      } catch (error) {
+        console.error("Error fetching site:", error);
+        setSite(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSite();
+  }, [alarm?.site?.id, isOpen]);
+
+  if (!alarm || !isOpen) return null;
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "N/A";
@@ -43,7 +60,7 @@ export const ViewAlarmModal = ({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={isOpen} onOpenChange={modal.closeModal}>
       <SheetContent className="md:max-w-[580px]">
         <SheetHeader>
           <SheetTitle>Alarm Details</SheetTitle>
@@ -107,7 +124,7 @@ export const ViewAlarmModal = ({
                   Site
                 </Text>
                 <Text variant="p" className="text-gray-900">
-                  {site?.name || "N/A"}
+                  {isLoading ? "Loading..." : site?.name || alarm.site?.name || "N/A"}
                 </Text>
               </div>
             </div>
@@ -132,7 +149,7 @@ export const ViewAlarmModal = ({
                 Site:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {site?.name || "N/A"}
+                {isLoading ? "Loading..." : site?.name || alarm.site?.name || "N/A"}
               </Text>
             </div>
 
@@ -228,11 +245,11 @@ export const ViewAlarmModal = ({
         </div>
 
         <SheetFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={modal.closeModal}>
             Close
           </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
   );
-};
+}

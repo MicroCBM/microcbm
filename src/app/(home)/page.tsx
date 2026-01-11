@@ -21,56 +21,7 @@ import {
 } from "../actions";
 import { ComponentGuard } from "@/components/content-guard";
 import dayjs from "dayjs";
-
-// Helper function to calculate severity distribution from samples
-function calculateSeverityDistribution(samples: Array<{ severity: string }>) {
-  const severityMap: Record<string, number> = {
-    immediate: 0,
-    urgent: 0,
-    borderline: 0,
-    normal: 0,
-  };
-
-  samples.forEach((sample) => {
-    const severity = sample.severity?.toLowerCase() || "";
-    if (severity === "critical" || severity === "immediate") {
-      severityMap.immediate++;
-    } else if (severity === "urgent") {
-      severityMap.urgent++;
-    } else if (severity === "warning" || severity === "borderline") {
-      severityMap.borderline++;
-    } else if (severity === "normal" || severity === "low") {
-      severityMap.normal++;
-    }
-  });
-
-  return [
-    {
-      label: "Immediate",
-      value: severityMap.immediate,
-      color: "#DC2626",
-      bgColor: "#FEE2E2",
-    },
-    {
-      label: "Urgent",
-      value: severityMap.urgent,
-      color: "#EA580C",
-      bgColor: "#FED7AA",
-    },
-    {
-      label: "Borderline",
-      value: severityMap.borderline,
-      color: "#F59E0B",
-      bgColor: "#FEF3C7",
-    },
-    {
-      label: "Normal",
-      value: severityMap.normal,
-      color: "#10B981",
-      bgColor: "#D1FAE5",
-    },
-  ];
-}
+import { getCurrentUser } from "@/libs/session";
 
 // Helper function to format contaminant names for display
 function formatContaminantName(name: string): string {
@@ -121,6 +72,9 @@ function aggregateContaminants(
 }
 
 export default async function Page() {
+  // Get current user
+  const currentUser = await getCurrentUser();
+
   // Fetch all data with error handling - wrap in Promise.all with catch to prevent crashes
   const [
     sites,
@@ -153,40 +107,184 @@ export default async function Page() {
       ? recommendationsAnalyticsArray[0]
       : null;
 
-  // Prepare severity card data from real samples
-  const samplesArray = Array.isArray(samples) ? samples : [];
-  const severityLevels = calculateSeverityDistribution(samplesArray);
-
-  // Get the most recent sample for subtitle and date
-  const recentSample = samplesArray.sort(
-    (a, b) => (b.date_sampled || 0) - (a.date_sampled || 0)
-  )[0];
-
   // Get the most recent recommendation
+  const recommendationsArray = Array.isArray(recommendations)
+    ? recommendations
+    : [];
   const recentRecommendation =
-    Array.isArray(recommendations) && recommendations.length > 0
-      ? recommendations.sort(
+    recommendationsArray.length > 0
+      ? recommendationsArray.sort(
           (a, b) =>
-            new Date(b.created_at_datetime).getTime() -
-            new Date(a.created_at_datetime).getTime()
+            new Date(b.created_at_datetime || 0).getTime() -
+            new Date(a.created_at_datetime || 0).getTime()
         )[0]
       : null;
 
+  // Helper function to get recommender name (same logic as RecommendationTable)
+  const getRecommenderName = (recommendation: typeof recentRecommendation) => {
+    if (!recommendation?.recommender) return "Unknown";
+
+    const recommenderObj = recommendation.recommender;
+
+    // Check if the recommender ID matches the current logged-in user
+    if (currentUser?.user_id && recommenderObj?.id === currentUser.user_id) {
+      // Try to find the current user in the users array to get their name
+      const currentUserInList = users.find(
+        (user) => user.id === currentUser.user_id
+      );
+      if (currentUserInList) {
+        const fullName =
+          currentUserInList.first_name || currentUserInList.last_name
+            ? `${currentUserInList.first_name || ""} ${
+                currentUserInList.last_name || ""
+              }`.trim()
+            : null;
+        if (fullName) {
+          return `You (${fullName})`;
+        }
+      }
+      return "You";
+    }
+
+    // Type guard for recommender with user fields
+    type RecommenderWithUserFields = {
+      id: string;
+      name?: string;
+      first_name?: string;
+      last_name?: string;
+      email?: string;
+    };
+
+    const recommenderWithFields = recommenderObj as RecommenderWithUserFields;
+
+    // First, check if recommender object has a name field (from type definition)
+    if (recommenderWithFields?.name) {
+      return recommenderWithFields.name;
+    }
+
+    // Then check if recommender object has first_name or last_name directly
+    // (the recommender object might be a full user object embedded)
+    if (recommenderWithFields?.first_name || recommenderWithFields?.last_name) {
+      const fullName = `${recommenderWithFields.first_name || ""} ${
+        recommenderWithFields.last_name || ""
+      }`.trim();
+      if (fullName) {
+        return fullName;
+      }
+    }
+
+    // Finally, try to find the user in the users array by ID
+    if (recommenderObj?.id) {
+      const user = users.find((user) => user.id === recommenderObj.id);
+      if (user) {
+        const fullName =
+          user.first_name || user.last_name
+            ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
+            : null;
+        if (fullName) {
+          return fullName;
+        }
+        // If no full name, try email from user
+        if (user.email) {
+          return user.email;
+        }
+      }
+    }
+
+    // Fallback to showing email if available on recommender object
+    if (recommenderWithFields?.email) {
+      return recommenderWithFields.email;
+    }
+
+    // Last resort: return the ID or "Unknown"
+    return recommenderObj?.id || "Unknown";
+  };
+
+  // Calculate severity distribution from recommendations
+  const calculateRecommendationSeverityDistribution = (
+    recommendations: typeof recommendationsArray
+  ) => {
+    const severityMap: Record<string, number> = {
+      critical: 0,
+      high: 0,
+      medium: 0,
+      low: 0,
+    };
+
+    recommendations.forEach((rec) => {
+      const severity = rec.severity?.toLowerCase() || "";
+      if (severity in severityMap) {
+        severityMap[severity]++;
+      }
+    });
+
+    return [
+      {
+        label: "Critical",
+        value: severityMap.critical,
+        color: "#DC2626",
+        bgColor: "#FEE2E2",
+      },
+      {
+        label: "High",
+        value: severityMap.high,
+        color: "#EA580C",
+        bgColor: "#FED7AA",
+      },
+      {
+        label: "Medium",
+        value: severityMap.medium,
+        color: "#F59E0B",
+        bgColor: "#FEF3C7",
+      },
+      {
+        label: "Low",
+        value: severityMap.low,
+        color: "#10B981",
+        bgColor: "#D1FAE5",
+      },
+    ];
+  };
+
+  // Prepare severity card data using recommendation analytics and metrics
+  const severityLevels =
+    calculateRecommendationSeverityDistribution(recommendationsArray);
+
+  // Use actual recommendations count instead of analytics (which might be outdated)
+  const totalRecommendationsCount = recommendationsArray.length;
+
   // Prepare severity card data
   const severityCardData = {
-    title: "Recent Severity",
-    subtitle: recentSample
-      ? `Result of sample #${recentSample.serial_number || recentSample.id}`
-      : "No samples available",
-    date: recentSample
-      ? dayjs(recentSample.date_sampled * 1000).format("DD-MM-YYYY")
+    title: `Recommendations (${totalRecommendationsCount})`,
+    subtitle: recentRecommendation
+      ? `Last recommendation: ${recentRecommendation.title || "N/A"}`
+      : "No recommendations available",
+    date: recentRecommendation
+      ? dayjs(recentRecommendation.created_at_datetime).format("DD-MM-YYYY")
       : dayjs().format("DD-MM-YYYY"),
     severityLevels,
     recommendation: recentRecommendation
       ? {
-          text:
-            recentRecommendation.description || "No recommendation available.",
-          author: recentRecommendation.recommender?.name || "Unknown",
+          text: (() => {
+            // Check if description is a placeholder or empty
+            const description = recentRecommendation.description?.trim() || "";
+            const isPlaceholder =
+              description.toLowerCase() === "add recommendation" ||
+              description.toLowerCase() === "add recommendation." ||
+              description === "";
+
+            // If it's a placeholder or empty, use the title instead
+            if (isPlaceholder) {
+              return recentRecommendation.title || "No description available.";
+            }
+
+            return (
+              description ||
+              recentRecommendation.title ||
+              "No recommendation available."
+            );
+          })(),
+          author: getRecommenderName(recentRecommendation),
           role: "Analyst",
         }
       : {
@@ -197,6 +295,7 @@ export default async function Page() {
   };
 
   // Prepare contaminants data for pie chart
+  const samplesArray = Array.isArray(samples) ? samples : [];
   const contaminantsData = aggregateContaminants(samplesArray);
   const totalContaminants = contaminantsData.reduce(
     (sum, item) => sum + item.value,
@@ -234,7 +333,7 @@ export default async function Page() {
           />
         </ComponentGuard>
 
-        <LineChart samples={samplesArray} />
+        <LineChart samples={Array.isArray(samples) ? samples : []} />
 
         {/* table */}
         <section className="pt-[12.8px] flex flex-col gap-3">
