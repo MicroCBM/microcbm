@@ -1,7 +1,6 @@
 import { Icon } from "@/libs";
 import BgImage from "../../../public/assets/images/Bg.webp";
-import MicroCBMLogo from "../../../public/assets/images/Logo.png";
-import Image from "next/image";
+import MicroCBMLogo from "../../../public/assets/svg/new_logo_white.svg";
 import CheckCircle from "../../../public/assets/svg/check_circle.svg";
 import EndQuote from "../../../public/assets/svg/end_quote.svg";
 import Link from "next/link";
@@ -18,13 +17,7 @@ export default function AuthLayout({
         style={{ backgroundImage: `url(${BgImage.src})` }}
         className="flex-1 p-10  flex-col min-h-screen hidden md:flex"
       >
-        <Image
-          src={MicroCBMLogo}
-          alt="MicroCBM Logo"
-          width={160}
-          height={69}
-          className="h-[69px] w-40 object-contain"
-        />
+        <MicroCBMLogo className="h-[69px] w-40" />
         <div className="text-white flex flex-col gap-10 font-medium justify-center flex-1">
           <Icon icon="mdi:format-quote-open" className="size-20 -m-4" />
           <div className="flex flex-col gap-4">

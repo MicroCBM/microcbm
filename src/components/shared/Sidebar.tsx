@@ -9,8 +9,7 @@ import { logout } from "@/app/actions";
 import { ConfirmDialog, Text } from "@/components";
 import { ComponentGuard } from "@/components/content-guard";
 import { cn } from "@/libs";
-import MicroCBMLogo from "../../../public/assets/images/Logo.png";
-import Image from "next/image";
+import MicroCBMLogo from "../../../public/assets/svg/new_logo_white.svg";
 import menuItems from "@/utils/shared";
 import { MODALS } from "@/utils/constants/modals";
 
@@ -34,13 +33,7 @@ export default function Sidebar({ user }: { user: SessionUser | null }) {
         {/* Logo */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-center">
-            <Image
-              src={MicroCBMLogo}
-              alt="MicroCBM Logo"
-              width={136}
-              height={28}
-              className="w-[136px] h-[28px] object-contain"
-            />
+            <MicroCBMLogo className="w-[136px] h-[28px] brightness-0" />
           </div>
         </div>
 
