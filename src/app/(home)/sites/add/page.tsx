@@ -1,4 +1,3 @@
-"use server";
 import React from "react";
 import { AddSiteForm } from "./components";
 import { getOrganizationsService, getUsersService } from "@/app/actions";
