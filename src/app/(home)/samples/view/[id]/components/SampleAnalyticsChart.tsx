@@ -246,9 +246,11 @@ export function SampleAnalyticsChart({ data, category }: SampleAnalyticsChartPro
               borderRadius: "4px",
               fontSize: "12px",
             }}
-            formatter={(value: number, name: string) => [
-              typeof value === "number" ? `${value.toFixed(2)} ${unit}` : `${value} ${unit}`,
-              name,
+            formatter={(value, name) => [
+              typeof value === "number" && !Number.isNaN(value)
+                ? `${value.toFixed(2)} ${unit}`
+                : `${value ?? "—"} ${unit}`,
+              String(name ?? ""),
             ]}
           />
           <Legend

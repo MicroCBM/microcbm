@@ -59,6 +59,8 @@ export const ADD_SAMPLE_SCHEMA = z.object({
       ),
     ])
     .optional(),
+  collection_date: z.string().optional(),
+  document_url: z.string().optional(),
 });
 
 export const EDIT_SAMPLE_SCHEMA = z.object({

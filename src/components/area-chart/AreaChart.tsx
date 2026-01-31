@@ -76,9 +76,11 @@ export function AreaChart({ data, className }: AreaChartProps) {
               borderRadius: "4px",
               fontSize: "12px",
             }}
-            formatter={(value: number, name: string) => [
-              `${value.toFixed(1)}ppm`,
-              name === "series1" ? "Series 1" : "Series 2",
+            formatter={(value, name) => [
+              typeof value === "number" && !Number.isNaN(value)
+                ? `${value.toFixed(1)}ppm`
+                : `${value ?? "—"}ppm`,
+              String(name ?? "") === "series1" ? "Series 1" : "Series 2",
             ]}
             labelFormatter={(label) => {
               const date = new Date(label);

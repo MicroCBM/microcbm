@@ -1,6 +1,7 @@
 export type PageType =
   | "Trends"
-  | "Samples"
+  | "Sample Reports"
+  | "Sample History"
   | "Alarms"
   | "Recommendations"
   | "Assets"

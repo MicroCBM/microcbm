@@ -6,11 +6,13 @@ import Input from "@/components/input/Input";
 interface AdditivesFormProps {
   handlePreviousStep: () => void;
   handleComplete: () => void;
+  isSubmitting?: boolean;
 }
 
 export default function AdditivesForm({
   handlePreviousStep,
   handleComplete,
+  isSubmitting = false,
 }: AdditivesFormProps) {
   const {
     register,
@@ -64,7 +66,9 @@ export default function AdditivesForm({
         <Button type="button" variant="outline" onClick={handlePreviousStep}>
           Previous
         </Button>
-        <Button onClick={handleComplete}>Complete</Button>
+        <Button onClick={handleComplete} loading={isSubmitting}>
+          Complete
+        </Button>
       </div>
     </section>
   );

@@ -6,6 +6,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  StatusBadge,
   Text,
 } from "@/components";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -64,15 +65,11 @@ export function getAlarmListColumns<T extends Alarm = Alarm>({
       accessorKey: "acknowledged_status",
       header: "Status",
       cell: ({ row }) => (
-        <span
-          className={`text-sm px-2 py-1 rounded-full ${
-            row.original.acknowledged_status
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {row.original.acknowledged_status ? "Acknowledged" : "Unacknowledged"}
-        </span>
+        <StatusBadge
+          status={
+            row.original.acknowledged_status === true ? "Active" : "Inactive"
+          }
+        />
       ),
       size: 150,
     },

@@ -122,6 +122,12 @@ export async function getUsersService(): Promise<USER_TYPE[]> {
       redirect(ROUTES.AUTH.LOGIN);
     }
 
+    // Handle 403 Forbidden (permission denied) gracefully so pages that need users for dropdowns still load
+    if (response.status === 403) {
+      console.warn("User does not have permission to access users");
+      return [];
+    }
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Error response:", errorText);
@@ -132,7 +138,7 @@ export async function getUsersService(): Promise<USER_TYPE[]> {
 
     const data = await response.json();
 
-    return data?.data;
+    return data?.data ?? [];
   } catch (error) {
     console.error("Error fetching users:", error);
     throw error;

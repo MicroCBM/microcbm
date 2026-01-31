@@ -54,7 +54,7 @@ export function SampleTable({
     <div className={cn("relative space-y-[37px]", className)}>
       <div className="text-[#0c4b77] py-2 border-b-2 border-[#0c4b77] w-fit">
         <Text variant="h6" weight="medium">
-          Samples ({data?.length ?? 0})
+          Sample Reports ({data?.length ?? 0})
         </Text>
       </div>
       <PaginatedTable<Sample>
@@ -66,7 +66,7 @@ export function SampleTable({
         total={data?.length ?? 0}
         loading={false}
         csvHeaders={sampleListCsvHeaders}
-        searchPlaceholder="Search samples"
+        searchPlaceholder="Search sample reports"
         noExport
       />
 

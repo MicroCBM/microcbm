@@ -1,5 +1,6 @@
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
+import { toast } from "sonner";
 import {
   Button,
   Select,
@@ -14,11 +15,15 @@ import Input from "@/components/input/Input";
 interface SampleInformationFormProps {
   handleNextStep: () => void;
   handlePreviousStep: () => void;
+  documentFile?: File | null;
+  setDocumentFile?: (file: File | null) => void;
 }
 
 export default function SampleInformationForm({
   handleNextStep,
   handlePreviousStep,
+  documentFile = null,
+  setDocumentFile,
 }: SampleInformationFormProps) {
   const {
     register,
@@ -131,6 +136,37 @@ export default function SampleInformationForm({
               </Select>
             )}
           />
+
+          {setDocumentFile && (
+            <div className="flex flex-col gap-2">
+              <Input
+                type="file"
+                label="Document (optional)"
+                placeholder="Upload document"
+                accept=".pdf,.doc,.docx,image/jpeg,image/png,image/gif,image/bmp,image/tiff"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const isWebp =
+                      file.type === "image/webp" ||
+                      file.name.toLowerCase().endsWith(".webp");
+                    if (isWebp) {
+                      toast.error("WebP images are not allowed for documents.");
+                      setDocumentFile(null);
+                      e.target.value = "";
+                      return;
+                    }
+                    setDocumentFile(file);
+                  }
+                }}
+              />
+              {documentFile && (
+                <Text variant="span" className="text-sm text-gray-600">
+                  Selected: {documentFile.name}
+                </Text>
+              )}
+            </div>
+          )}
         </div>
       </section>
       <div className="flex justify-end gap-3">

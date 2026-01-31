@@ -117,9 +117,9 @@ export function BarChart({
                 borderRadius: "4px",
                 fontSize: "12px",
               }}
-              formatter={(value: number, name: string) => [
-                value,
-                name === "value1" ? value1Label : value2Label,
+              formatter={(value, name) => [
+                value ?? "—",
+                String(name ?? "") === "value1" ? value1Label : value2Label,
               ]}
               labelFormatter={(label) => formatMonth(label)}
             />

@@ -16,9 +16,15 @@ const menuItems: MenuItem[] = [
     label: "Oil Analysis",
     children: [
       {
-        name: "Samples",
+        name: "Sample Reports",
         icon: "solar:bottle-bold-duotone",
         path: "/samples",
+        permission: "samples:read",
+      },
+      {
+        name: "Sample History",
+        icon: "solar:history-bold-duotone",
+        path: "/sample-history",
         permission: "samples:read",
       },
       {

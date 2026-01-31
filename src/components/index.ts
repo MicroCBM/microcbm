@@ -39,3 +39,4 @@ export * from "./table";
 export * from "./search";
 export * from "./print-view";
 export * from "./cells";
+export * from "./date-input";

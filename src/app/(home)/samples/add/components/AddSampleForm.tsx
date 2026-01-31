@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button, Text } from "@/components";
 import { AddSamplePayload, ADD_SAMPLE_SCHEMA } from "@/schema";
-import { addSampleService } from "@/app/actions";
+import { addSampleService, uploadImage } from "@/app/actions";
 import { Sites, Asset, SamplingPoint, Organization } from "@/types";
 import dayjs from "dayjs";
 import { Icon } from "@/libs";
@@ -32,7 +32,9 @@ export function AddSampleForm({
   organizations,
 }: AddSampleFormProps) {
   const router = useRouter();
-  const [, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
 
   const form = useForm<AddSamplePayload>({
     resolver: zodResolver(ADD_SAMPLE_SCHEMA),
@@ -54,9 +56,49 @@ export function AddSampleForm({
     },
   });
 
+  const uploadDocumentFile = async (
+    file: File
+  ): Promise<string | null> => {
+    setIsUploadingDocument(true);
+    try {
+      const response = await uploadImage(
+        { file },
+        "sample-documents"
+      );
+      if (response.success) {
+        const fileKey = response.data?.data?.file_key;
+        if (fileKey && typeof fileKey === "string") {
+          return fileKey;
+        }
+        toast.error("Failed to get file key from upload response.");
+        return null;
+      }
+      toast.error(
+        response.message || "File upload failed. Please try again."
+      );
+      return null;
+    } catch {
+      toast.error("File upload failed. Please try again.");
+      return null;
+    } finally {
+      setIsUploadingDocument(false);
+    }
+  };
+
   const onSubmit = async (data: AddSamplePayload) => {
     setIsSubmitting(true);
     try {
+      // Upload document if one is selected
+      let documentUrl: string | null = null;
+      if (documentFile) {
+        documentUrl = await uploadDocumentFile(documentFile);
+        if (!documentUrl) {
+          toast.error("File upload failed. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       // Convert date to Unix timestamp
       const dateSampled = dayjs(
         (data.date_sampled as unknown as string) || new Date()
@@ -318,10 +360,10 @@ export function AddSampleForm({
         ...(additivesArray.length > 0 && {
           additives: additivesArray,
         }),
-        // Add collection_date from date_sampled in ISO format
         collection_date: dayjs(
           (data.date_sampled as unknown as string) || new Date()
         ).toISOString(),
+        ...(documentUrl && { document_url: documentUrl }),
       };
 
       // Cast to unknown first to bypass type checking since we're transforming the data structure
@@ -468,6 +510,8 @@ export function AddSampleForm({
           <SampleInformationForm
             handlePreviousStep={handlePreviousStep}
             handleNextStep={handleNextStep}
+            documentFile={documentFile}
+            setDocumentFile={setDocumentFile}
           />
         )}
         {steps === 3 && (
@@ -498,6 +542,7 @@ export function AddSampleForm({
           <AdditivesForm
             handlePreviousStep={handlePreviousStep}
             handleComplete={handleComplete}
+            isSubmitting={isSubmitting || isUploadingDocument}
           />
         )}
       </FormProvider>

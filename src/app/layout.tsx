@@ -11,6 +11,9 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "MicroCBM",
   description: "MicroCBM",
+  icons: {
+    icon: "/assets/svg/new_logo_white.svg",
+  },
 };
 
 export default function RootLayout({

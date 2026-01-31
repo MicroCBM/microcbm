@@ -16,8 +16,6 @@ export default async function SitesPage() {
     getUsersService(),
   ]);
 
-  console.log("sites", sites);
-
   return (
     <main className="flex flex-col gap-4">
       <SiteContent organizations={organizations} sites={sites} />

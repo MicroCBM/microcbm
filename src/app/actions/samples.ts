@@ -79,6 +79,90 @@ async function getSampleAnalysisGroupsAnalyticsService(
   }
 }
 
+export interface SampleHistoryMeta {
+  has_next: boolean;
+  has_prev: boolean;
+  limit: number;
+  page: number;
+  total: number;
+  total_pages: number;
+}
+
+export interface SampleHistoryResponse {
+  success: boolean;
+  message?: string;
+  data: Sample[];
+  meta: SampleHistoryMeta;
+}
+
+async function getSamplingPointSampleHistoryService(
+  samplingPointId: string,
+  params: {
+    page?: number;
+    org_id?: string;
+    site_id?: string;
+    asset_id?: string;
+    limit?: number;
+    start_date?: string;
+    end_date?: string;
+  } = {}
+): Promise<SampleHistoryResponse> {
+  try {
+    const searchParams = new URLSearchParams();
+    if (params.page != null) searchParams.set("page", String(params.page));
+    if (params.org_id) searchParams.set("org_id", params.org_id);
+    if (params.site_id) searchParams.set("site_id", params.site_id);
+    if (params.asset_id) searchParams.set("asset_id", params.asset_id);
+    if (params.limit != null) searchParams.set("limit", String(params.limit));
+    if (params.start_date) searchParams.set("start_date", params.start_date);
+    if (params.end_date) searchParams.set("end_date", params.end_date);
+    const query = searchParams.toString();
+    const url = `${commonEndpoint}sampling-points/${samplingPointId}/samples/history${query ? `?${query}` : ""}`;
+    const response = await requestWithAuth(url, { method: "GET" });
+    const json = await response.json();
+    if (!response.ok) {
+      return {
+        success: false,
+        data: [],
+        meta: {
+          has_next: false,
+          has_prev: false,
+          limit: params.limit ?? 10,
+          page: params.page ?? 1,
+          total: 0,
+          total_pages: 0,
+        },
+      };
+    }
+    return {
+      success: true,
+      data: json?.data ?? [],
+      meta: json?.meta ?? {
+        has_next: false,
+        has_prev: false,
+        limit: params.limit ?? 10,
+        page: params.page ?? 1,
+        total: 0,
+        total_pages: 0,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching sample history:", error);
+    return {
+      success: false,
+      data: [],
+      meta: {
+        has_next: false,
+        has_prev: false,
+        limit: params.limit ?? 10,
+        page: params.page ?? 1,
+        total: 0,
+        total_pages: 0,
+      },
+    };
+  }
+}
+
 export {
   getSamplesService,
   getSampleService,
@@ -86,4 +170,5 @@ export {
   editSampleService,
   deleteSampleService,
   getSampleAnalysisGroupsAnalyticsService,
+  getSamplingPointSampleHistoryService,
 };

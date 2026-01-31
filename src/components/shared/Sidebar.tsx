@@ -30,15 +30,15 @@ export default function Sidebar({ user }: { user: SessionUser | null }) {
   return (
     <>
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen fixed left-0 top-0 z-10">
-        {/* Logo */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-center">
-            <MicroCBMLogo className="w-[136px] h-[28px] brightness-0" />
+        {/* Logo - same horizontal padding as nav for alignment */}
+        <div className="border-b border-gray-200 px-4 py-4">
+          <div className="flex items-center">
+            <MicroCBMLogo className="h-7 w-[136px] brightness-0" />
           </div>
         </div>
 
         {/* Navigation */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto px-4 py-4">
           <div className="space-y-8">
             {menuItems.map((section) => (
               <SidebarSection
@@ -160,7 +160,7 @@ function SidebarSection({ section, user }: Readonly<SectionProps>) {
 
   return (
     <div className="space-y-2">
-      <div className="pl-[18px]">
+      <div>
         <Text
           variant="span"
           className="uppercase font-normal text-xs text-gray-500"

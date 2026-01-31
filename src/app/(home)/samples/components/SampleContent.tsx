@@ -21,10 +21,10 @@ export function SampleContent({
     <div className="flex items-center justify-between">
       <div>
         <Text variant="h4" className="text-gray-900">
-          Samples
+          Sample Reports
         </Text>
         <Text variant="p" className="text-gray-600">
-          Manage and monitor oil analysis samples
+          Manage and monitor oil analysis sample reports
         </Text>
       </div>
       <Button
@@ -34,7 +34,7 @@ export function SampleContent({
         className="rounded-full cursor-pointer"
       >
         <Icon icon="mdi:plus-circle" className="text-white size-5" />
-        Add New Sample
+        Add New Sample Report
       </Button>
     </div>
   );

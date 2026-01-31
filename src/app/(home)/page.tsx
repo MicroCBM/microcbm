@@ -360,7 +360,7 @@ export default async function Page() {
                 : [{ name: "No Data", value: 1, color: "#E5E7EB" }]
             }
             centerValue={totalContaminants || 0}
-            centerLabel="Samples"
+            centerLabel="Sample Reports"
           />
         </div>
       </main>
