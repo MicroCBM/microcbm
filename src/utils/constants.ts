@@ -72,6 +72,7 @@ export const ROLES = [
 ];
 
 export const ASSET_TYPE_OPTIONS = [
+  { label: "Engines", value: "engines" },
   {
     label: "Compressor",
     value: "compressor",

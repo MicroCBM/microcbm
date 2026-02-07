@@ -114,6 +114,8 @@ export const AddAssetForm = ({
     mode: "onSubmit",
   });
 
+  console.log("errors", errors);
+
   const selectedSiteId = watch("parent_site.id");
   const currentAssigneeId = watch("assignee.id");
   const previousOrganizationRef = useRef<string | null>(null);
@@ -165,13 +167,13 @@ export const AddAssetForm = ({
   const toTitleCase = (value?: string) =>
     value
       ? value
-          .split(" ")
-          .map((word) =>
-            word.length > 0
-              ? word[0].toUpperCase() + word.slice(1).toLowerCase()
-              : word
-          )
-          .join(" ")
+        .split(" ")
+        .map((word) =>
+          word.length > 0
+            ? word[0].toUpperCase() + word.slice(1).toLowerCase()
+            : word
+        )
+        .join(" ")
       : value;
 
   const appendUnit = (value: string, unit: string) => {
@@ -346,8 +348,8 @@ export const AddAssetForm = ({
                         !selectedOrganizationId
                           ? "Select an organization first"
                           : filteredSites.length === 0
-                          ? "No sites available"
-                          : "Select a site"
+                            ? "No sites available"
+                            : "Select a site"
                       }
                     />
                   </SelectTrigger>
@@ -404,8 +406,8 @@ export const AddAssetForm = ({
                       field.value === true
                         ? "true"
                         : field.value === false
-                        ? "false"
-                        : ""
+                          ? "false"
+                          : ""
                     }
                     onValueChange={(val) => field.onChange(val === "true")}
                     className="flex gap-2"
@@ -463,8 +465,9 @@ export const AddAssetForm = ({
 
             <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
               <Input
-                label="Operting Hours (Since Last Oil Change)"
-                placeholder="Enter operating hours"
+                type="number"
+                label="Operating Hours (Since Last Oil Change)"
+                placeholder="Eg. 1000"
                 {...register("operating_hours")}
                 error={errors.operating_hours?.message}
               />
@@ -574,21 +577,21 @@ export const AddAssetForm = ({
             <Input
               type="number"
               label="Power Rating (Kw)"
-              placeholder="Enter power rating (Kw)"
+              placeholder="Eg. 1000"
               {...register("power_rating")}
               error={errors.power_rating?.message}
             />
             <Input
               type="number"
               label="Speed (RPM)"
-              placeholder="Enter speed (RPM)"
+              placeholder="Eg. 1000"
               {...register("speed")}
               error={errors.speed?.message}
             />
             <Input
               type="number"
               label="Capacity (m3/h)"
-              placeholder="Enter capacity (m3/h)"
+              placeholder="Eg. 1000"
               {...register("capacity")}
               error={errors.capacity?.message}
             />

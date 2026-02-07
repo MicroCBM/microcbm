@@ -514,7 +514,7 @@ export const EditAssetForm = ({
 
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Operting Hours (Since Last Oil Change)"
+                label="Operating Hours (Since Last Oil Change)"
                 placeholder="Enter operating hours"
                 {...register("operating_hours")}
                 error={errors.operating_hours?.message}
