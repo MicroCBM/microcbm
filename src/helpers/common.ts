@@ -1,6 +1,9 @@
 export const SPECIAL_CHARACTERS = "!@#$%^&*()";
 
 export const INDUSTRIES = [
+  "Manufacturing",
+  "Logistics",
+  "Construction",
   "Oil & Gas Exploration",
   "Oilfield Services",
   "Petroleum Refining",
