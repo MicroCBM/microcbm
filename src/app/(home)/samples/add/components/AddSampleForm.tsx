@@ -206,7 +206,7 @@ export function AddSampleForm({
 
       const particleSizeMap: Record<string, string> = {
         "4_micron": "4-6um",
-        "8_micron": "6-10um",
+        "8_micron": "6-8um",
         "14_micron": "10-14um",
         "20_micron": "14-20um",
         "25_micron": "20-25um",

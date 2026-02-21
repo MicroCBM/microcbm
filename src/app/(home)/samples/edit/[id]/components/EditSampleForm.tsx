@@ -73,7 +73,7 @@ const CONTAMINANTS = [
 
 const PARTICLE_COUNTS = [
   { key: "4_micron", label: "4 Micron", symbol: "4 µm" },
-  { key: "8_micron", label: "8 Micron", symbol: "8 µm" },
+  { key: "8_micron", label: "6 Micron", symbol: "6 µm" },
   { key: "14_micron", label: "14 Micron", symbol: "14 µm" },
   { key: "20_micron", label: "20 Micron", symbol: "20 µm" },
   { key: "25_micron", label: "25 Micron", symbol: "25 µm" },
@@ -200,6 +200,7 @@ export function EditSampleForm({
       const particleCountsObj: Record<string, string> = {};
       const particleSizeMapReverse: Record<string, string> = {
         "4-6um": "4_micron",
+        "6-8um": "8_micron",
         "6-10um": "8_micron",
         "10-14um": "14_micron",
         "14-20um": "20_micron",
@@ -451,7 +452,7 @@ export function EditSampleForm({
 
       const particleSizeMap: Record<string, string> = {
         "4_micron": "4-6um",
-        "8_micron": "6-10um",
+        "8_micron": "6-8um",
         "14_micron": "10-14um",
         "20_micron": "14-20um",
         "25_micron": "20-25um",

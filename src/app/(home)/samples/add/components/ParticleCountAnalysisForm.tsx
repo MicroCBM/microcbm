@@ -19,7 +19,7 @@ export default function ParticleCountAnalysisForm({
 
   const particleCountAnalysis = [
     { key: "4_micron", label: "4 Micron", symbol: "4 µm" },
-    { key: "8_micron", label: "8 Micron", symbol: "8 µm" },
+    { key: "8_micron", label: "6 Micron", symbol: "6 µm" },
     { key: "14_micron", label: "14 Micron", symbol: "14 µm" },
     { key: "20_micron", label: "20 Micron", symbol: "20 µm" },
     { key: "25_micron", label: "25 Micron", symbol: "25 µm" },
