@@ -792,6 +792,9 @@ export function EditSampleForm({
 
             {/* Service Meter Reading */}
             <Input
+              type="number"
+              inputMode="numeric"
+              step="1"
               label="Service Meter Reading *"
               placeholder="e.g., 15000"
               {...register("service_meter_reading")}
@@ -808,57 +811,60 @@ export function EditSampleForm({
 
             {/* Oil in Service */}
             <Input
+              type="number"
+              inputMode="numeric"
+              step="1"
               label="Oil in Service (hours)*"
               placeholder="e.g., 5000"
               {...register("oil_in_service")}
               error={errors.oil_in_service?.message}
             />
 
-            {/* Filter Changed */}
-            <Controller
-              control={control}
-              name="filter_changed"
-              render={({ field }) => (
-                <Select
-                  value={field.value || ""}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger label="Filter Changed *">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {YES_NO_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-
-            {/* Oil Drained */}
-            <Controller
-              control={control}
-              name="oil_drained"
-              render={({ field }) => (
-                <Select
-                  value={field.value || ""}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger label="Oil Drained *">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {YES_NO_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+            {/* Filter Changed & Oil Drained */}
+            <div className="grid grid-cols-2 gap-4">
+              <Controller
+                control={control}
+                name="filter_changed"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger label="Filter Changed *">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {YES_NO_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <Controller
+                control={control}
+                name="oil_drained"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || ""}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger label="Oil Drained *">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {YES_NO_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
 
             {/* Severity */}
             <Controller

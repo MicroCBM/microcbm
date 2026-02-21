@@ -103,6 +103,15 @@ export const getDigitSchema = (field = "Field", minLength = 1) => {
     });
 };
 
+/** String that must be numeric (digits and optional decimal part). */
+export const getRequiredNumericStringSchema = (label: string = "Field") =>
+  z
+    .string()
+    .min(1, `${label} is required`)
+    .refine((val) => /^\d+(\.\d+)?$/.test(val.trim()), {
+      message: `${label} must contain only numbers`,
+    });
+
 export const freezeWalletSchema = z.object({
   frozen: z.boolean(),
   reason: getRequiredStringSchema("Reason"),

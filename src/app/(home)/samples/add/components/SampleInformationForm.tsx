@@ -56,69 +56,64 @@ export default function SampleInformationForm({
           />
           <div className="grid grid-cols-2 gap-4">
             <Input
+              type="number"
+              inputMode="numeric"
+              step="1"
               label="Service Meter Reading *"
               placeholder="e.g., 15000"
               {...register("service_meter_reading")}
               error={errors.service_meter_reading?.message}
             />
-            <Controller
-              control={control}
-              name="hrs"
-              render={({ field }) => (
-                <Select
-                  value={field.value || ""}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger label="Hours *">
-                    <SelectValue placeholder="Select a hours" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1200">1200</SelectItem>
-                    <SelectItem value="1300">1300</SelectItem>
-                    <SelectItem value="1400">1400</SelectItem>
-                    <SelectItem value="1500">1500</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+            <Input
+              type="number"
+              label="Hours *"
+              placeholder="e.g., 1200"
+              {...register("hrs")}
+              error={errors.hrs?.message}
             />
           </div>
 
           <Input
+            type="number"
+            inputMode="numeric"
+            step="1"
             label="Oil in Service (hours)*"
             placeholder="e.g., 5000"
             {...register("oil_in_service")}
             error={errors.oil_in_service?.message}
           />
-          <Controller
-            control={control}
-            name="filter_changed"
-            render={({ field }) => (
-              <Select value={field.value || ""} onValueChange={field.onChange}>
-                <SelectTrigger label="Filter Changed *">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="yes">Yes</SelectItem>
-                  <SelectItem value="no">No</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-          <Controller
-            control={control}
-            name="oil_drained"
-            render={({ field }) => (
-              <Select value={field.value || ""} onValueChange={field.onChange}>
-                <SelectTrigger label="Oil Drained *">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="yes">Yes</SelectItem>
-                  <SelectItem value="no">No</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <Controller
+              control={control}
+              name="filter_changed"
+              render={({ field }) => (
+                <Select value={field.value || ""} onValueChange={field.onChange}>
+                  <SelectTrigger label="Filter Changed *">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <Controller
+              control={control}
+              name="oil_drained"
+              render={({ field }) => (
+                <Select value={field.value || ""} onValueChange={field.onChange}>
+                  <SelectTrigger label="Oil Drained *">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
           <Controller
             control={control}
             name="severity"

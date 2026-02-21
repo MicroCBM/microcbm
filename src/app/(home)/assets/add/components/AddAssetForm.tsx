@@ -114,8 +114,6 @@ export const AddAssetForm = ({
     mode: "onSubmit",
   });
 
-  console.log("errors", errors);
-
   const selectedSiteId = watch("parent_site.id");
   const currentAssigneeId = watch("assignee.id");
   const previousOrganizationRef = useRef<string | null>(null);

@@ -82,13 +82,13 @@ export function SamplingRouteTable({
       } else {
         toast.error(
           response.message ||
-            "Failed to delete sampling route. Please try again."
+          "Failed to delete sampling route. Please try again."
         );
       }
     } catch (error) {
       toast.error(
         (error as Error).message ||
-          "Failed to delete sampling route. Please try again."
+        "Failed to delete sampling route. Please try again."
       );
     } finally {
       setIsDeleting(false);
@@ -116,7 +116,9 @@ export function SamplingRouteTable({
       accessorKey: "site.name",
       header: "Site",
       cell: ({ row }) => (
-        <span className="text-sm text-gray-900">{row.original.site.name}</span>
+        <span className="text-sm text-gray-900">
+          {row.original.site?.name ?? "—"}
+        </span>
       ),
       size: 150,
     },
@@ -126,7 +128,7 @@ export function SamplingRouteTable({
       cell: ({ row }) => (
         <span className="text-sm text-gray-900">
           {row.original.technician
-            ? `${row.original.technician.first_name} ${row.original.technician.last_name}`
+            ? `${row.original.technician.first_name ?? ""} ${row.original.technician.last_name ?? ""}`.trim() || "—"
             : "Not assigned"}
         </span>
       ),
@@ -138,14 +140,16 @@ export function SamplingRouteTable({
       cell: ({ row }) => (
         <StatusBadge
           status={
-            (row.original.status.charAt(0).toUpperCase() +
-              row.original.status.slice(1).toLowerCase()) as
-              | "Active"
-              | "Inactive"
-              | "Pending"
-              | "Low"
-              | "Medium"
-              | "High"
+            (row.original.status
+              ? row.original.status.charAt(0).toUpperCase() +
+              row.original.status.slice(1).toLowerCase()
+              : "Pending") as
+            | "Active"
+            | "Inactive"
+            | "Pending"
+            | "Low"
+            | "Medium"
+            | "High"
           }
         />
       ),
@@ -268,9 +272,9 @@ export function SamplingRouteTable({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </th>
                 ))
               )}

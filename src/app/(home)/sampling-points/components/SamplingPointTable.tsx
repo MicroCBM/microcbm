@@ -81,13 +81,13 @@ export function SamplingPointTable({
       } else {
         toast.error(
           response.message ||
-            "Failed to delete sampling point. Please try again."
+          "Failed to delete sampling point. Please try again."
         );
       }
     } catch (error) {
       toast.error(
         (error as Error).message ||
-          "Failed to delete sampling point. Please try again."
+        "Failed to delete sampling point. Please try again."
       );
     } finally {
       setIsDeleting(false);
@@ -159,12 +159,12 @@ export function SamplingPointTable({
           status={
             (row.original.severity.charAt(0).toUpperCase() +
               row.original.severity.slice(1).toLowerCase()) as
-              | "Active"
-              | "Inactive"
-              | "Pending"
-              | "Low"
-              | "Medium"
-              | "High"
+            | "Active"
+            | "Inactive"
+            | "Pending"
+            | "Low"
+            | "Medium"
+            | "High"
           }
         />
       ),
@@ -287,9 +287,9 @@ export function SamplingPointTable({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </th>
                 ))
               )}

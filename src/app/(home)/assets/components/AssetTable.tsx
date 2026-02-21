@@ -68,6 +68,7 @@ export function AssetTable({
     setIsDeleting(true);
     try {
       const response = await deleteAssetService(assetId);
+      console.log("response from delete asset", response);
       if (response.success) {
         toast.success("Asset deleted successfully", {
           description: "The asset has been permanently removed.",
@@ -76,14 +77,24 @@ export function AssetTable({
         handleCloseDeleteModal();
         router.refresh();
       } else {
+        const statusInfo =
+          response.statusCode != null ? ` (${response.statusCode})` : "";
+        console.error("[Delete asset] Server error:", {
+          message: response.message,
+          statusCode: response.statusCode,
+          assetId,
+          fullResponse: response,
+        });
         toast.error(
-          response.message || "Failed to delete asset. Please try again."
+          response.message ||
+          `Failed to delete asset${statusInfo}. Please try again.`
         );
       }
     } catch (error) {
-      toast.error(
-        (error as Error).message || "Failed to delete asset. Please try again."
-      );
+      console.error("[Delete asset] Error:", error);
+      const msg =
+        error instanceof Error ? error.message : "An unexpected error occurred.";
+      toast.error(msg || "Failed to delete asset. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -144,12 +155,12 @@ export function AssetTable({
           status={
             (row.original.criticality_level.charAt(0).toUpperCase() +
               row.original.criticality_level.slice(1).toLowerCase()) as
-              | "Active"
-              | "Inactive"
-              | "Pending"
-              | "Low"
-              | "Medium"
-              | "High"
+            | "Active"
+            | "Inactive"
+            | "Pending"
+            | "Low"
+            | "Medium"
+            | "High"
           }
         />
       ),
@@ -270,9 +281,9 @@ export function AssetTable({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </th>
                 ))
               )}

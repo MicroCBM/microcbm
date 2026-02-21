@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getRequiredStringSchema } from "./shared";
+import { getRequiredStringSchema, getRequiredNumericStringSchema } from "./shared";
 
 export const ADD_SAMPLE_SCHEMA = z.object({
   site: z.object({
@@ -14,9 +14,9 @@ export const ADD_SAMPLE_SCHEMA = z.object({
   serial_number: getRequiredStringSchema("Serial number"),
   date_sampled: z.number(),
   lab_name: getRequiredStringSchema("Lab name"),
-  service_meter_reading: getRequiredStringSchema("Service meter reading"),
+  service_meter_reading: getRequiredNumericStringSchema("Service meter reading"),
   hrs: getRequiredStringSchema("Hours"),
-  oil_in_service: getRequiredStringSchema("Oil in service"),
+  oil_in_service: getRequiredNumericStringSchema("Oil in service"),
   filter_changed: getRequiredStringSchema("Filter changed"),
   oil_drained: getRequiredStringSchema("Oil drained"),
   severity: getRequiredStringSchema("Severity"),
@@ -76,9 +76,9 @@ export const EDIT_SAMPLE_SCHEMA = z.object({
   serial_number: getRequiredStringSchema("Serial number"),
   date_sampled: z.number(),
   lab_name: getRequiredStringSchema("Lab name"),
-  service_meter_reading: getRequiredStringSchema("Service meter reading"),
+  service_meter_reading: getRequiredNumericStringSchema("Service meter reading"),
   hrs: getRequiredStringSchema("Hours"),
-  oil_in_service: getRequiredStringSchema("Oil in service"),
+  oil_in_service: getRequiredNumericStringSchema("Oil in service"),
   filter_changed: getRequiredStringSchema("Filter changed"),
   oil_drained: getRequiredStringSchema("Oil drained"),
   severity: getRequiredStringSchema("Severity"),

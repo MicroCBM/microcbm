@@ -94,11 +94,13 @@ export function EditSamplingRouteForm({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const routeSiteId = samplingRoute.site_id ?? samplingRoute.site?.id;
+
   // Find the organization from the site
   const initialOrganizationId = React.useMemo(() => {
-    const site = sites.find((s) => s.id === samplingRoute.site.id);
+    const site = sites.find((s) => s.id === routeSiteId);
     return site?.organization?.id || null;
-  }, [sites, samplingRoute.site.id]);
+  }, [sites, routeSiteId]);
 
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<
     string | null
@@ -116,8 +118,8 @@ export function EditSamplingRouteForm({
     defaultValues: {
       name: samplingRoute.name,
       description: samplingRoute.description,
-      site_id: samplingRoute.site.id,
-      technician_id: samplingRoute.technician?.id || "",
+      site_id: routeSiteId ?? "",
+      technician_id: samplingRoute.technician_id ?? samplingRoute.technician?.id ?? "",
       status: samplingRoute.status,
     },
   });
@@ -127,16 +129,16 @@ export function EditSamplingRouteForm({
     reset({
       name: samplingRoute.name,
       description: samplingRoute.description,
-      site_id: samplingRoute.site.id,
-      technician_id: samplingRoute.technician?.id || "",
+      site_id: routeSiteId ?? "",
+      technician_id: samplingRoute.technician_id ?? samplingRoute.technician?.id ?? "",
       status: samplingRoute.status,
     });
     // Set organization from the site's organization
-    const site = sites.find((s) => s.id === samplingRoute.site.id);
+    const site = sites.find((s) => s.id === routeSiteId);
     if (site?.organization?.id) {
       setSelectedOrganizationId(site.organization.id);
     }
-  }, [samplingRoute, reset, sites]);
+  }, [samplingRoute, reset, sites, routeSiteId]);
 
   const currentTechnicianId = watch("technician_id");
   const previousOrganizationRef = React.useRef<string | null>(null);

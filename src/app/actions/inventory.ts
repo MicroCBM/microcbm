@@ -57,7 +57,11 @@ async function editAssetService(
 }
 
 async function deleteAssetService(id: string): Promise<ApiResponse> {
-  return handleApiRequest(`${commonEndpoint}assets/${id}`, {}, "DELETE");
+  return handleApiRequest(
+    `${commonEndpoint}assets/${id}`,
+    undefined,
+    "DELETE"
+  );
 }
 
 async function addSiteService(payload: AddSitesPayload): Promise<ApiResponse> {

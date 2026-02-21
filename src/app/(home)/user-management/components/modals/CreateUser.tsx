@@ -156,15 +156,15 @@ export function CreateCustomer({
       </div>
 
       <Sheet open={isOpen} onOpenChange={(open) => !open && modal.closeModal()}>
-        <SheetContent className="max-w-[864px]! flex flex-col gap-0 p-0">
-          <SheetHeader className="px-6 pt-6 pb-4">
+        <SheetContent className="max-w-[864px]! flex h-full max-h-screen flex-col gap-0 overflow-hidden p-0">
+          <SheetHeader className="shrink-0 px-6 pt-6 pb-4">
             <SheetTitle>Create user</SheetTitle>
           </SheetHeader>
 
           <form
             id="add-user-form"
             onSubmit={handleSubmit(onSubmit)}
-            className="px-6 grid grid-cols-2 gap-4 overflow-y-aut py-8"
+            className="min-h-0 flex-1 overflow-y-auto px-6 py-8 grid grid-cols-2 gap-4"
           >
             <Input
               label="First Name"
@@ -324,7 +324,7 @@ export function CreateCustomer({
             />
           </form>
 
-          <SheetFooter className="px-6 pb-6 pt-4">
+          <SheetFooter className="shrink-0 px-6 pb-6 pt-4">
             <Button
               onClick={modal.closeModal}
               className="px-10"

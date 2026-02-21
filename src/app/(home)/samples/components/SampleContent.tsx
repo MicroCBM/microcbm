@@ -3,20 +3,10 @@
 import React from "react";
 import { Button, Text } from "@/components";
 import { Icon } from "@/libs";
-import { Asset, SamplingPoint, Sites } from "@/types";
 import { useRouter } from "next/navigation";
 
-export function SampleContent({
-  sites,
-  assets,
-  samplingPoints,
-}: {
-  sites: Sites[];
-  assets: Asset[];
-  samplingPoints: SamplingPoint[];
-}) {
+export function SampleContent() {
   const router = useRouter();
-  console.log(sites, assets, samplingPoints);
   return (
     <div className="flex items-center justify-between">
       <div>

@@ -87,10 +87,14 @@ export async function handleApiRequest(
 
     const responseText = await res.text();
 
-    let data;
+    let data: Record<string, unknown> | undefined;
     try {
-      data = JSON.parse(responseText);
+      data = responseText ? JSON.parse(responseText) : undefined;
     } catch {
+      // Success status with empty/invalid body still counts as success (e.g. 200 with no body)
+      if (res.ok) {
+        return { success: true, data: undefined };
+      }
       return {
         success: false,
         statusCode: res.status,
@@ -104,7 +108,7 @@ export async function handleApiRequest(
       return {
         success: false,
         statusCode: res.status,
-        message: data.message || "Request failed",
+        message: (data?.message as string) || "Request failed",
       };
     }
   } catch (error: unknown) {

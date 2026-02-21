@@ -25,9 +25,6 @@ export default async function SamplesPage() {
   return (
     <main className="flex flex-col gap-4">
       <SampleContent
-        sites={sites}
-        assets={assets}
-        samplingPoints={samplingPoints}
       />
       {samplingPointsAnalytics && (
         <ComponentGuard permissions="sampling_points:read">

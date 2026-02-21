@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,11 +18,36 @@ import ParticleCountAnalysisForm from "./ParticleCountAnalysisForm";
 import ViscosityForm from "./ViscosityForm";
 import AdditivesForm from "./AdditivesForm";
 
+const SAMPLE_DRAFT_STORAGE_KEY = "microcbm-sample-add-draft";
+
+const DEFAULT_FORM_VALUES: Partial<AddSamplePayload> = {
+  severity: "normal",
+  filter_changed: "No",
+  oil_drained: "No",
+  wear_metals: {
+    iron: "",
+    aluminum: "",
+    silver: "",
+    chromium: "",
+    copper: "",
+    lead: "",
+    nickel: "",
+    tin: "",
+    titanium: "",
+  },
+};
+
 interface AddSampleFormProps {
   sites: Sites[];
   assets: Asset[];
   samplingPoints: SamplingPoint[];
   organizations: Organization[];
+}
+
+interface SavedDraft {
+  values: Partial<AddSamplePayload>;
+  step: number;
+  savedAt: string;
 }
 
 export function AddSampleForm({
@@ -35,25 +60,13 @@ export function AddSampleForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const [savedDraft, setSavedDraft] = useState<SavedDraft | null>(null);
 
   const form = useForm<AddSamplePayload>({
     resolver: zodResolver(ADD_SAMPLE_SCHEMA),
     defaultValues: {
-      severity: "normal",
-      filter_changed: "No",
-      oil_drained: "No",
-      wear_metals: {
-        iron: "",
-        aluminum: "",
-        silver: "",
-        chromium: "",
-        copper: "",
-        lead: "",
-        nickel: "",
-        tin: "",
-        titanium: "",
-      },
-    },
+      ...DEFAULT_FORM_VALUES,
+    } as Partial<AddSamplePayload>,
   });
 
   const uploadDocumentFile = async (
@@ -372,6 +385,11 @@ export function AddSampleForm({
       );
       console.log("response in add sample", response);
       if (response.success) {
+        try {
+          localStorage.removeItem(SAMPLE_DRAFT_STORAGE_KEY);
+        } catch {
+          // ignore
+        }
         toast.success("Sample created successfully", {
           description: "The sample has been added to your system.",
         });
@@ -392,12 +410,83 @@ export function AddSampleForm({
 
   const [steps, setSteps] = useState<number>(1);
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SAMPLE_DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as SavedDraft;
+      if (parsed?.values != null && typeof parsed?.step === "number" && parsed?.savedAt) {
+        setSavedDraft({
+          values: parsed.values,
+          step: Math.min(7, Math.max(1, parsed.step)),
+          savedAt: parsed.savedAt,
+        });
+      }
+    } catch {
+      // ignore invalid draft
+    }
+  }, []);
+
+  const handleSaveDraft = () => {
+    try {
+      const values = form.getValues();
+      const draft: SavedDraft = {
+        values,
+        step: steps,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(SAMPLE_DRAFT_STORAGE_KEY, JSON.stringify(draft));
+      setSavedDraft(draft);
+      toast.success("Draft saved", {
+        description: "You can resume later from this step.",
+      });
+    } catch {
+      toast.error("Failed to save draft.");
+    }
+  };
+
+  const handleRestoreDraft = () => {
+    if (!savedDraft) return;
+    form.reset(savedDraft.values as Partial<AddSamplePayload>);
+    setSteps(savedDraft.step);
+    setSavedDraft(null);
+    try {
+      localStorage.removeItem(SAMPLE_DRAFT_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+    toast.success("Draft restored", {
+      description: `Resumed at step ${savedDraft.step} of 7.`,
+    });
+  };
+
+  const handleDiscardDraft = () => {
+    form.reset(DEFAULT_FORM_VALUES as Partial<AddSamplePayload>);
+    setSteps(1);
+    setSavedDraft(null);
+    setDocumentFile(null);
+    try {
+      localStorage.removeItem(SAMPLE_DRAFT_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+    toast.success("Draft discarded", {
+      description: "Form has been reset.",
+    });
+  };
+
   const handleNextStep = () => {
     setSteps(steps + 1);
   };
 
   const handlePreviousStep = () => {
     setSteps(steps - 1);
+  };
+
+  const goToStep = (stepNumber: number) => {
+    if (stepNumber >= 1 && stepNumber <= 7) {
+      setSteps(stepNumber);
+    }
   };
 
   const handleComplete = () => {
@@ -418,15 +507,57 @@ export function AddSampleForm({
           <Text variant="h6">Manual Entry</Text>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="medium" variant="outline">
+          <Button
+            size="medium"
+            variant="outline"
+            onClick={handleDiscardDraft}
+            type="button"
+          >
             Discard
           </Button>
-          <Button size="medium" variant="outline">
+          <Button
+            size="medium"
+            variant="outline"
+            onClick={handleSaveDraft}
+            type="button"
+          >
             Save Draft
           </Button>
           <Button size="medium">Create Sample</Button>
         </div>
       </section>
+
+      {savedDraft && (
+        <div
+          className="flex items-center justify-between gap-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm"
+          role="status"
+        >
+          <span className="text-amber-800">
+            Draft saved on{" "}
+            {dayjs(savedDraft.savedAt).format("MMM D, YYYY [at] h:mm A")}.
+            Restore to continue from step {savedDraft.step}.
+          </span>
+          <div className="flex shrink-0 gap-2">
+            <Button
+              size="small"
+              variant="outline"
+              onClick={handleRestoreDraft}
+              type="button"
+            >
+              Restore
+            </Button>
+            <Button
+              size="small"
+              variant="ghost"
+              onClick={handleDiscardDraft}
+              type="button"
+              className="text-amber-800 hover:bg-amber-100"
+            >
+              Discard draft
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Progress Bar */}
       <div className="w-full py-6">
@@ -459,9 +590,13 @@ export function AddSampleForm({
             const isCompleted = stepNumber < steps;
 
             return (
-              <div
+              <button
                 key={stepNumber}
-                className="flex flex-col items-center flex-1 max-w-[120px]"
+                type="button"
+                onClick={() => goToStep(stepNumber)}
+                className="flex flex-col items-center flex-1 max-w-[120px] cursor-pointer hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-lg transition-opacity"
+                aria-label={`Go to step ${stepNumber}: ${label}`}
+                aria-current={isActive ? "step" : undefined}
               >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
@@ -490,7 +625,7 @@ export function AddSampleForm({
                 >
                   {label}
                 </Text>
-              </div>
+              </button>
             );
           })}
         </div>

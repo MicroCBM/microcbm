@@ -33,7 +33,6 @@ export const ViewAssetModal = ({
     isLoading: isDatasheetLoading,
     error: datasheetError,
   } = usePresignedUrl(datasheetFileKey, isOpen && !!datasheetFileKey);
-  console.log("datasheetUrl", datasheetUrl);
 
   if (!asset) return null;
 
@@ -41,8 +40,6 @@ export const ViewAssetModal = ({
     if (!dateString) return "N/A";
     return dayjs(dateString).format("DD-MM-YYYY");
   };
-
-  console.log("asset", asset);
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -108,9 +105,9 @@ export const ViewAssetModal = ({
                     status={
                       (asset.assignee.status.charAt(0).toUpperCase() +
                         asset.assignee.status.slice(1).toLowerCase()) as
-                        | "Active"
-                        | "Inactive"
-                        | "Pending"
+                      | "Active"
+                      | "Inactive"
+                      | "Pending"
                     }
                   />
                 </div>

@@ -64,8 +64,10 @@ export function ViewSamplingRouteModal({
               </Text>
               <StatusBadge
                 status={
-                  (samplingRoute.status.charAt(0).toUpperCase() +
-                    samplingRoute.status.slice(1).toLowerCase()) as
+                  (samplingRoute.status
+                    ? samplingRoute.status.charAt(0).toUpperCase() +
+                      samplingRoute.status.slice(1).toLowerCase()
+                    : "Pending") as
                     | "Active"
                     | "Inactive"
                     | "Pending"
@@ -78,7 +80,7 @@ export function ViewSamplingRouteModal({
                 Site:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {samplingRoute.site.name}
+                {samplingRoute.site?.name ?? "N/A"}
               </Text>
             </div>
 
@@ -87,7 +89,7 @@ export function ViewSamplingRouteModal({
                 Site Tag:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {samplingRoute.site.tag}
+                {samplingRoute.site?.tag ?? "N/A"}
               </Text>
             </div>
 
@@ -96,13 +98,13 @@ export function ViewSamplingRouteModal({
                 Installation Environment:
               </Text>
               <Text variant="span" className="text-gray-900">
-                {samplingRoute.site.installation_environment || "N/A"}
+                {samplingRoute.site?.installation_environment || "N/A"}
               </Text>
             </div>
           </div>
 
           {/* Technician Information */}
-          {samplingRoute.technician ? (
+          {samplingRoute.technician != null ? (
             <div className="p-4 border border-gray-100 rounded-lg">
               <Text variant="span" weight="medium" className="block mb-4">
                 Assigned Technician

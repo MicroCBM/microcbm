@@ -21,8 +21,10 @@ import { Organization, Sites } from "@/types";
 import { ViewSiteModal } from "./ViewSiteModal";
 import dayjs from "dayjs";
 import { EditSite } from "./EditSite";
+import { DeleteSiteModal } from "./DeleteSiteModal";
 import { deleteSiteService } from "@/app/actions";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface UserType {
   id: string;
@@ -49,9 +51,13 @@ export function SiteTable({
   organizations,
   users,
 }: SiteTableProps) {
+  const router = useRouter();
   const [selectedSite, setSelectedSite] = useState<Sites | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleViewSite = (site: Sites) => {
     setSelectedSite(site);
     setIsViewModalOpen(true);
@@ -68,19 +74,37 @@ export function SiteTable({
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteSite = async (id: string) => {
+  const handleDeleteSite = (site: Sites) => {
+    setSelectedSite(site);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedSite(null);
+  };
+
+  const handleConfirmDelete = async (siteId: string) => {
+    setIsDeleting(true);
     try {
-      const result = await deleteSiteService(id);
+      const result = await deleteSiteService(siteId);
       if (result.success) {
-        toast.success("Site deleted successfully!");
-        // Optionally refresh the page or update the sites data
-        window.location.reload();
+        toast.success("Site deleted successfully", {
+          description: "The site has been permanently removed.",
+        });
+        handleCloseDeleteModal();
+        router.refresh();
       } else {
-        toast.error(result.message || "Failed to delete site");
+        console.error("[Delete site] Server error:", result);
+        toast.error(result.message || "Failed to delete site. Please try again.");
       }
     } catch (error) {
-      console.error("Error deleting site:", error);
-      toast.error("An error occurred while deleting the site");
+      console.error("[Delete site] Error:", error);
+      toast.error(
+        (error as Error)?.message || "An error occurred while deleting the site."
+      );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -186,7 +210,7 @@ export function SiteTable({
                 </button>
                 <button
                   className="flex items-center gap-2 px-3 py-2 hover:bg-red-50 text-red-600 rounded text-sm"
-                  onClick={() => handleDeleteSite(row.original.id)}
+                  onClick={() => handleDeleteSite(row.original)}
                 >
                   Delete Site
                 </button>
@@ -282,9 +306,9 @@ export function SiteTable({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </th>
                 ))
               )}
@@ -354,6 +378,14 @@ export function SiteTable({
         onClose={handleCloseModal}
         organizations={organizations}
         users={users}
+      />
+
+      <DeleteSiteModal
+        site={selectedSite}
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
       />
     </div>
   );
