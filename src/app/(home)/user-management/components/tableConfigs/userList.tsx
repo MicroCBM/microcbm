@@ -57,7 +57,6 @@ export function getUserListColumns<T extends USER_TYPE = USER_TYPE>({
   loginUser,
 }: UserListColumnsProps<T>): ColumnDef<T>[] {
   const isSuperAdmin = loginUser?.role === "SuperAdmin";
-  console.log("userPermissions stuff", userPermissions);
 
   // Helper function to check if user has permission
   const hasPermission = (permission: string): boolean => {

@@ -383,7 +383,6 @@ export function AddSampleForm({
       const response = await addSampleService(
         payload as unknown as AddSamplePayload
       );
-      console.log("response in add sample", response);
       if (response.success) {
         try {
           localStorage.removeItem(SAMPLE_DRAFT_STORAGE_KEY);

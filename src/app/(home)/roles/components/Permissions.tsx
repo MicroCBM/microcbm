@@ -24,7 +24,6 @@ function toTitleCase(value: string) {
 }
 
 export function Permissions({ data }: { data: Permission[] }) {
-  console.log("permissions data", data);
   const groupedPermissions = useMemo(() => {
     const map = new Map<string, Permission[]>();
 

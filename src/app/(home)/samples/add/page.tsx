@@ -8,12 +8,17 @@ import {
 import { AddSampleForm } from "./components/AddSampleForm";
 
 export default async function AddSamplePage() {
-  const [sites, assets, samplingPoints, organizations] = await Promise.all([
-    getSitesService(),
-    getAssetsService(),
-    getSamplingPointsService(),
-    getOrganizationsService(),
-  ]);
+  const [sitesResult, assetsResult, samplingPointsResult, organizationsResult] =
+    await Promise.all([
+      getSitesService(),
+      getAssetsService(),
+      getSamplingPointsService(),
+      getOrganizationsService(),
+    ]);
+  const sites = sitesResult.data;
+  const assets = assetsResult.data;
+  const samplingPoints = samplingPointsResult.data;
+  const organizations = organizationsResult.data;
 
   return (
     <main className="flex flex-col gap-4">

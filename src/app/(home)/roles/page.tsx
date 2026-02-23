@@ -24,7 +24,6 @@ export default async function RolesPage({ searchParams }: RolesPageProps) {
     : null;
 
   const permissions = await getPermissionsService();
-  console.log("data from page permissions", permissions);
 
   return (
     <main className="flex flex-col gap-4">

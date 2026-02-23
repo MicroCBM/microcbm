@@ -18,12 +18,15 @@ export default async function EditSamplingPointPage({
 }: EditSamplingPointPageProps) {
   try {
     const { id } = await params;
-    const [samplingPoint, users, samplingRoutes, assets] = await Promise.all([
-      getSamplingPointService(id),
-      getUsersService(),
-      getSamplingRoutesService(),
-      getAssetsService(),
-    ]);
+    const [samplingPoint, users, samplingRoutesResult, assetsResult] =
+      await Promise.all([
+        getSamplingPointService(id),
+        getUsersService(),
+        getSamplingRoutesService(),
+        getAssetsService(),
+      ]);
+    const samplingRoutes = samplingRoutesResult.data;
+    const assets = assetsResult.data;
 
     if (!samplingPoint) {
       notFound();

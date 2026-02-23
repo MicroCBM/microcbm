@@ -1,45 +1,67 @@
 "use client";
-import React, { useState } from "react";
-import {
-  Button,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Search,
-  Text,
-} from "@/components";
+
+import React, { useCallback } from "react";
+import { Button } from "@/components";
+import { Dropdown } from "@/components/dropdown";
 import { Icon } from "@/libs";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Sites } from "@/types";
 
-export function AlarmFilters() {
-  const [filters, setFilters] = useState({
-    search: "",
-    parameter: "",
-    acknowledged_status: "",
-  });
+const SEVERITY_OPTIONS = [
+  { value: "", label: "All severities" },
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "critical", label: "Critical" },
+];
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters({ ...filters, search: event.target.value });
-  };
+interface AlarmFiltersProps {
+  sites: Sites[];
+}
 
-  const handleParameterChange = (value: string) => {
-    setFilters({ ...filters, parameter: value });
-  };
+export function AlarmFilters({ sites = [] }: AlarmFiltersProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const handleStatusChange = (value: string) => {
-    setFilters({ ...filters, acknowledged_status: value });
-  };
+  const site_id = searchParams.get("site_id") ?? "";
+  const severity = searchParams.get("severity") ?? "";
+
+  const updateUrl = useCallback(
+    (updates: { site_id?: string; severity?: string }) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("page", "1");
+      if (updates.site_id !== undefined) {
+        if (updates.site_id) params.set("site_id", updates.site_id);
+        else params.delete("site_id");
+      }
+      if (updates.severity !== undefined) {
+        if (updates.severity) params.set("severity", updates.severity);
+        else params.delete("severity");
+      }
+      const q = params.toString();
+      router.push(`/alarms${q ? `?${q}` : ""}`);
+    },
+    [router, searchParams]
+  );
+
+  const siteOptions = [
+    { label: "All sites", onClickFn: () => updateUrl({ site_id: "" }) },
+    ...sites.map((site) => ({
+      label: site.name,
+      onClickFn: () => updateUrl({ site_id: site.id }),
+    })),
+  ];
+
+  const severityLabel =
+    SEVERITY_OPTIONS.find((o) => o.value === severity)?.label ?? "Severity";
 
   return (
     <div className="flex items-center gap-2">
-      <Search
-        value={filters.search}
-        onChange={handleSearchChange}
-        placeholder="Search alarms"
-        className="h-10 max-w-[296px]"
-      />
-
-      <Popover>
-        <PopoverTrigger asChild>
+      {sites.length > 0 && (
+        <Dropdown
+          actions={siteOptions}
+          contentClassName="absolute top-[-36px] right-[2px]"
+        >
           <Button
             variant="outline"
             size="medium"
@@ -49,70 +71,32 @@ export function AlarmFilters() {
               icon="hugeicons:plus-sign-circle"
               className="text-black size-4 group-hover:text-white"
             />
-            Parameter
+            {site_id
+              ? sites.find((s) => s.id === site_id)?.name ?? "Site"
+              : "Site"}
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[208px]">
-          <div className="flex flex-col">
-            <button
-              className="px-2 py-[6px] hover:bg-gray-100 text-left"
-              onClick={() => handleParameterChange("Temperature")}
-            >
-              <Text variant="span">Temperature</Text>
-            </button>
-            <button
-              className="px-2 py-[6px] hover:bg-gray-100 text-left"
-              onClick={() => handleParameterChange("Pressure")}
-            >
-              <Text variant="span">Pressure</Text>
-            </button>
-            <button
-              className="px-2 py-[6px] hover:bg-gray-100 text-left"
-              onClick={() => handleParameterChange("Vibration")}
-            >
-              <Text variant="span">Vibration</Text>
-            </button>
-            <button
-              className="px-2 py-[6px] hover:bg-gray-100 text-left"
-              onClick={() => handleParameterChange("Flow")}
-            >
-              <Text variant="span">Flow</Text>
-            </button>
-          </div>
-        </PopoverContent>
-      </Popover>
+        </Dropdown>
+      )}
 
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="medium"
-            className="border border-gray-100 group"
-          >
-            <Icon
-              icon="hugeicons:plus-sign-circle"
-              className="text-black size-4 group-hover:text-white"
-            />
-            Status
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[208px]">
-          <div className="flex flex-col">
-            <button
-              className="px-2 py-[6px] hover:bg-gray-100 text-left"
-              onClick={() => handleStatusChange("acknowledged")}
-            >
-              <Text variant="span">Acknowledged</Text>
-            </button>
-            <button
-              className="px-2 py-[6px] hover:bg-gray-100 text-left"
-              onClick={() => handleStatusChange("unacknowledged")}
-            >
-              <Text variant="span">Unacknowledged</Text>
-            </button>
-          </div>
-        </PopoverContent>
-      </Popover>
+      <Dropdown
+        actions={SEVERITY_OPTIONS.map((opt) => ({
+          label: opt.label,
+          onClickFn: () => updateUrl({ severity: opt.value }),
+        }))}
+        contentClassName="absolute top-[-36px] right-[2px]"
+      >
+        <Button
+          variant="outline"
+          size="medium"
+          className="border border-gray-100 group"
+        >
+          <Icon
+            icon="hugeicons:plus-sign-circle"
+            className="text-black size-4 group-hover:text-white"
+          />
+          {severityLabel}
+        </Button>
+      </Dropdown>
     </div>
   );
 }

@@ -45,7 +45,6 @@ export function SingleRoleInfo({ role }: Readonly<{ role: Role }>) {
     setIsDeleting(true);
     try {
       const response = await deleteRoleService(role.id);
-      console.log("response", response);
       if (response.success) {
         toast.success(response.message || "Role deleted successfully.");
         handleCloseDeleteModal();
@@ -74,7 +73,7 @@ export function SingleRoleInfo({ role }: Readonly<{ role: Role }>) {
     } else {
       toast.error(
         response.message ||
-          "Failed to toggle role active status. Please try again."
+        "Failed to toggle role active status. Please try again."
       );
     }
   };

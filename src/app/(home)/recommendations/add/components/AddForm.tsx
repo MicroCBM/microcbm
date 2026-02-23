@@ -180,7 +180,6 @@ export const AddForm = ({
   ]);
 
   const onSubmit = async (data: AddRecommendationPayload) => {
-    console.log("submit data", data);
     try {
       const response = await addRecommendationService(data);
       if (response.success) {
@@ -190,17 +189,15 @@ export const AddForm = ({
         reset();
         router.push("/recommendations");
       } else {
-        console.log("response in add recommendation", response.message);
         toast.error(
           response.message ||
-            "Failed to create recommendation. Please try again."
+          "Failed to create recommendation. Please try again."
         );
       }
     } catch (error) {
-      console.error("error in add recommendation", error);
       toast.error(
         (error as Error).message ||
-          "Failed to create recommendation. Please try again."
+        "Failed to create recommendation. Please try again."
       );
     }
   };
@@ -344,8 +341,8 @@ export const AddForm = ({
                             !selectedSiteId
                               ? "Select a site first"
                               : filteredAssets.length === 0
-                              ? "No assets available for this site"
-                              : "Select an asset"
+                                ? "No assets available for this site"
+                                : "Select an asset"
                           }
                         />
                       </SelectTrigger>
@@ -390,10 +387,10 @@ export const AddForm = ({
                             !selectedSiteId
                               ? "Select a site first"
                               : !selectedAssetId
-                              ? "Select an asset first"
-                              : filteredSamplingPoints.length === 0
-                              ? "No sampling points available"
-                              : "Select a sampling point"
+                                ? "Select an asset first"
+                                : filteredSamplingPoints.length === 0
+                                  ? "No sampling points available"
+                                  : "Select a sampling point"
                           }
                         />
                       </SelectTrigger>
@@ -437,8 +434,8 @@ export const AddForm = ({
                             !selectedSiteId
                               ? "Select a site first"
                               : filteredUsers.length === 0
-                              ? "No users available for this site"
-                              : "Select a recommender"
+                                ? "No users available for this site"
+                                : "Select a recommender"
                           }
                         />
                       </SelectTrigger>

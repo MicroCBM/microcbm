@@ -17,14 +17,16 @@ import {
   PopoverTrigger,
   Text,
 } from "@/components";
+import { Pagination } from "@/components/pagination";
 import { Organization, Sites } from "@/types";
 import { ViewSiteModal } from "./ViewSiteModal";
 import dayjs from "dayjs";
 import { EditSite } from "./EditSite";
 import { DeleteSiteModal } from "./DeleteSiteModal";
 import { deleteSiteService } from "@/app/actions";
+import type { SitesMeta } from "@/app/actions/inventory";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface UserType {
   id: string;
@@ -40,6 +42,7 @@ interface UserType {
 
 interface SiteTableProps {
   sites: Sites[];
+  meta?: SitesMeta;
   className?: string;
   organizations: Organization[];
   users: UserType[];
@@ -47,11 +50,35 @@ interface SiteTableProps {
 
 export function SiteTable({
   sites,
+  meta,
   className,
   organizations,
   users,
 }: SiteTableProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const limit = Math.max(
+    1,
+    Math.min(100, parseInt(searchParams.get("limit") ?? "10", 10) || 10)
+  );
+
+  const setPage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newPage !== 1) params.set("page", String(newPage));
+    else params.delete("page");
+    if (limit !== 10) params.set("limit", String(limit));
+    const q = params.toString();
+    router.push(`/sites${q ? `?${q}` : ""}`);
+  };
+  const setLimit = (newLimit: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", "1");
+    if (newLimit !== 10) params.set("limit", String(newLimit));
+    else params.delete("limit");
+    const q = params.toString();
+    router.push(`/sites${q ? `?${q}` : ""}`);
+  };
   const [selectedSite, setSelectedSite] = useState<Sites | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -290,9 +317,10 @@ export function SiteTable({
   });
 
   return (
-    <div className={cn("border border-gray-200 overflow-hidden", className)}>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+    <div className={cn("relative", className)}>
+      <div className="border border-b-0 border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
           {/* Header */}
           <thead>
             <tr className="bg-white-50">
@@ -363,8 +391,21 @@ export function SiteTable({
               );
             })}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
+
+      {meta != null && (
+        <div className="mt-5 no-print">
+          <Pagination
+            total={meta.total}
+            page={page}
+            setPage={setPage}
+            limit={limit}
+            setLimit={setLimit}
+          />
+        </div>
+      )}
 
       <ViewSiteModal
         site={selectedSite}

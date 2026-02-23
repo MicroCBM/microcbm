@@ -74,12 +74,6 @@ export const AddAlarmModal = ({ sites }: AddAlarmModalProps) => {
         },
       };
 
-      console.log("payload in add alarm modal", payload);
-      console.log(
-        "payload.alarm.first_detected:",
-        payload.alarm.first_detected
-      );
-
       const response = await addAlarmService(payload.alarm);
       if (response.success) {
         toast.success("Alarm created successfully", {
@@ -88,13 +82,11 @@ export const AddAlarmModal = ({ sites }: AddAlarmModalProps) => {
         reset();
         setIsAddAlarmModalOpen(false);
       } else {
-        console.log("response in add alarm modal", response.message);
         toast.error(
           response.message || "Failed to create alarm. Please try again."
         );
       }
     } catch (error) {
-      console.error("error in add alarm modal", error);
       toast.error(
         (error as Error).message || "Failed to create alarm. Please try again."
       );

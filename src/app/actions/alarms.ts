@@ -6,18 +6,103 @@ import { AddAlarmPayload, EditAlarmPayload } from "@/schema";
 
 const commonEndpoint = "/api/v1/";
 
-async function getAlarmsService(): Promise<Alarm[]> {
+export interface AlarmsMeta {
+  page: number;
+  limit: number;
+  total: number;
+  total_pages: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
+
+export interface GetAlarmsResult {
+  data: Alarm[];
+  meta: AlarmsMeta;
+}
+
+function defaultAlarmsMeta(
+  total: number,
+  page = 1,
+  limit = 10
+): AlarmsMeta {
+  const total_pages = Math.max(1, Math.ceil(total / limit));
+  return {
+    page,
+    limit,
+    total,
+    total_pages,
+    has_next: page < total_pages,
+    has_prev: page > 1,
+  };
+}
+
+async function getAlarmsService(params?: {
+  page?: number;
+  limit?: number;
+  site_id?: string;
+  severity?: string;
+}): Promise<GetAlarmsResult> {
   try {
-    const response = await requestWithAuth(`${commonEndpoint}alarms`, {
+    const searchParams = new URLSearchParams();
+    if (params?.page != null) searchParams.set("page", String(params.page));
+    if (params?.limit != null) searchParams.set("limit", String(params.limit));
+    if (params?.site_id) searchParams.set("site_id", params.site_id);
+    if (params?.severity) searchParams.set("severity", params.severity);
+    const query = searchParams.toString();
+    const url = `${commonEndpoint}alarms${query ? `?${query}` : ""}`;
+
+    const response = await requestWithAuth(url, {
       method: "GET",
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      console.error("API Error:", response.status, response.statusText);
+      const page = params?.page ?? 1;
+      const limit = params?.limit ?? 10;
+      return { data: [], meta: defaultAlarmsMeta(0, page, limit) };
+    }
 
-    return data?.data;
+    const contentType = response.headers.get("content-type");
+    if (!contentType?.includes("application/json")) {
+      const page = params?.page ?? 1;
+      const limit = params?.limit ?? 10;
+      return { data: [], meta: defaultAlarmsMeta(0, page, limit) };
+    }
+
+    const json = await response.json();
+    const rawData = json?.data ?? [];
+    const list = Array.isArray(rawData) ? rawData : [];
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+
+    if (json?.meta) {
+      const meta = {
+        page: json.meta.page ?? page,
+        limit: json.meta.limit ?? limit,
+        total: json.meta.total ?? list.length,
+        total_pages:
+          json.meta.total_pages ??
+          Math.max(
+            1,
+            Math.ceil(
+              (json.meta.total ?? list.length) / (json.meta.limit ?? limit)
+            )
+          ),
+        has_next: Boolean(json.meta.has_next),
+        has_prev: Boolean(json.meta.has_prev),
+      };
+      return { data: list, meta };
+    }
+
+    const total = list.length;
+    const start = (page - 1) * limit;
+    const data = list.slice(start, start + limit);
+    return { data, meta: defaultAlarmsMeta(total, page, limit) };
   } catch (error) {
     console.error("Error fetching alarms:", error);
-    throw error;
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    return { data: [], meta: defaultAlarmsMeta(0, page, limit) };
   }
 }
 

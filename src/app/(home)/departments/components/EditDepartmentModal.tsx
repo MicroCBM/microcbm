@@ -62,8 +62,8 @@ export const EditDepartmentModal = ({
     const fetchOrganizations = async () => {
       setLoading(true);
       try {
-        const orgs = await getOrganizationsService();
-        setOrganizations(orgs);
+        const result = await getOrganizationsService();
+        setOrganizations(result.data);
       } catch {
         toast.error("Failed to fetch organizations");
       } finally {

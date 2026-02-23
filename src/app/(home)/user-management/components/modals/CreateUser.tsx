@@ -98,7 +98,6 @@ export function CreateCustomer({
   }, [selectedOrganizationId]);
 
   const onSubmit = async (data: z.infer<typeof ADD_USER_SCHEMA>) => {
-    console.log("submit data", data);
     const { user, password } = data;
     const roleId = rolesData.find((role) => role.name === user.role)?.id;
 
@@ -262,8 +261,8 @@ export function CreateCustomer({
                         !selectedOrganizationId
                           ? "Select an organization first"
                           : filteredSites.length === 0
-                          ? "No sites available"
-                          : "Select a site"
+                            ? "No sites available"
+                            : "Select a site"
                       }
                     />
                   </SelectTrigger>

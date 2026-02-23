@@ -88,14 +88,14 @@ export function Pagination({
           <Button
             size="small"
             variant="ghost"
-            iconPosition="left"
-            iconProps={{ width: "16" }}
-            className="text-xs leading-6 mr-2.5 rounded-sm hover:text-primary-700"
+            iconOnly
+            icon="mdi:chevron-left"
+            iconProps={{ className: "w-4 h-4" }}
+            className="min-w-8 min-h-8 mr-2.5 rounded-md border cursor-pointer bg-white border-gray-200 hover:bg-gray-100 hover:border-gray-300 text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
             disabled={page === 1}
             onClick={handlePrevPage}
-          >
-            <Icon icon="mdi:chevron-left" className="w-4 h-4" />
-          </Button>
+            aria-label="Previous page"
+          />
           {pageList.map((pageItem) => {
             if (pageItem === DOT_REPRESENTATION) {
               return (
@@ -123,14 +123,14 @@ export function Pagination({
           <Button
             size="small"
             variant="ghost"
-            iconPosition="right"
-            iconProps={{ width: "16" }}
-            className="text-xs leading-6 ml-2.5 rounded-sm hover:text-primary-700"
+            iconOnly
+            icon="mdi:chevron-right"
+            iconProps={{ className: "w-4 h-4" }}
+            className="min-w-8 min-h-8 ml-2.5 rounded-md border cursor-pointer bg-white border-gray-200 hover:bg-gray-100 hover:border-gray-300 text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
             disabled={page === totalPages}
             onClick={handleNextPage}
-          >
-            <Icon icon="mdi:chevron-right" className="w-4 h-4" />
-          </Button>
+            aria-label="Next page"
+          />
         </div>
         <span className="hidden min-1270:flex text-gray-500">/</span>
         <div className=" gap-1 items-center hidden min-1270:flex text-gray-500">

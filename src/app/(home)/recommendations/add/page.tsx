@@ -8,10 +8,10 @@ import {
 } from "@/app/actions";
 
 export default async function AddRecommendationPage() {
-  const sites = await getSitesService();
-  const assets = await getAssetsService();
+  const sites = (await getSitesService()).data;
+  const assets = (await getAssetsService()).data;
   const users = await getUsersService();
-  const samplingPoints = await getSamplingPointsService();
+  const samplingPoints = (await getSamplingPointsService()).data;
 
   return (
     <AddForm

@@ -131,12 +131,6 @@ export const AddAlarmModal = ({ sites: initialSites }: AddAlarmModalProps) => {
         },
       };
 
-      console.log("payload in add alarm modal", payload);
-      console.log(
-        "payload.alarm.first_detected:",
-        payload.alarm.first_detected
-      );
-
       const response = await addAlarmService(payload.alarm);
       if (response.success) {
         toast.success("Alarm created successfully", {
@@ -146,7 +140,6 @@ export const AddAlarmModal = ({ sites: initialSites }: AddAlarmModalProps) => {
         modal.closeModal();
         router.refresh();
       } else {
-        console.log("response in add alarm modal", response.message);
         toast.error(
           response.message || "Failed to create alarm. Please try again."
         );
@@ -250,10 +243,10 @@ export const AddAlarmModal = ({ sites: initialSites }: AddAlarmModalProps) => {
                     !selectedSiteId
                       ? "Select a site first"
                       : isLoadingUsers
-                      ? "Loading users..."
-                      : filteredUsers.length === 0
-                      ? "No users available for this site"
-                      : "Select a user"
+                        ? "Loading users..."
+                        : filteredUsers.length === 0
+                          ? "No users available for this site"
+                          : "Select a user"
                   }
                 />
               </SelectTrigger>
@@ -280,11 +273,11 @@ export const AddAlarmModal = ({ sites: initialSites }: AddAlarmModalProps) => {
                   value={
                     field.value
                       ? field.value.map((rec: { id: string }) => ({
-                          value: rec.id,
-                          label:
-                            recommendations.find((r) => r.id === rec.id)
-                              ?.title || rec.id,
-                        }))
+                        value: rec.id,
+                        label:
+                          recommendations.find((r) => r.id === rec.id)
+                            ?.title || rec.id,
+                      }))
                       : []
                   }
                   onChange={(options) => {

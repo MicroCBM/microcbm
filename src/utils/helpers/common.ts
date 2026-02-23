@@ -78,30 +78,34 @@ export function camelToSpaced(str: string) {
 export const SPECIAL_CHARACTERS = "!@#$%^&*()";
 
 export function getStatusVariant(status?: string) {
-  switch (status) {
+  const s = status?.toLowerCase();
+  switch (s) {
     case "active":
-      return "success";
     case "successful":
-      return "success";
     case "completed":
-      return "success";
     case "paid":
-      return "success";
     case "approved":
       return "success";
+    /* severity: low risk */
+    case "normal":
+    case "low":
+      return "success";
     case "processing":
-      return "warning";
     case "pending":
       return "warning";
+    /* severity: medium risk */
+    case "medium":
+      return "warning";
     case "failed":
-      return "error";
     case "inactive":
-      return "error";
     case "deactivate":
-      return "error";
     case "deactivated":
-      return "error";
     case "rejected":
+      return "error";
+    /* severity: high risk */
+    case "high":
+    case "critical":
+    case "urgent":
       return "error";
     default:
       return "warning";

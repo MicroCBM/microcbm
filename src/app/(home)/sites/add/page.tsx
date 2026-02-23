@@ -5,10 +5,11 @@ import { getOrganizationsService, getUsersService } from "@/app/actions";
 export const dynamic = "force-dynamic";
 
 export default async function AddSitePage() {
-  const [organizations, users] = await Promise.all([
+  const [organizationsResult, users] = await Promise.all([
     getOrganizationsService(),
     getUsersService(),
   ]);
+  const organizations = organizationsResult.data;
 
   return (
     <main className="flex flex-col gap-4">

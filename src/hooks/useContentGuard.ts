@@ -15,7 +15,7 @@ interface Permission {
 }
 
 export function useContentGuard(
-  permission?: PermissionType | PermissionType[] | string | string[]
+  permission?: PermissionType | PermissionType[] | string | string[],
 ) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [userPermissions, setUserPermissions] = useState<string[]>([]);
@@ -63,12 +63,11 @@ export function useContentGuard(
                   headers: {
                     "Content-Type": "application/json",
                   },
-                }
+                },
               );
 
               if (permissionsResponse.ok) {
                 const permissionsData = await permissionsResponse.json();
-                console.log("permissionsResponse", permissionsData);
 
                 const responseData = permissionsData?.data;
 
@@ -93,7 +92,7 @@ export function useContentGuard(
                       return perm.name;
                     }
                     return `${perm.resource}:${perm.action}`;
-                  }
+                  },
                 );
 
                 setUserPermissions(permissionStrings);
@@ -155,8 +154,8 @@ export function useContentGuard(
   // Check if user has any of the required permissions
   const hasPermission = permissionsToCheck.some((perm) =>
     userPermissions.some(
-      (userPerm) => userPerm.toLowerCase() === perm.toLowerCase()
-    )
+      (userPerm) => userPerm.toLowerCase() === perm.toLowerCase(),
+    ),
   );
 
   // User is allowed if they have the permission OR if they're SuperAdmin

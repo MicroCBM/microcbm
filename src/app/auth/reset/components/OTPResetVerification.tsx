@@ -97,7 +97,6 @@ export default function OTPResetVerification({
             }}
             onResend={() => {
               // TODO: Implement resend OTP functionality
-              console.log("Resend OTP clicked");
             }}
             isLoading={isLoading}
           />

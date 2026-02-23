@@ -12,6 +12,7 @@ export function SamplingRouteFilters() {
           placeholder="Search sampling routes..."
           value={searchValue}
           onChange={(event) => setSearchValue(event.target.value)}
+          className="h-10 max-w-[296px]"
         />
       </div>
     </div>

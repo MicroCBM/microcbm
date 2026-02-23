@@ -107,24 +107,22 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
           ? parseInt(selectedPeriod)
           : undefined;
 
-        console.log("apiCategory", apiCategory);
 
         const response = await getSampleAnalysisGroupsAnalyticsService(
           apiCategory,
           periodParam
         );
 
-        console.log("response", response);
         if (response.success && response.data) {
           // Handle nested data structure (response.data.data.data)
           const nestedData = response.data?.data;
           const responseData = (nestedData?.data ||
             nestedData ||
             response.data?.data) as {
-            labels?: string[];
-            datasets?: Array<{ label: string; data: number[] }>;
-            data?: number[];
-          };
+              labels?: string[];
+              datasets?: Array<{ label: string; data: number[] }>;
+              data?: number[];
+            };
 
           let chartData: AnalyticsDataPoint[] = [];
           let tableData: AnalyticsDataPoint[] = [];
@@ -392,10 +390,10 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
               {selectedPeriod === "12"
                 ? "12 months"
                 : selectedPeriod === "9"
-                ? "9 months"
-                : selectedPeriod === "6"
-                ? "6 months"
-                : "3 months"}
+                  ? "9 months"
+                  : selectedPeriod === "6"
+                    ? "6 months"
+                    : "3 months"}
             </Text>
           </div>
           <div className="flex items-center gap-2">
@@ -416,11 +414,10 @@ export function SampleAnalyticsView({ sample }: SampleAnalyticsViewProps) {
               <button
                 key={option.value}
                 onClick={() => setSelectedPeriod(option.value)}
-                className={`px-3 py-1.5 text-sm rounded transition-colors ${
-                  selectedPeriod === option.value
-                    ? "bg-black text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                className={`px-3 py-1.5 text-sm rounded transition-colors ${selectedPeriod === option.value
+                  ? "bg-black text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
               >
                 {option.label}
               </button>

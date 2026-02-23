@@ -168,16 +168,15 @@ export const AddSiteForm = ({
       ...data,
       ...(siteMapUrl
         ? {
-            attachments: [
-              {
-                site_map: siteMapUrl,
-              },
-            ],
-          }
+          attachments: [
+            {
+              site_map: siteMapUrl,
+            },
+          ],
+        }
         : {}),
     };
 
-    console.log("submit data", payload);
     const response = await addSiteService(payload);
     try {
       if (response.success) {

@@ -158,7 +158,6 @@ export function AddSamplingPointForm({
   organizations: Organization[];
   sites: Sites[];
 }) {
-  console.log("assets", assets);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -315,16 +314,16 @@ export function AddSamplingPointForm({
       ...data,
       ...(attachmentData
         ? {
-            attachments: [
-              {
-                url: attachmentData.url, // file_key from upload
-                name: attachmentData.name,
-              },
-            ],
-          }
+          attachments: [
+            {
+              url: attachmentData.url, // file_key from upload
+              name: attachmentData.name,
+            },
+          ],
+        }
         : data.attachments && data.attachments.length > 0
-        ? { attachments: data.attachments }
-        : {}),
+          ? { attachments: data.attachments }
+          : {}),
     };
 
     try {
@@ -335,16 +334,15 @@ export function AddSamplingPointForm({
         });
         router.push("/sampling-points");
       } else {
-        console.log("response in add sampling point", response.message);
         toast.error(
           response.message ||
-            "Failed to create sampling point. Please try again."
+          "Failed to create sampling point. Please try again."
         );
       }
     } catch (error) {
       toast.error(
         (error as Error).message ||
-          "Failed to create sampling point. Please try again."
+        "Failed to create sampling point. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -423,8 +421,8 @@ export function AddSamplingPointForm({
                               !selectedOrganizationId
                                 ? "Select an organization first"
                                 : filteredAssets.length === 0
-                                ? "No assets available"
-                                : "Select an asset"
+                                  ? "No assets available"
+                                  : "Select an asset"
                             }
                           />
                         </SelectTrigger>
@@ -618,8 +616,8 @@ export function AddSamplingPointForm({
                                 !selectedOrganizationId
                                   ? "Select an organization first"
                                   : filteredUsers.length === 0
-                                  ? "No users available"
-                                  : "Select an assignee"
+                                    ? "No users available"
+                                    : "Select an assignee"
                               }
                             />
                           </SelectTrigger>
@@ -800,8 +798,8 @@ export function AddSamplingPointForm({
             {isUploadingImage
               ? "Uploading File..."
               : isSubmitting
-              ? "Creating..."
-              : "Create Sampling Point"}
+                ? "Creating..."
+                : "Create Sampling Point"}
           </Button>
         </div>
       </form>

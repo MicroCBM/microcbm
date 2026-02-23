@@ -23,7 +23,7 @@ export default function EditSamplePage() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [sampleData, sitesData, assetsData, samplingPointsData] =
+        const [sampleData, sitesResult, assetsResult, samplingPointsResult] =
           await Promise.all([
             getSampleService(params.id as string),
             getSitesService(),
@@ -32,9 +32,9 @@ export default function EditSamplePage() {
           ]);
 
         setSample(sampleData);
-        setSites(sitesData);
-        setAssets(assetsData);
-        setSamplingPoints(samplingPointsData);
+        setSites(sitesResult.data);
+        setAssets(assetsResult.data);
+        setSamplingPoints(samplingPointsResult.data);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Failed to fetch sample details");

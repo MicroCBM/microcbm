@@ -20,10 +20,10 @@ export default async function EditRecommendationPage({
 }: EditRecommendationPageProps) {
   const { id } = await params;
   const recommendation = await getRecommendationService(id);
-  const sites = await getSitesService();
-  const assets = await getAssetsService();
+  const sites = (await getSitesService()).data;
+  const assets = (await getAssetsService()).data;
   const users = await getUsersService();
-  const samplingPoints = await getSamplingPointsService();
+  const samplingPoints = (await getSamplingPointsService()).data;
 
   return (
     <main className="flex flex-col gap-4">

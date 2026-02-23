@@ -69,7 +69,7 @@ export function EditAlarmModal() {
       try {
         const [alarmData, sitesData, recommendationsData] = await Promise.all([
           getAlarmService(alarmFromModal.id),
-          getSitesService(),
+          getSitesService().then((r) => r.data),
           getRecommendationsService({}),
         ]);
 

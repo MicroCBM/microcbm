@@ -15,27 +15,55 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  StatusBadge,
   Text,
 } from "@/components";
+import { StatusCell } from "@/components/cells";
+import { Pagination } from "@/components/pagination";
 import { SamplingPoint } from "@/types";
+import type { TableCellProps } from "@/types";
 import { ViewSamplingPointModal, DeleteSamplingPointModal } from "./";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { deleteSamplingPointService } from "@/app/actions";
+import type { SamplingPointsMeta } from "@/app/actions/sampling-points";
 import { toast } from "sonner";
 
 interface SamplingPointTableProps {
   data: SamplingPoint[];
+  meta?: SamplingPointsMeta;
   className?: string;
   onSamplingPointDeleted?: () => void;
 }
 
 export function SamplingPointTable({
   data,
+  meta,
   className,
   onSamplingPointDeleted,
 }: SamplingPointTableProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const limit = Math.max(
+    1,
+    Math.min(100, parseInt(searchParams.get("limit") ?? "10", 10) || 10)
+  );
+
+  const setPage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newPage !== 1) params.set("page", String(newPage));
+    else params.delete("page");
+    if (limit !== 10) params.set("limit", String(limit));
+    const q = params.toString();
+    router.push(`/sampling-points${q ? `?${q}` : ""}`);
+  };
+  const setLimit = (newLimit: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", "1");
+    if (newLimit !== 10) params.set("limit", String(newLimit));
+    else params.delete("limit");
+    const q = params.toString();
+    router.push(`/sampling-points${q ? `?${q}` : ""}`);
+  };
   const [selectedSamplingPoint, setSelectedSamplingPoint] =
     useState<SamplingPoint | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -154,20 +182,14 @@ export function SamplingPointTable({
     {
       accessorKey: "severity",
       header: "Severity",
-      cell: ({ row }) => (
-        <StatusBadge
-          status={
-            (row.original.severity.charAt(0).toUpperCase() +
-              row.original.severity.slice(1).toLowerCase()) as
-            | "Active"
-            | "Inactive"
-            | "Pending"
-            | "Low"
-            | "Medium"
-            | "High"
-          }
-        />
-      ),
+      cell: (cell) => {
+        const { row } = cell;
+        const statusRow = {
+          ...row,
+          original: { ...row.original, status: row.original.severity ?? "" },
+        } as unknown as TableCellProps<{ status: string }>["row"];
+        return <StatusCell row={statusRow} getValue={cell.getValue} />;
+      },
       size: 100,
     },
     {
@@ -271,9 +293,10 @@ export function SamplingPointTable({
   });
 
   return (
-    <div className={cn("border border-gray-200 overflow-hidden", className)}>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+    <div className={cn("relative", className)}>
+      <div className="border border-b-0 border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
           {/* Header */}
           <thead>
             <tr className="bg-white-50">
@@ -344,8 +367,21 @@ export function SamplingPointTable({
               );
             })}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
+
+      {meta != null && (
+        <div className="mt-5 no-print">
+          <Pagination
+            total={meta.total}
+            page={page}
+            setPage={setPage}
+            limit={limit}
+            setLimit={setLimit}
+          />
+        </div>
+      )}
 
       <ViewSamplingPointModal
         samplingPoint={selectedSamplingPoint as SamplingPoint}

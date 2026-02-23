@@ -65,7 +65,6 @@ export const EditSite = ({
   organizations: Organization[];
   users: UserType[];
 }) => {
-  console.log("site information", site);
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -133,8 +132,8 @@ export const EditSite = ({
   // Get existing site_map file key from attachments
   const existingSiteMapKey =
     site?.attachments &&
-    Array.isArray(site.attachments) &&
-    site.attachments.length > 0
+      Array.isArray(site.attachments) &&
+      site.attachments.length > 0
       ? (site.attachments[0] as { site_map?: string })?.site_map
       : null;
 
@@ -269,28 +268,28 @@ export const EditSite = ({
       ...data,
       ...(siteMapUrl
         ? {
-            // New file uploaded
-            attachments: [
-              {
-                site_map: siteMapUrl,
-              },
-            ],
-          }
+          // New file uploaded
+          attachments: [
+            {
+              site_map: siteMapUrl,
+            },
+          ],
+        }
         : isFileDeleted
-        ? {
+          ? {
             // File was deleted
             attachments: [],
           }
-        : existingSiteMapKey
-        ? {
-            // Preserve existing attachment if no changes
-            attachments: [
-              {
-                site_map: existingSiteMapKey,
-              },
-            ],
-          }
-        : {}),
+          : existingSiteMapKey
+            ? {
+              // Preserve existing attachment if no changes
+              attachments: [
+                {
+                  site_map: existingSiteMapKey,
+                },
+              ],
+            }
+            : {}),
     };
 
     try {

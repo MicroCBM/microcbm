@@ -76,10 +76,8 @@ export default async function SingleAdminPermissionsPage({
   const { id } = await params;
   const role = await getSingleRoleService(id);
   const users = await getUsersByRoleIdService(id);
-  const organizations = await getOrganizationsService();
-  const sites = await getSitesService();
-
-  console.log("users", users);
+  const organizations = (await getOrganizationsService()).data;
+  const sites = (await getSitesService()).data;
 
   return (
     <main className="flex flex-col gap-4">

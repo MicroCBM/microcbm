@@ -12,10 +12,10 @@ export const dynamic = "force-dynamic";
 
 export default async function SampleHistoryPage() {
   const [organizations, sites, assets, samplingPoints] = await Promise.all([
-    getOrganizationsService().catch(() => []),
-    getSitesService().catch(() => []),
-    getAssetsService().catch(() => []),
-    getSamplingPointsService().catch(() => []),
+    getOrganizationsService().then((r) => r.data).catch(() => []),
+    getSitesService().then((r) => r.data).catch(() => []),
+    getAssetsService().then((r) => r.data).catch(() => []),
+    getSamplingPointsService().then((r) => r.data).catch(() => []),
   ]);
 
   return (

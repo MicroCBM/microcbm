@@ -6,9 +6,10 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  StatusBadge,
   Text,
 } from "@/components";
+import { StatusCell } from "@/components/cells";
+import type { TableCellProps } from "@/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import dayjs from "dayjs";
 import { Asset, CsvHeader, Sample, SamplingPoint, Sites } from "@/types";
@@ -94,11 +95,14 @@ export function getSampleListColumns<T extends Sample = Sample>({
     {
       accessorKey: "severity",
       header: "Severity",
-      cell: ({ row }) => (
-        <StatusBadge
-          status={row.original.severity as "Active" | "Inactive" | "Pending"}
-        />
-      ),
+      cell: (cell) => {
+        const { row } = cell;
+        const statusRow = {
+          ...row,
+          original: { ...row.original, status: row.original.severity ?? "" },
+        } as unknown as TableCellProps<{ status: string }>["row"];
+        return <StatusCell row={statusRow} getValue={cell.getValue} />;
+      },
       size: 120,
     },
     {

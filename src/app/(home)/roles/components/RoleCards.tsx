@@ -130,10 +130,9 @@ export function RoleCards({
 
   const handleConfirmDelete = async (roleId: string) => {
     setIsDeleting(true);
-    console.log("roleId", roleId);
+
     try {
       const response = await deleteRoleService(roleId);
-      console.log("response in handleConfirmDelete", response);
       if (response.success) {
         toast.success("Role deleted successfully", {
           description: "The role has been permanently removed.",
@@ -229,12 +228,12 @@ export function RoleCards({
                     onClickFn: () => handleDeleteRole(role),
                   },
                 ]}
-                // permission={[
-                //   "roles:view",
-                //   "roles:edit",
-                //   "roles:delete",
-                //   "roles:view-permissions",
-                // ]}
+              // permission={[
+              //   "roles:view",
+              //   "roles:edit",
+              //   "roles:delete",
+              //   "roles:view-permissions",
+              // ]}
               >
                 <button
                   type="button"

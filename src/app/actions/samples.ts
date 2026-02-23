@@ -11,15 +11,63 @@ import { AddSamplePayload, EditSamplePayload } from "@/schema";
 
 const commonEndpoint = "/api/v1/";
 
-async function getSamplesService(): Promise<Sample[]> {
+export interface SamplesMeta {
+  page: number;
+  limit: number;
+  total: number;
+  total_pages: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
+
+export interface GetSamplesResult {
+  data: Sample[];
+  meta: SamplesMeta;
+}
+
+async function getSamplesService(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  site_id?: string;
+  severity?: string;
+}): Promise<GetSamplesResult> {
   try {
-    const response = await requestWithAuth(`${commonEndpoint}samples`, {
+    const searchParams = new URLSearchParams();
+    if (params?.page != null) searchParams.set("page", String(params.page));
+    if (params?.limit != null) searchParams.set("limit", String(params.limit));
+    if (params?.search) searchParams.set("search", params.search);
+    if (params?.site_id) searchParams.set("site_id", params.site_id);
+    if (params?.severity) searchParams.set("severity", params.severity);
+    const query = searchParams.toString();
+    const url = `${commonEndpoint}samples${query ? `?${query}` : ""}`;
+
+    const response = await requestWithAuth(url, {
       method: "GET",
     });
 
-    const data = await response.json();
+    const json = await response.json();
+    const data = json?.data ?? [];
+    const meta = json?.meta ?? {
+      page: 1,
+      limit: 10,
+      total: 0,
+      total_pages: 0,
+      has_next: false,
+      has_prev: false,
+    };
 
-    return data?.data;
+    return {
+      data: Array.isArray(data) ? data : [],
+      meta: {
+        page: meta.page ?? 1,
+        limit: meta.limit ?? 10,
+        total: meta.total ?? 0,
+        total_pages: meta.total_pages ?? 0,
+        has_next: Boolean(meta.has_next),
+        has_prev: Boolean(meta.has_prev),
+      },
+    };
   } catch (error) {
     console.error("Error fetching samples:", error);
     throw error;
@@ -42,14 +90,14 @@ async function getSampleService(id: string): Promise<Sample> {
 }
 
 async function addSampleService(
-  payload: AddSamplePayload
+  payload: AddSamplePayload,
 ): Promise<ApiResponse> {
   return handleApiRequest(`${commonEndpoint}samples`, payload, "POST");
 }
 
 async function editSampleService(
   id: string,
-  payload: EditSamplePayload
+  payload: EditSamplePayload,
 ): Promise<ApiResponse> {
   return handleApiRequest(`${commonEndpoint}samples/${id}`, payload, "PUT");
 }
@@ -60,7 +108,7 @@ async function deleteSampleService(id: string): Promise<ApiResponse> {
 
 async function getSampleAnalysisGroupsAnalyticsService(
   category: string,
-  period?: number
+  period?: number,
 ): Promise<ApiResponse> {
   try {
     const periodParam = period ? `&period=${period}` : "";
@@ -68,7 +116,7 @@ async function getSampleAnalysisGroupsAnalyticsService(
       `${commonEndpoint}samples/analysis-groups/analytics?category=${category}${periodParam}`,
       {
         method: "GET",
-      }
+      },
     );
 
     const data = await response.json();
@@ -105,7 +153,7 @@ async function getSamplingPointSampleHistoryService(
     limit?: number;
     start_date?: string;
     end_date?: string;
-  } = {}
+  } = {},
 ): Promise<SampleHistoryResponse> {
   try {
     const searchParams = new URLSearchParams();

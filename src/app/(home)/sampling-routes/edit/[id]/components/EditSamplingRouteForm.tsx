@@ -192,7 +192,6 @@ export function EditSamplingRouteForm({
   ]);
 
   const onSubmit = async (data: AddSamplingRoutePayload) => {
-    console.log("submit data", data);
     setIsSubmitting(true);
     try {
       const response = await editSamplingRouteService(samplingRoute.id, data);
@@ -202,16 +201,15 @@ export function EditSamplingRouteForm({
         });
         router.push("/sampling-routes");
       } else {
-        console.log("response in edit sampling route", response.message);
         toast.error(
           response.message ||
-            "Failed to update sampling route. Please try again."
+          "Failed to update sampling route. Please try again."
         );
       }
     } catch (error) {
       toast.error(
         (error as Error).message ||
-          "Failed to update sampling route. Please try again."
+        "Failed to update sampling route. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -300,8 +298,8 @@ export function EditSamplingRouteForm({
                           !selectedOrganizationId
                             ? "Select an organization first"
                             : filteredSites.length === 0
-                            ? "No sites available"
-                            : "Select site"
+                              ? "No sites available"
+                              : "Select site"
                         }
                       />
                     </SelectTrigger>
@@ -340,8 +338,8 @@ export function EditSamplingRouteForm({
                           !selectedOrganizationId
                             ? "Select an organization first"
                             : filteredTechnicians.length === 0
-                            ? "No technicians available for this organization"
-                            : "Select technician"
+                              ? "No technicians available for this organization"
+                              : "Select technician"
                         }
                       />
                     </SelectTrigger>

@@ -98,10 +98,10 @@ export function EditRecommendationModal() {
           samplingPointsData,
         ] = await Promise.all([
           getRecommendationService(recommendationFromModal.id),
-          getSitesService(),
-          getAssetsService(),
+          getSitesService().then((r) => r.data),
+          getAssetsService().then((r) => r.data),
           getUsersService(),
-          getSamplingPointsService(),
+          getSamplingPointsService().then((r) => r.data),
         ]);
 
         setRecommendation(recommendationData);

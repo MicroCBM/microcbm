@@ -44,7 +44,6 @@ export function EditPermissions({
   onClose: () => void;
   roleId: string;
 }) {
-  console.log("permissions", permissions);
   // Create a mock form for PermissionGroup (read-only)
   const form = useForm<AddPermissionsToRolePayload>({
     resolver: zodResolver(ADD_PERMISSIONS_TO_ROLE_SCHEMA),
@@ -69,7 +68,6 @@ export function EditPermissions({
     // Create a Set of assigned permission IDs for quick lookup
     const assignedPermissionIds = new Set<string>();
     if (data && Array.isArray(data) && data.length > 0) {
-      console.log("ViewPermissions - data (assigned permissions):", data);
       data.forEach((permission) => {
         if (permission.id) {
           assignedPermissionIds.add(permission.id);

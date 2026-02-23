@@ -46,6 +46,16 @@
   /* red */
   --color-red: #ff6467;
   --color-red-100: #fef2f2;
+
+  /* status variants (align with getStatusVariant: success, warning, error) */
+  --color-success: var(--color-green);
+  --color-success-100: var(--color-green-200);
+  --color-warning: var(--color-orange);
+  --color-warning-100: var(--color-orange-100);
+  /* critical/high severity: darker red (softer than bright #ff6467) */
+  --color-error: #b91c1c;
+  --color-error-100: #fef2f2;
+  --color-error-800: #7f1d1d;
 }
 
 body {

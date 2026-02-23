@@ -17,19 +17,51 @@ import {
   PopoverTrigger,
   Text,
 } from "@/components";
+import { Pagination } from "@/components/pagination";
 import { Organization } from "@/types";
 import { ViewOrganizationModal } from "./ViewOrganizationModal";
 import { DeleteOrganizationModal } from "./DeleteOrganizationModal";
 import { deleteOrganizationService } from "@/app/actions";
+import type { OrganizationsMeta } from "@/app/actions/organizations";
 import { toast } from "sonner";
 import { EditOrganizationModal } from "./EditOrganizationModal";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface OrganizationTableProps {
   data: Organization[];
+  meta?: OrganizationsMeta;
   className?: string;
 }
 
-export function OrganizationTable({ data, className }: OrganizationTableProps) {
+export function OrganizationTable({
+  data,
+  meta,
+  className,
+}: OrganizationTableProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const limit = Math.max(
+    1,
+    Math.min(100, parseInt(searchParams.get("limit") ?? "10", 10) || 10)
+  );
+
+  const setPage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newPage !== 1) params.set("page", String(newPage));
+    else params.delete("page");
+    if (limit !== 10) params.set("limit", String(limit));
+    const q = params.toString();
+    router.push(`/organizations${q ? `?${q}` : ""}`);
+  };
+  const setLimit = (newLimit: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", "1");
+    if (newLimit !== 10) params.set("limit", String(newLimit));
+    else params.delete("limit");
+    const q = params.toString();
+    router.push(`/organizations${q ? `?${q}` : ""}`);
+  };
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -258,9 +290,10 @@ export function OrganizationTable({ data, className }: OrganizationTableProps) {
   });
 
   return (
-    <div className={cn("border border-gray-200 overflow-hidden", className)}>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+    <div className={cn("relative", className)}>
+      <div className="border border-b-0 border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
           {/* Header */}
           <thead>
             <tr className="bg-white-50">
@@ -331,8 +364,21 @@ export function OrganizationTable({ data, className }: OrganizationTableProps) {
               );
             })}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
+
+      {meta != null && (
+        <div className="mt-5 no-print">
+          <Pagination
+            total={meta.total}
+            page={page}
+            setPage={setPage}
+            limit={limit}
+            setLimit={setLimit}
+          />
+        </div>
+      )}
 
       <ViewOrganizationModal
         organization={selectedOrganization as Organization}

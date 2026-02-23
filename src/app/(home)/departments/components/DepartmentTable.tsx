@@ -17,10 +17,11 @@ import {
   PopoverTrigger,
   Text,
 } from "@/components";
+import { Pagination } from "@/components/pagination";
 import { Department } from "@/types";
-
-// import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { deleteDepartmentService } from "@/app/actions";
+import type { DepartmentsMeta } from "@/app/actions/departments";
 import { toast } from "sonner";
 import { ViewDepartmentModal } from "./ViewDepartmentModal";
 import { DeleteDepartmentModal } from "./DeleteDepartmentModal";
@@ -28,10 +29,39 @@ import { EditDepartmentModal } from "./EditDepartmentModal";
 
 interface DepartmentTableProps {
   data: Department[];
+  meta?: DepartmentsMeta;
   className?: string;
 }
 
-export function DepartmentTable({ data, className }: DepartmentTableProps) {
+export function DepartmentTable({
+  data,
+  meta,
+  className,
+}: DepartmentTableProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const limit = Math.max(
+    1,
+    Math.min(100, parseInt(searchParams.get("limit") ?? "10", 10) || 10)
+  );
+
+  const setPage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newPage !== 1) params.set("page", String(newPage));
+    else params.delete("page");
+    if (limit !== 10) params.set("limit", String(limit));
+    const q = params.toString();
+    router.push(`/departments${q ? `?${q}` : ""}`);
+  };
+  const setLimit = (newLimit: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", "1");
+    if (newLimit !== 10) params.set("limit", String(newLimit));
+    else params.delete("limit");
+    const q = params.toString();
+    router.push(`/departments${q ? `?${q}` : ""}`);
+  };
   const [selectedDepartment, setSelectedDepartment] =
     useState<Department | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -231,9 +261,10 @@ export function DepartmentTable({ data, className }: DepartmentTableProps) {
   });
 
   return (
-    <div className={cn("border border-gray-200 overflow-hidden", className)}>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+    <div className={cn("relative", className)}>
+      <div className="border border-b-0 border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
           {/* Header */}
           <thead>
             <tr className="bg-white-50">
@@ -304,8 +335,21 @@ export function DepartmentTable({ data, className }: DepartmentTableProps) {
               );
             })}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
+
+      {meta != null && (
+        <div className="mt-5 no-print">
+          <Pagination
+            total={meta.total}
+            page={page}
+            setPage={setPage}
+            limit={limit}
+            setLimit={setLimit}
+          />
+        </div>
+      )}
 
       <ViewDepartmentModal
         department={selectedDepartment as Department}

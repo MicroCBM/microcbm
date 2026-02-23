@@ -11,7 +11,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AddSamplingPointPage() {
-  const [users, samplingRoutes, assets, organizations, sites] =
+  const [users, samplingRoutesResult, assetsResult, organizationsResult, sitesResult] =
     await Promise.all([
       getUsersService(),
       getSamplingRoutesService(),
@@ -19,6 +19,10 @@ export default async function AddSamplingPointPage() {
       getOrganizationsService(),
       getSitesService(),
     ]);
+  const samplingRoutes = samplingRoutesResult.data;
+  const assets = assetsResult.data;
+  const organizations = organizationsResult.data;
+  const sites = sitesResult.data;
 
   return (
     <main className="flex flex-col gap-4">

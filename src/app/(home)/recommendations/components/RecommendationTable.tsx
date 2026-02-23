@@ -63,8 +63,6 @@ export function RecommendationTable({
     onDeleteRecommendation: handleDeleteRecommendation,
   });
 
-  console.log("data recommendations", data);
-
   return (
     <div className={cn("relative space-y-[37px]", className)}>
       <div className="text-[#0c4b77] py-2 border-b-2 border-[#0c4b77] w-fit">

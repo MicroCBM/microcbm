@@ -20,12 +20,15 @@ export default async function EditSamplingRoutePage({
 }: EditSamplingRoutePageProps) {
   try {
     const { id } = await params;
-    const [users, sites, samplingRoute, organizations] = await Promise.all([
-      getUsersService(),
-      getSitesService(),
-      getSamplingRouteService(id),
-      getOrganizationsService(),
-    ]);
+    const [users, sitesResult, samplingRoute, organizationsResult] =
+      await Promise.all([
+        getUsersService(),
+        getSitesService(),
+        getSamplingRouteService(id),
+        getOrganizationsService(),
+      ]);
+    const sites = sitesResult.data;
+    const organizations = organizationsResult.data;
 
     // Filter users to only include technicians by role_id
     const technicians = users.filter(

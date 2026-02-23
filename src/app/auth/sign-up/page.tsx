@@ -50,8 +50,6 @@ export default function SignUp() {
     mode: "onChange",
   });
 
-  console.log("Errors:", errors);
-
   const password = watch("password") || "";
 
   // Password validation functions
@@ -61,7 +59,6 @@ export default function SignUp() {
   const hasSpecialChar = /[!@#$%^&*()]/.test(password);
 
   const onSubmit = async (data: z.infer<typeof SIGN_UP_FULL_SCHEMA>) => {
-    console.log("Form data:", data);
     setErrorMessage(""); // Clear previous errors
 
     if (step === "sign-up") {
@@ -122,9 +119,6 @@ export default function SignUp() {
         return;
       }
 
-      // Handle final form submission
-      console.log("Complete signup data:", data);
-
       const response = await signupService({
         user: data.user,
         organization: {
@@ -133,8 +127,6 @@ export default function SignUp() {
         },
         password: data.password,
       });
-
-      console.log("response", response);
 
       if (response.success) {
         setStep("account-created-success");
@@ -222,11 +214,10 @@ export default function SignUp() {
                 <section className="flex flex-col gap-2">
                   <div className="flex items-center gap-2 text-gray-500">
                     <div
-                      className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${
-                        hasMinLength
-                          ? "bg-blue text-white"
-                          : "bg-gray-300 text-gray-600"
-                      }`}
+                      className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${hasMinLength
+                        ? "bg-blue text-white"
+                        : "bg-gray-300 text-gray-600"
+                        }`}
                     >
                       {hasMinLength ? "✓" : "✗"}
                     </div>
@@ -236,11 +227,10 @@ export default function SignUp() {
                   </div>
                   <div className="flex items-center gap-2 text-gray-500">
                     <div
-                      className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${
-                        hasNumber
-                          ? "bg-blue text-white"
-                          : "bg-gray-300 text-gray-600"
-                      }`}
+                      className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${hasNumber
+                        ? "bg-blue text-white"
+                        : "bg-gray-300 text-gray-600"
+                        }`}
                     >
                       {hasNumber ? "✓" : "✗"}
                     </div>
@@ -248,11 +238,10 @@ export default function SignUp() {
                   </div>
                   <div className="flex items-center gap-2 text-gray-500">
                     <div
-                      className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${
-                        hasUppercase
-                          ? "bg-blue text-white"
-                          : "bg-gray-300 text-gray-600"
-                      }`}
+                      className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${hasUppercase
+                        ? "bg-blue text-white"
+                        : "bg-gray-300 text-gray-600"
+                        }`}
                     >
                       {hasUppercase ? "✓" : "✗"}
                     </div>
@@ -262,11 +251,10 @@ export default function SignUp() {
                   </div>
                   <div className="flex items-center gap-2 text-gray-500">
                     <div
-                      className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${
-                        hasSpecialChar
-                          ? "bg-blue text-white"
-                          : "bg-gray-300 text-gray-600"
-                      }`}
+                      className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${hasSpecialChar
+                        ? "bg-blue text-white"
+                        : "bg-gray-300 text-gray-600"
+                        }`}
                     >
                       {hasSpecialChar ? "✓" : "✗"}
                     </div>

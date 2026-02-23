@@ -28,14 +28,14 @@ type EditSampleFormData = Omit<
 > & {
   date_sampled: string | number;
   contaminants?:
-    | Record<string, string>
-    | Array<{ type: string; value: number; unit: string }>;
+  | Record<string, string>
+  | Array<{ type: string; value: number; unit: string }>;
   particle_counts?:
-    | Record<string, string>
-    | Array<{ size_range: string; count: number; unit: string }>;
+  | Record<string, string>
+  | Array<{ size_range: string; count: number; unit: string }>;
   viscosity_levels?:
-    | Record<string, string>
-    | Array<{ temperature: number; viscosity: number; unit: string }>;
+  | Record<string, string>
+  | Array<{ temperature: number; viscosity: number; unit: string }>;
 };
 
 const SEVERITY_OPTIONS = [
@@ -167,7 +167,6 @@ export function EditSampleForm({
     resolver: zodResolver(formSchema),
   });
 
-  console.log("errors", errors);
 
   useEffect(() => {
     if (sample) {
@@ -699,8 +698,8 @@ export function EditSampleForm({
                         !selectedSiteId
                           ? "Select a site first"
                           : filteredAssets.length === 0
-                          ? "No assets available for this site"
-                          : "Select an asset"
+                            ? "No assets available for this site"
+                            : "Select an asset"
                       }
                     />
                   </SelectTrigger>
@@ -739,10 +738,10 @@ export function EditSampleForm({
                         !selectedSiteId
                           ? "Select a site first"
                           : !selectedAssetId
-                          ? "Select an asset first"
-                          : filteredSamplingPoints.length === 0
-                          ? "No sampling points available"
-                          : "Select a sampling point"
+                            ? "Select an asset first"
+                            : filteredSamplingPoints.length === 0
+                              ? "No sampling points available"
+                              : "Select a sampling point"
                       }
                     />
                   </SelectTrigger>
@@ -758,8 +757,8 @@ export function EditSampleForm({
                         {!selectedSiteId
                           ? "Select a site first"
                           : !selectedAssetId
-                          ? "Select an asset first"
-                          : "No sampling points available"}
+                            ? "Select an asset first"
+                            : "No sampling points available"}
                       </SelectItem>
                     )}
                   </SelectContent>
@@ -911,14 +910,14 @@ export function EditSampleForm({
                 placeholder="Number"
                 error={
                   errors?.wear_metals &&
-                  typeof errors.wear_metals === "object" &&
-                  metal.key in errors.wear_metals
+                    typeof errors.wear_metals === "object" &&
+                    metal.key in errors.wear_metals
                     ? (
-                        errors.wear_metals as Record<
-                          string,
-                          { message?: string }
-                        >
-                      )[metal.key]?.message
+                      errors.wear_metals as Record<
+                        string,
+                        { message?: string }
+                      >
+                    )[metal.key]?.message
                     : undefined
                 }
                 {...register(`wear_metals.${metal.key}`)}
@@ -943,14 +942,14 @@ export function EditSampleForm({
                 placeholder="Number"
                 error={
                   errors?.contaminants &&
-                  typeof errors.contaminants === "object" &&
-                  contaminant.key in errors.contaminants
+                    typeof errors.contaminants === "object" &&
+                    contaminant.key in errors.contaminants
                     ? (
-                        errors.contaminants as Record<
-                          string,
-                          { message?: string }
-                        >
-                      )[contaminant.key]?.message
+                      errors.contaminants as Record<
+                        string,
+                        { message?: string }
+                      >
+                    )[contaminant.key]?.message
                     : undefined
                 }
                 {...register(
@@ -977,14 +976,14 @@ export function EditSampleForm({
                 placeholder="Number"
                 error={
                   errors?.particle_counts &&
-                  typeof errors.particle_counts === "object" &&
-                  particle.key in errors.particle_counts
+                    typeof errors.particle_counts === "object" &&
+                    particle.key in errors.particle_counts
                     ? (
-                        errors.particle_counts as Record<
-                          string,
-                          { message?: string }
-                        >
-                      )[particle.key]?.message
+                      errors.particle_counts as Record<
+                        string,
+                        { message?: string }
+                      >
+                    )[particle.key]?.message
                     : undefined
                 }
                 {...register(
@@ -1011,14 +1010,14 @@ export function EditSampleForm({
                 placeholder="Number"
                 error={
                   errors?.viscosity_levels &&
-                  typeof errors.viscosity_levels === "object" &&
-                  viscosity.key in errors.viscosity_levels
+                    typeof errors.viscosity_levels === "object" &&
+                    viscosity.key in errors.viscosity_levels
                     ? (
-                        errors.viscosity_levels as Record<
-                          string,
-                          { message?: string }
-                        >
-                      )[viscosity.key]?.message
+                      errors.viscosity_levels as Record<
+                        string,
+                        { message?: string }
+                      >
+                    )[viscosity.key]?.message
                     : undefined
                 }
                 {...register(
@@ -1044,11 +1043,11 @@ export function EditSampleForm({
                 placeholder="Additive"
                 error={
                   errors?.additives &&
-                  typeof errors.additives === "object" &&
-                  additive.key in errors.additives
+                    typeof errors.additives === "object" &&
+                    additive.key in errors.additives
                     ? (
-                        errors.additives as Record<string, { message?: string }>
-                      )[additive.key]?.message
+                      errors.additives as Record<string, { message?: string }>
+                    )[additive.key]?.message
                     : undefined
                 }
                 {...register(`additives.${additive.key}`)}

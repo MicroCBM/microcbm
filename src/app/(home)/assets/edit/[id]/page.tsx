@@ -14,7 +14,7 @@ interface EditAssetPageProps {
 
 export default async function EditAssetPage({ params }: EditAssetPageProps) {
   const { id } = await params;
-  const sites = await getSitesService();
+  const sites = (await getSitesService()).data;
   const users = await getUsersService();
   const asset = await getAssetService(id);
 

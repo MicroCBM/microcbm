@@ -19,7 +19,7 @@ export interface ApiResponse {
 
 export async function requestWithAuth(
   input: RequestInfo,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<Response> {
   const token = (await cookies()).get("token")?.value;
   const headers = new Headers(init?.headers || {});
@@ -71,13 +71,13 @@ export function handleError(error: unknown): ApiResponse {
 export async function handleApiRequest(
   endpoint: string,
   body: unknown,
-  method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH" = "POST"
+  method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH" = "POST",
 ): Promise<ApiResponse> {
   try {
     console.log("API Request body:", body);
     console.log(
       "JSON stringified body:",
-      body ? JSON.stringify(body) : undefined
+      body ? JSON.stringify(body) : undefined,
     );
 
     const res = await requestWithAuth(endpoint, {

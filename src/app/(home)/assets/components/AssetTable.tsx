@@ -18,23 +18,48 @@ import {
   StatusBadge,
   Text,
 } from "@/components";
+import { Pagination } from "@/components/pagination";
 import { Asset } from "@/types";
 import { ViewAssetModal, DeleteAssetModal } from "./";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { deleteAssetService } from "@/app/actions";
+import type { AssetsMeta } from "@/app/actions/inventory";
 import { toast } from "sonner";
+
 interface AssetTableProps {
   data: Asset[];
+  meta?: AssetsMeta;
   className?: string;
   onAssetDeleted?: () => void;
 }
 
 export function AssetTable({
   data,
+  meta,
   className,
   onAssetDeleted,
 }: AssetTableProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const limit = Math.max(1, Math.min(100, parseInt(searchParams.get("limit") ?? "10", 10) || 10));
+
+  const setPage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newPage !== 1) params.set("page", String(newPage));
+    else params.delete("page");
+    if (limit !== 10) params.set("limit", String(limit));
+    const q = params.toString();
+    router.push(`/assets${q ? `?${q}` : ""}`);
+  };
+  const setLimit = (newLimit: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", "1");
+    if (newLimit !== 10) params.set("limit", String(newLimit));
+    else params.delete("limit");
+    const q = params.toString();
+    router.push(`/assets${q ? `?${q}` : ""}`);
+  };
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -68,7 +93,6 @@ export function AssetTable({
     setIsDeleting(true);
     try {
       const response = await deleteAssetService(assetId);
-      console.log("response from delete asset", response);
       if (response.success) {
         toast.success("Asset deleted successfully", {
           description: "The asset has been permanently removed.",
@@ -265,81 +289,95 @@ export function AssetTable({
   });
 
   return (
-    <div className={cn("border border-gray-200 overflow-hidden", className)}>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          {/* Header */}
-          <thead>
-            <tr className="bg-white-50">
-              {table.getHeaderGroups().map((headerGroup) =>
-                headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-r border-gray-200 last:border-r-0"
-                    style={{ width: header.getSize() }}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                  </th>
-                ))
-              )}
-            </tr>
-          </thead>
-
-          <tbody className="bg-white">
-            {groupOrder.map((groupKey) => {
-              const groupData = groupedData[groupKey];
-              if (!groupData || groupData.length === 0) return null;
-
-              return (
-                <React.Fragment key={groupKey}>
-                  {/* Group Header */}
-                  <tr className="bg-gray-100">
-                    <td
-                      colSpan={columns.length}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 uppercase tracking-wide"
+    <div className={cn("overflow-hidden", className)}>
+      <div className="border border-b-0 border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            {/* Header */}
+            <thead>
+              <tr className="bg-white-50">
+                {table.getHeaderGroups().map((headerGroup) =>
+                  headerGroup.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-r border-gray-200 last:border-r-0"
+                      style={{ width: header.getSize() }}
                     >
-                      {groupKey}
-                    </td>
-                  </tr>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </th>
+                  ))
+                )}
+              </tr>
+            </thead>
 
-                  {/* Group Data Rows */}
-                  {groupData.map((user) => {
-                    const row = table
-                      .getRowModel()
-                      .rows.find((r) => r.original.id === user.id);
-                    if (!row) return null;
+            <tbody className="bg-white">
+              {groupOrder.map((groupKey) => {
+                const groupData = groupedData[groupKey];
+                if (!groupData || groupData.length === 0) return null;
 
-                    return (
-                      <tr
-                        key={user.id}
-                        className="border-t border-gray-200 hover:bg-gray-50 transition-colors"
+                return (
+                  <React.Fragment key={groupKey}>
+                    {/* Group Header */}
+                    <tr className="bg-gray-100">
+                      <td
+                        colSpan={columns.length}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 uppercase tracking-wide"
                       >
-                        {row.getVisibleCells().map((cell) => (
-                          <td
-                            key={cell.id}
-                            className="px-4 py-3 border-r border-gray-200 last:border-r-0"
-                            style={{ width: cell.column.getSize() }}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+                        {groupKey}
+                      </td>
+                    </tr>
+
+                    {/* Group Data Rows */}
+                    {groupData.map((user) => {
+                      const row = table
+                        .getRowModel()
+                        .rows.find((r) => r.original.id === user.id);
+                      if (!row) return null;
+
+                      return (
+                        <tr
+                          key={user.id}
+                          className="border-t border-gray-200 hover:bg-gray-50 transition-colors"
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <td
+                              key={cell.id}
+                              className="px-4 py-3 border-r border-gray-200 last:border-r-0"
+                              style={{ width: cell.column.getSize() }}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      {meta != null && (
+        <div className="mt-5 no-print">
+          <Pagination
+            total={meta.total}
+            page={page}
+            setPage={setPage}
+            limit={limit}
+            setLimit={setLimit}
+          />
+        </div>
+      )}
 
       <ViewAssetModal
         asset={selectedAsset as Asset}

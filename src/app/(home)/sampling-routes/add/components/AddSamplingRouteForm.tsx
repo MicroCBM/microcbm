@@ -160,7 +160,6 @@ export function AddSamplingRouteForm({
   ]);
 
   const onSubmit = async (data: AddSamplingRoutePayload) => {
-    console.log("submit data", data);
     setIsSubmitting(true);
     try {
       const response = await addSamplingRouteService(data);
@@ -171,16 +170,15 @@ export function AddSamplingRouteForm({
         });
         router.push("/sampling-routes");
       } else {
-        console.log("response in add sampling route", response.message);
         toast.error(
           response.message ||
-            "Failed to create sampling route. Please try again."
+          "Failed to create sampling route. Please try again."
         );
       }
     } catch (error) {
       toast.error(
         (error as Error).message ||
-          "Failed to create sampling route. Please try again."
+        "Failed to create sampling route. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -269,8 +267,8 @@ export function AddSamplingRouteForm({
                           !selectedOrganizationId
                             ? "Select an organization first"
                             : filteredSites.length === 0
-                            ? "No sites available"
-                            : "Select site"
+                              ? "No sites available"
+                              : "Select site"
                         }
                       />
                     </SelectTrigger>
@@ -304,8 +302,8 @@ export function AddSamplingRouteForm({
                           !selectedOrganizationId
                             ? "Select an organization first"
                             : filteredTechnicians.length === 0
-                            ? "No technicians available for this organization"
-                            : "Select technician"
+                              ? "No technicians available for this organization"
+                              : "Select technician"
                         }
                       />
                     </SelectTrigger>

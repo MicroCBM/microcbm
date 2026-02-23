@@ -11,10 +11,8 @@ import { CreateCustomer, UserTable } from "./components";
 export default async function UserManagementPage() {
   const users = await getUsersService();
   const roles = await getRolesService();
-  const sites = await getSitesService();
-  const organizations = await getOrganizationsService();
-
-  console.log("users table", users);
+  const sites = (await getSitesService()).data;
+  const organizations = (await getOrganizationsService()).data;
 
   return (
     <main className="flex flex-col gap-4">
