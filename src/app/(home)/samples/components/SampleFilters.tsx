@@ -1,43 +1,41 @@
 "use client";
 
 import React, { useCallback } from "react";
-import {
-  Button,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Search,
-  Text,
-} from "@/components";
+import { Button, DebouncedSearch } from "@/components";
 import { Icon } from "@/libs";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Sites } from "@/types";
+import { Asset, SamplingPoint, Sites } from "@/types";
 import { Dropdown } from "@/components/dropdown";
-
-const SEVERITY_OPTIONS = [
-  { value: "", label: "All severities" },
-  { value: "normal", label: "Normal" },
-  { value: "warning", label: "Warning" },
-  { value: "critical", label: "Critical" },
-  { value: "urgent", label: "Urgent" },
-  { value: "low", label: "Low" },
-  { value: "high", label: "High" },
-];
 
 interface SampleFiltersProps {
   sites?: Sites[];
+  assets?: Asset[];
+  samplingPoints?: SamplingPoint[];
 }
 
-export function SampleFilters({ sites = [] }: SampleFiltersProps) {
+export function SampleFilters({
+  sites = [],
+  assets = [],
+  samplingPoints = [],
+}: SampleFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const search = searchParams.get("search") ?? "";
   const site_id = searchParams.get("site_id") ?? "";
-  const severity = searchParams.get("severity") ?? "";
+  const asset_id = searchParams.get("asset_id") ?? "";
+  const sampling_point_id =
+    searchParams.get("sampling_point_id") ?? "";
+  // const lab_name = searchParams.get("lab_name") ?? "";
 
   const updateUrl = useCallback(
-    (updates: { search?: string; site_id?: string; severity?: string }) => {
+    (updates: {
+      search?: string;
+      site_id?: string;
+      asset_id?: string;
+      sampling_point_id?: string;
+      lab_name?: string;
+    }) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set("page", "1");
       if (updates.search !== undefined) {
@@ -48,23 +46,25 @@ export function SampleFilters({ sites = [] }: SampleFiltersProps) {
         if (updates.site_id) params.set("site_id", updates.site_id);
         else params.delete("site_id");
       }
-      if (updates.severity !== undefined) {
-        if (updates.severity) params.set("severity", updates.severity);
-        else params.delete("severity");
+      if (updates.asset_id !== undefined) {
+        if (updates.asset_id) params.set("asset_id", updates.asset_id);
+        else params.delete("asset_id");
+      }
+      if (updates.sampling_point_id !== undefined) {
+        if (updates.sampling_point_id)
+          params.set("sampling_point_id", updates.sampling_point_id);
+        else params.delete("sampling_point_id");
+      }
+      if (updates.lab_name !== undefined) {
+        if (updates.lab_name.trim())
+          params.set("lab_name", updates.lab_name.trim());
+        else params.delete("lab_name");
       }
       const q = params.toString();
       router.push(`/samples${q ? `?${q}` : ""}`);
     },
     [router, searchParams]
   );
-
-  const handleSearchChange = (value: string) => {
-    updateUrl({ search: value });
-  };
-
-  const handleSeverityChange = (value: string) => {
-    updateUrl({ severity: value });
-  };
 
   const siteOptions = [
     { label: "All sites", onClickFn: () => updateUrl({ site_id: "" }) },
@@ -74,14 +74,31 @@ export function SampleFilters({ sites = [] }: SampleFiltersProps) {
     })),
   ];
 
-  const severityLabel =
-    SEVERITY_OPTIONS.find((o) => o.value === severity)?.label ?? "Severity";
+  const assetOptions = [
+    { label: "All assets", onClickFn: () => updateUrl({ asset_id: "" }) },
+    ...assets.map((asset) => ({
+      label: asset.name,
+      onClickFn: () => updateUrl({ asset_id: asset.id }),
+    })),
+  ];
+
+  const samplingPointOptions = [
+    {
+      label: "All sampling points",
+      onClickFn: () => updateUrl({ sampling_point_id: "" }),
+    },
+    ...samplingPoints.map((sp) => ({
+      label: sp.name,
+      onClickFn: () => updateUrl({ sampling_point_id: sp.id }),
+    })),
+  ];
 
   return (
     <div className="flex items-center gap-2">
-      <Search
+      <DebouncedSearch
         value={search}
-        onChange={(event) => handleSearchChange(event.target.value)}
+        onChange={(value) => updateUrl({ search: value })}
+        debounceTime={400}
         placeholder="Search samples"
         className="h-10 max-w-[296px]"
       />
@@ -107,8 +124,11 @@ export function SampleFilters({ sites = [] }: SampleFiltersProps) {
         </Dropdown>
       )}
 
-      <Popover>
-        <PopoverTrigger asChild>
+      {assets.length > 0 && (
+        <Dropdown
+          actions={assetOptions}
+          contentClassName="absolute top-[-36px] right-[2px]"
+        >
           <Button
             variant="outline"
             size="medium"
@@ -118,23 +138,34 @@ export function SampleFilters({ sites = [] }: SampleFiltersProps) {
               icon="hugeicons:plus-sign-circle"
               className="text-black size-4 group-hover:text-white"
             />
-            {severityLabel}
+            {asset_id
+              ? assets.find((a) => a.id === asset_id)?.name ?? "Asset"
+              : "Asset"}
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[208px]">
-          <div className="flex flex-col">
-            {SEVERITY_OPTIONS.map((opt) => (
-              <button
-                key={opt.value || "all"}
-                className="px-2 py-[6px] hover:bg-gray-100 text-left"
-                onClick={() => handleSeverityChange(opt.value)}
-              >
-                <Text variant="span">{opt.label}</Text>
-              </button>
-            ))}
-          </div>
-        </PopoverContent>
-      </Popover>
+        </Dropdown>
+      )}
+
+      {samplingPoints.length > 0 && (
+        <Dropdown
+          actions={samplingPointOptions}
+          contentClassName="absolute top-[-36px] right-[2px]"
+        >
+          <Button
+            variant="outline"
+            size="medium"
+            className="border border-gray-100 group"
+          >
+            <Icon
+              icon="hugeicons:plus-sign-circle"
+              className="text-black size-4 group-hover:text-white"
+            />
+            {sampling_point_id
+              ? samplingPoints.find((sp) => sp.id === sampling_point_id)
+                ?.name ?? "Sampling point"
+              : "Sampling point"}
+          </Button>
+        </Dropdown>
+      )}
     </div>
   );
 }

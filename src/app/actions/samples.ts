@@ -30,7 +30,9 @@ async function getSamplesService(params?: {
   limit?: number;
   search?: string;
   site_id?: string;
-  severity?: string;
+  asset_id?: string;
+  sampling_point_id?: string;
+  lab_name?: string;
 }): Promise<GetSamplesResult> {
   try {
     const searchParams = new URLSearchParams();
@@ -38,7 +40,10 @@ async function getSamplesService(params?: {
     if (params?.limit != null) searchParams.set("limit", String(params.limit));
     if (params?.search) searchParams.set("search", params.search);
     if (params?.site_id) searchParams.set("site_id", params.site_id);
-    if (params?.severity) searchParams.set("severity", params.severity);
+    if (params?.asset_id) searchParams.set("asset_id", params.asset_id);
+    if (params?.sampling_point_id)
+      searchParams.set("sampling_point_id", params.sampling_point_id);
+    if (params?.lab_name) searchParams.set("lab_name", params.lab_name);
     const query = searchParams.toString();
     const url = `${commonEndpoint}samples${query ? `?${query}` : ""}`;
 

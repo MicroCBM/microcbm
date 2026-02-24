@@ -18,10 +18,13 @@ export default async function SamplingRoutesPage({
     1,
     Math.min(100, parseInt(String(params?.limit ?? 10), 10) || 10)
   );
+  const search =
+    typeof params?.search === "string" ? params.search : "";
 
   const { data: samplingRoutes, meta } = await getSamplingRoutesService({
     page,
     limit,
+    ...(search && { search }),
   });
 
   return (

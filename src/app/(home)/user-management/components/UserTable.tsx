@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/libs";
 import { PaginatedTable, Text } from "@/components";
 import { Organization, Sites } from "@/types";
@@ -10,9 +10,8 @@ import { activateUserService, deleteUserService } from "@/app/actions/user";
 import { toast } from "sonner";
 import { EditNewUser } from "./EditNewUser";
 import { getUserListColumns, userListCsvHeaders } from "./tableConfigs";
-import { useUserManagementBase } from "../hooks";
-import { OPTIONS } from "@/utils/constants/filter";
 import { useContentGuard } from "@/hooks";
+import type { QueryType } from "@/types";
 
 interface USER_TYPE extends Record<string, unknown> {
   country: string;
@@ -102,7 +101,6 @@ export function UserTable({
   organizations,
   sites,
 }: UserTableProps) {
-  const router = useRouter();
   const [selectedUser, setSelectedUser] = useState<USER_TYPE | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -142,7 +140,34 @@ export function UserTable({
   };
 
   const { userPermissions, user } = useContentGuard();
-  const { query, setQuery } = useUserManagementBase();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const query = useMemo<QueryType>(() => {
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+    const limit = Math.max(
+      1,
+      Math.min(100, parseInt(searchParams.get("limit") ?? "10", 10) || 10)
+    );
+    return {
+      page,
+      limit,
+      search: searchParams.get("search") ?? "",
+      name: "",
+    };
+  }, [searchParams]);
+
+  const setQuery = useCallback(
+    (next: QueryType | ((prev: QueryType) => QueryType)) => {
+      const nextQuery =
+        typeof next === "function" ? next(query) : next;
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("page", String(nextQuery.page));
+      params.set("limit", String(nextQuery.limit));
+      router.push(`/user-management?${params.toString()}`);
+    },
+    [router, searchParams, query]
+  );
 
   const userListColumns = getUserListColumns({
     rolesData,
@@ -171,14 +196,7 @@ export function UserTable({
         total={data?.length ?? 0}
         loading={false}
         csvHeaders={userListCsvHeaders}
-        filterBy={{
-          simpleSelects: [
-            { label: "status", options: OPTIONS.USER_STATUS },
-            { label: "role", options: rolesData.map((role) => role.name) },
-            { label: "site", options: sites.map((site) => site.name) },
-          ],
-        }}
-        searchPlaceholder="Search users"
+        noSearch
         noExport
       />
 

@@ -35,11 +35,13 @@ function defaultMeta(total: number, page = 1, limit = 10): SamplingRoutesMeta {
 async function getSamplingRoutesService(params?: {
   page?: number;
   limit?: number;
+  search?: string;
 }): Promise<GetSamplingRoutesResult> {
   try {
     const searchParams = new URLSearchParams();
     if (params?.page != null) searchParams.set("page", String(params.page));
     if (params?.limit != null) searchParams.set("limit", String(params.limit));
+    if (params?.search) searchParams.set("search", params.search);
     const query = searchParams.toString();
     const url = `${commonEndpoint}sampling-routes${query ? `?${query}` : ""}`;
 

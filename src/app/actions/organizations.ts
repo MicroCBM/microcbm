@@ -39,11 +39,17 @@ function defaultMeta(
 async function getOrganizationsService(params?: {
   page?: number;
   limit?: number;
+  search?: string;
+  industry?: string;
+  team_size?: string;
 }): Promise<GetOrganizationsResult> {
   try {
     const searchParams = new URLSearchParams();
     if (params?.page != null) searchParams.set("page", String(params.page));
     if (params?.limit != null) searchParams.set("limit", String(params.limit));
+    if (params?.search) searchParams.set("search", params.search);
+    if (params?.industry) searchParams.set("industry", params.industry);
+    if (params?.team_size) searchParams.set("team_size", params.team_size);
     const query = searchParams.toString();
     const url = `${commonEndpoint}organizations${query ? `?${query}` : ""}`;
 

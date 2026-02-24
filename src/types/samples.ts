@@ -55,8 +55,8 @@ export interface Sample {
 
 export interface SampleFilters {
   search?: string;
-  severity?: string;
-  site?: string;
-  asset?: string;
-  sampling_point?: string;
+  site_id?: string;
+  asset_id?: string;
+  sampling_point_id?: string;
+  lab_name?: string;
 }

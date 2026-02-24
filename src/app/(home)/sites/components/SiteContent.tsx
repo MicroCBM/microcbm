@@ -3,15 +3,13 @@ import React from "react";
 import { Text, Button } from "@/components";
 import { Icon } from "@/libs";
 import { SiteFilters } from "./SiteFilters";
-import { Organization, Sites } from "@/types";
+import { Organization } from "@/types";
 import { useRouter } from "next/navigation";
 
 export function SiteContent({
   organizations,
-  sites,
 }: {
   organizations: Organization[];
-  sites: Sites[];
 }) {
   const router = useRouter();
   return (
@@ -29,7 +27,7 @@ export function SiteContent({
           Add New Site
         </Button>
       </div>
-      <SiteFilters organizations={organizations} sites={sites} />
+      <SiteFilters organizations={organizations} />
     </div>
   );
 }

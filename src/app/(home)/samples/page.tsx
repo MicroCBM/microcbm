@@ -25,14 +25,22 @@ export default async function SamplesPage({ searchParams }: SamplesPageProps) {
   const limit = Math.max(1, Math.min(100, parseInt(String(params?.limit ?? 10), 10) || 10));
   const search = typeof params?.search === "string" ? params.search : "";
   const site_id = typeof params?.site_id === "string" ? params.site_id : "";
-  const severity = typeof params?.severity === "string" ? params.severity : "";
+  const asset_id = typeof params?.asset_id === "string" ? params.asset_id : "";
+  const sampling_point_id =
+    typeof params?.sampling_point_id === "string"
+      ? params.sampling_point_id
+      : "";
+  const lab_name =
+    typeof params?.lab_name === "string" ? params.lab_name : "";
 
   const { data: samples, meta } = await getSamplesService({
     page,
     limit,
-    search,
+    ...(search && { search }),
     ...(site_id && { site_id }),
-    ...(severity && { severity }),
+    ...(asset_id && { asset_id }),
+    ...(sampling_point_id && { sampling_point_id }),
+    ...(lab_name && { lab_name }),
   });
   const sites = (await getSitesService()).data;
   const assets = (await getAssetsService()).data;
@@ -47,7 +55,11 @@ export default async function SamplesPage({ searchParams }: SamplesPageProps) {
           <SamplesSummary samplingPointsAnalytics={samplingPointsAnalytics} />
         </ComponentGuard>
       )}
-      <SampleFilters sites={sites} />
+      <SampleFilters
+        sites={sites}
+        assets={assets}
+        samplingPoints={samplingPoints}
+      />
       <SampleTable
         data={samples}
         meta={meta}

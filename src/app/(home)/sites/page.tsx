@@ -20,10 +20,21 @@ export default async function SitesPage({ searchParams }: SitesPageProps) {
     1,
     Math.min(100, parseInt(String(params?.limit ?? 10), 10) || 10)
   );
+  const search =
+    typeof params?.search === "string" ? params.search : "";
+  const status = typeof params?.status === "string" ? params.status : "";
+  const organization_id =
+    typeof params?.organization_id === "string" ? params.organization_id : "";
 
   const [sitesResult, organizationsResult, sitesAnalytics, users] =
     await Promise.all([
-      getSitesService({ page, limit }),
+      getSitesService({
+        page,
+        limit,
+        ...(search && { search }),
+        ...(status && { status }),
+        ...(organization_id && { organization_id }),
+      }),
       getOrganizationsService(),
       getSitesAnalyticsService(),
       getUsersService(),
@@ -33,7 +44,7 @@ export default async function SitesPage({ searchParams }: SitesPageProps) {
 
   return (
     <main className="flex flex-col gap-4">
-      <SiteContent organizations={organizations} sites={sites} />
+      <SiteContent organizations={organizations} />
       {sitesAnalytics && <SiteSummary sitesAnalytics={sitesAnalytics} />}
       <SiteTable
         sites={sites}

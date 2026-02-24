@@ -17,10 +17,13 @@ export default async function SamplingPointsPage({
     1,
     Math.min(100, parseInt(String(params?.limit ?? 10), 10) || 10)
   );
+  const search =
+    typeof params?.search === "string" ? params.search : "";
 
   const { data: samplingPoints, meta } = await getSamplingPointsService({
     page,
     limit,
+    ...(search && { search }),
   });
 
   return (

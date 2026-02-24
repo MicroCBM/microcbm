@@ -104,7 +104,15 @@ interface AddUserPayload {
 
 const commonEndpoint = "/api/v1/users";
 
-export async function getUsersService(): Promise<USER_TYPE[]> {
+export async function getUsersService(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  role?: string;
+  site_id?: string;
+  organization_id?: string;
+}): Promise<USER_TYPE[]> {
   try {
     const token = (await cookies()).get("token")?.value;
 
@@ -112,7 +120,19 @@ export async function getUsersService(): Promise<USER_TYPE[]> {
       redirect(ROUTES.AUTH.LOGIN);
     }
 
-    const response = await requestWithAuth(`${commonEndpoint}`, {
+    const searchParams = new URLSearchParams();
+    if (params?.page != null) searchParams.set("page", String(params.page));
+    if (params?.limit != null) searchParams.set("limit", String(params.limit));
+    if (params?.search) searchParams.set("search", params.search);
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.role) searchParams.set("role", params.role);
+    if (params?.site_id) searchParams.set("site_id", params.site_id);
+    if (params?.organization_id)
+      searchParams.set("organization_id", params.organization_id);
+    const query = searchParams.toString();
+    const url = `${commonEndpoint}${query ? `?${query}` : ""}`;
+
+    const response = await requestWithAuth(url, {
       method: "GET",
     });
 

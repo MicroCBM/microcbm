@@ -21,10 +21,19 @@ export default async function OrganizationsPage({
     1,
     Math.min(100, parseInt(String(params?.limit ?? 10), 10) || 10)
   );
+  const search =
+    typeof params?.search === "string" ? params.search : "";
+  const industry =
+    typeof params?.industry === "string" ? params.industry : "";
+  const team_size =
+    typeof params?.team_size === "string" ? params.team_size : "";
 
   const { data: organizations, meta } = await getOrganizationsService({
     page,
     limit,
+    ...(search && { search }),
+    ...(industry && { industry }),
+    ...(team_size && { team_size }),
   });
 
   return (

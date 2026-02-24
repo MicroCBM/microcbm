@@ -39,11 +39,13 @@ function defaultMeta(
 async function getSamplingPointsService(params?: {
   page?: number;
   limit?: number;
+  search?: string;
 }): Promise<GetSamplingPointsResult> {
   try {
     const searchParams = new URLSearchParams();
     if (params?.page != null) searchParams.set("page", String(params.page));
     if (params?.limit != null) searchParams.set("limit", String(params.limit));
+    if (params?.search) searchParams.set("search", params.search);
     const query = searchParams.toString();
     const url = `${commonEndpoint}sampling-points${query ? `?${query}` : ""}`;
 
