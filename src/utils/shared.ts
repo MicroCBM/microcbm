@@ -105,6 +105,17 @@ const menuItems: MenuItem[] = [
       },
     ],
   },
+  {
+    label: "Root Cause Analysis",
+    children: [
+      {
+        name: "RCAs",
+        icon: "solar:diagram-up-bold-duotone",
+        path: "/rca",
+        permission: "dashboard:read",
+      },
+    ],
+  },
 ];
 
 export default menuItems;

@@ -11,4 +11,5 @@ export type PageType =
   | "Departments"
   | "Sites"
   | "Users"
-  | "Roles";
+  | "Roles"
+  | "RCAs";

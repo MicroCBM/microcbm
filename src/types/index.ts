@@ -8,6 +8,7 @@ export * from "./sampling-points";
 export * from "./sampling-routes";
 export * from "./samples";
 export * from "./roles";
+export * from "./rca";
 export * from "./shared";
 export * from "./page";
 export * from "./icon-names";
