@@ -22,41 +22,18 @@ async function getRecommendationsService(params: {
       }
     );
 
-    // Handle 403 Forbidden (permission denied) gracefully
-    if (response.status === 403) {
-      console.warn("User does not have permission to access recommendations");
+    if (response.status === 403 || !response.ok) {
       return [];
     }
 
-    if (!response.ok) {
-      console.error("API Error:", response.status, response.statusText);
-      // Check if response is JSON before parsing
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const errorData = await response.json().catch(() => null);
-        console.error(
-          "Error message:",
-          errorData?.message ||
-            `Failed to fetch recommendations: ${response.status} ${response.statusText}`
-        );
-      }
-      // Return empty array instead of throwing to prevent page crashes
-      return [];
-    }
-
-    // Check if response is JSON before parsing
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
-      console.warn("Response is not JSON, returning empty array");
       return [];
     }
 
     const data = await response.json();
-
     return data?.data || [];
-  } catch (error) {
-    console.error("Error fetching recommendations:", error);
-    // Return empty array instead of throwing to prevent page crashes
+  } catch {
     return [];
   }
 }
@@ -72,44 +49,18 @@ async function getRecommendationAnalyticsService(): Promise<
       }
     );
 
-    // Handle 403 Forbidden (permission denied) gracefully
-    if (response.status === 403) {
-      console.warn(
-        "User does not have permission to access recommendation analytics"
-      );
+    if (response.status === 403 || !response.ok) {
       return [];
     }
 
-    if (!response.ok) {
-      console.error("API Error:", response.status, response.statusText);
-      // Check if response is JSON before parsing
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(
-          errorData?.message ||
-            `Failed to fetch recommendation analytics: ${response.status} ${response.statusText}`
-        );
-      } else {
-        throw new Error(
-          `Failed to fetch recommendation analytics: ${response.status} ${response.statusText}`
-        );
-      }
-    }
-
-    // Check if response is JSON before parsing
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
-      console.warn("Response is not JSON, returning empty array");
       return [];
     }
 
     const data = await response.json();
-
     return data?.data || [];
-  } catch (error) {
-    console.error("Error fetching recommendation analytics:", error);
-    // Return empty array instead of throwing to prevent page crashes
+  } catch {
     return [];
   }
 }
