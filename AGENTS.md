@@ -12,10 +12,15 @@ MicroCBM is a **Next.js 15** (App Router) frontend for a Condition-Based Mainten
 - See `package.json` for all scripts
 
 ### Environment
-A `.env.local` file must contain `NEXT_PUBLIC_API_URL` (e.g. `http://localhost:4000`). Without a running backend API, auth pages still render and forms are interactive, but data-dependent pages will show errors.
+A `.env.local` file must contain:
+- `NEXT_PUBLIC_API_URL` — backend API base URL (e.g. `[REDACTED]`)
+- `SESSION_SECRET` — used for session management
+
+Without a running backend API, auth pages still render and forms are interactive, but data-dependent pages will show errors. The backend on Render free tier may need 30-60s cold-start time on first request.
 
 ### Caveats
 - The build produces expected warnings about dynamic routes using `cookies` during static generation — these are harmless.
 - There is a compile warning about `useFormContext` not exported from `react-hook-form` in `CheckboxCells.tsx` — this is a pre-existing issue.
 - No automated test suite exists in this repo (no test framework configured).
 - The RCA module stores data in browser `localStorage`, not via the backend API.
+- Login requires OTP verification (6-digit code sent to email), so full end-to-end login requires access to the user's email inbox.
