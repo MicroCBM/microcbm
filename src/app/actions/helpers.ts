@@ -30,8 +30,6 @@ export async function requestWithAuth(
   const requestInit: RequestInit = { ...init, headers };
   const url = `${process.env.NEXT_PUBLIC_API_URL}${input}`;
 
-  console.log("Has Authorization header:", headers.has("Authorization"));
-
   return fetch(url, requestInit);
 }
 
@@ -74,12 +72,6 @@ export async function handleApiRequest(
   method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH" = "POST",
 ): Promise<ApiResponse> {
   try {
-    console.log("API Request body:", body);
-    console.log(
-      "JSON stringified body:",
-      body ? JSON.stringify(body) : undefined,
-    );
-
     const res = await requestWithAuth(endpoint, {
       method,
       body: body ? JSON.stringify(body) : undefined,

@@ -36,7 +36,6 @@ export * from "./custom-icon";
 export * from "./modal";
 export * from "./empty-state";
 export * from "./table";
-export * from "./search";
 export * from "./print-view";
 export * from "./cells";
 export * from "./date-input";

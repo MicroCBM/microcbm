@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from "react";
 import { ComponentGuard } from "@/components/content-guard";
 import {
@@ -9,6 +10,8 @@ import {
 import { SampleHistoryContent } from "./components";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Sample History" };
 
 export default async function SampleHistoryPage() {
   const [organizations, sites, assets, samplingPoints] = await Promise.all([

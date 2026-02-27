@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from "react";
 import { AddSamplingPointForm } from "./components";
 import {
@@ -9,6 +10,8 @@ import {
 } from "@/app/actions";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Add Sampling Point" };
 
 export default async function AddSamplingPointPage() {
   const [users, samplingRoutesResult, assetsResult, organizationsResult, sitesResult] =
