@@ -96,7 +96,6 @@ export default function OTPVerification({ email }: OTPVerificationProps) {
             }}
             onResend={() => {
               // TODO: Implement resend OTP functionality
-              console.log("Resend OTP clicked");
             }}
             isLoading={isLoading}
           />
