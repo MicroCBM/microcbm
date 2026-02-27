@@ -15,6 +15,7 @@ import {
   getUsersService,
   getSamplingPointsService,
 } from "@/app/actions";
+import type { Recommendation } from "@/types";
 // import { RecommendationFilters as Filters } from "@/types";
 interface RecommendationsPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -23,12 +24,15 @@ export default async function RecommendationsPage({
   searchParams,
 }: RecommendationsPageProps) {
   const params = await searchParams;
-  const recommendations = await getRecommendationsService(params);
-  const sites = (await getSitesService()).data;
-  const assets = (await getAssetsService()).data;
-  const recommendationAnalytics = await getRecommendationAnalyticsService();
-  const users = await getUsersService();
-  const samplingPoints = (await getSamplingPointsService()).data;
+  const [recommendations, sites, assets, recommendationAnalytics, users, samplingPoints] =
+    await Promise.all([
+      getRecommendationsService(params).catch(() => [] as Recommendation[]),
+      getSitesService().then((r) => r.data).catch(() => []),
+      getAssetsService().then((r) => r.data).catch(() => []),
+      getRecommendationAnalyticsService().catch(() => []),
+      getUsersService().catch(() => []),
+      getSamplingPointsService().then((r) => r.data).catch(() => []),
+    ]);
 
   return (
     <main className="flex flex-col gap-4">
