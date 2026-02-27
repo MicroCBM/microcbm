@@ -49,6 +49,12 @@ export function Modal(props: Props) {
           {position === "center" ? (
             <Dialog.Content asChild>
               <motion.div className="modal-content pointer-events-none! fixed inset-0 z-200 grid min-h-full items-center justify-center overflow-y-auto py-10 focus:outline-none">
+                <Dialog.Title className="sr-only">
+                  {props.title || "Dialog"}
+                </Dialog.Title>
+                <Dialog.Description className="sr-only">
+                  {props.title || "Dialog content"}
+                </Dialog.Description>
                 <motion.div
                   initial={{ scale: 0.7, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -137,7 +143,9 @@ export function Modal(props: Props) {
                         <Icon icon="ic:round-close" />
                       </button>
                     </div>
-                  ) : null}
+                  ) : (
+                    <Dialog.Title className="sr-only">Dialog</Dialog.Title>
+                  )}
                   <Dialog.Description asChild>
                     <div className={cn("overflow-y-auto py-6")}>{children}</div>
                   </Dialog.Description>
