@@ -1,4 +1,5 @@
 "use server";
+import type { Metadata } from "next";
 import { SeverityCard, PieChart } from "@/components";
 
 import React from "react";
@@ -69,6 +70,10 @@ function aggregateContaminants(
     .slice(0, 5); // Top 5 contaminants
 
   return contaminants;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: "Dashboard" };
 }
 
 export default async function Page() {

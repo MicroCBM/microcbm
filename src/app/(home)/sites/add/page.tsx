@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import React from "react";
 import { AddSiteForm } from "./components";
 import { getOrganizationsService, getUsersService } from "@/app/actions";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Add Site" };
 
 export default async function AddSitePage() {
   const [organizationsResult, users] = await Promise.all([

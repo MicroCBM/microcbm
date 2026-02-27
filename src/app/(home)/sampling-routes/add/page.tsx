@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from "react";
 import {
   getUsersService,
@@ -7,6 +8,8 @@ import {
 import { AddSamplingRouteForm } from "./components";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = { title: "Add Sampling Route" };
 
 export default async function AddSamplingRoutePage() {
   const [users, sitesResult, organizationsResult] = await Promise.all([

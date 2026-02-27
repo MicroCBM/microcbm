@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import React from "react";
 import { CreateRcaForm } from "../components/CreateRcaForm";
 import { getAssetsService, getDepartmentsService, getUsersService } from "@/app/actions";
 import { getCurrentUser } from "@/libs/session";
+
+export const metadata: Metadata = { title: "New RCA" };
 
 export default async function NewRcaPage() {
   const [assetsResult, departmentsResult, usersResult, currentUser] = await Promise.all([
