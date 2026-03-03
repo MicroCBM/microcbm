@@ -32,6 +32,8 @@ interface SeverityCardProps {
 }
 
 export function SeverityCard({ data, className }: SeverityCardProps) {
+
+  console.log("data", data);
   return (
     <div className={cn("border border-gray-200 p-6", className)}>
       {/* Header Section */}
@@ -108,7 +110,7 @@ export function SeverityCard({ data, className }: SeverityCardProps) {
           <Text variant="span" className="font-medium text-gray-900">
             {data.recommendation.author}
           </Text>
-          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-300 text-gray-900 border border-gray-400">
             {data.recommendation.role}
           </span>
         </div>

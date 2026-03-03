@@ -9,6 +9,7 @@ import {
 } from "@/app/actions";
 
 export const metadata: Metadata = { title: "Add Recommendation" };
+export const dynamic = "force-dynamic";
 
 export default async function AddRecommendationPage() {
   const sites = (await getSitesService()).data;

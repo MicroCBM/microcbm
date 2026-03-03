@@ -159,7 +159,7 @@ function RcaChartInner({
           <Background />
           <Controls />
           <Panel position="top-left" className="text-xs text-gray-500">
-            Drag nodes to move • Connect from handle to handle • Select and Delete to remove
+            Drag nodes to move • Connect from handle to handle • Select and press Delete to remove
           </Panel>
         </ReactFlow>
       </div>

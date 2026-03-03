@@ -1,4 +1,3 @@
-"use server";
 import {
   getSitesService,
   getAssetsService,
@@ -6,6 +5,8 @@ import {
   getOrganizationsService,
 } from "@/app/actions";
 import { AddSampleForm } from "./components/AddSampleForm";
+
+export const dynamic = "force-dynamic";
 
 export default async function AddSamplePage() {
   const [sitesResult, assetsResult, samplingPointsResult, organizationsResult] =

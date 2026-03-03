@@ -56,14 +56,20 @@ export interface RcaStatusHistoryItem {
   changeDate: string;
 }
 
+/** Evidence item: text-only or observation (photo/initial report upload) */
 export interface RcaEvidenceItem {
   id: string;
   text: string;
+  /** For observations: optional caption; for text evidence: the evidence text */
+  type?: "text" | "observation";
+  /** For observations: original file name */
+  fileName?: string;
+  /** For observations: file content as data URL (e.g. data:image/png;base64,...) or image URL */
   attachments?: string[];
 }
 
-/** Corrective Action (spec: rca_actions) */
-export type RcaActionType = "Corrective" | "Preventive" | "Systemic";
+/** Corrective Action (spec: rca_actions): CM, PM, or MoC */
+export type RcaActionType = "Corrective" | "Preventive" | "MOC";
 export type RcaActionPriority = "Low" | "Medium" | "High" | "Critical";
 export type RcaActionStatus =
   | "Open"
@@ -136,8 +142,8 @@ export interface RcaProblemStatement {
   location?: string;
   productClass?: string;
   resourceType?: string;
-  actualImpact?: { category: string; description?: string; cost?: string }[];
-  potentialImpact?: { category: string; description?: string; cost?: string }[];
+  actualImpact?: { category: string; description?: string; cost?: "Low" | "Medium" | "High" }[];
+  potentialImpact?: { category: string; description?: string; cost?: "Low" | "Medium" | "High" }[];
   investigationCosts?: string;
   actualImpactTotal?: string;
   potentialImpactTotal?: string;
@@ -191,8 +197,10 @@ export interface RcaRecord {
   rcaLeaderId?: string;
   rcaLeaderName?: string;
   severityLevel?: RcaActionPriority;
-  productionImpactHours?: number;
-  estimatedCostImpact?: number;
+  /** Average actual risk (replaces productionImpactHours) */
+  averageActualRisk?: "High" | "Medium" | "Low";
+  /** Potential risk impact (replaces estimatedCostImpact) */
+  potentialRiskImpact?: "High" | "Medium" | "Low";
   /** Many-to-many: failure modes */
   failureModeIds?: string[];
   failureModes?: RcaFailureModeRef[];
@@ -209,6 +217,7 @@ export interface RcaRecord {
   mapLocation?: string;
   severity?: string;
   groups?: string;
+  organization?: string;
   notes?: string;
   types?: string;
   tags?: string;

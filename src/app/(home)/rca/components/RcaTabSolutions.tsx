@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/select/Select";
 import type { RcaAction } from "@/types";
-import { ACTION_TYPES, ACTION_PRIORITIES, ACTION_STATUSES } from "../lib/rca-constants";
+import { ACTION_TYPES, ACTION_TYPE_LABELS, ACTION_PRIORITIES, ACTION_STATUSES } from "../lib/rca-constants";
 
 interface RcaTabSolutionsProps {
   /** Spec: Corrective Actions. When provided, use this. */
@@ -57,7 +57,7 @@ export function RcaTabSolutions({ actions = [], onChange }: RcaTabSolutionsProps
     <div className="flex flex-col gap-4 p-4">
       <Text variant="h6">Corrective Actions</Text>
       <p className="text-sm text-gray-600">
-        Add corrective, preventive, or systemic actions. Assign owner, due date, and track verification.
+        Add corrective (CM), preventive (PM), or management of change (MOC) actions. Assign owner, due date, and track verification.
       </p>
       <div className="flex gap-2 items-end">
         <Input
@@ -102,7 +102,7 @@ export function RcaTabSolutions({ actions = [], onChange }: RcaTabSolutionsProps
                 <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="p-3">
                     <Select
-                      value={item.actionType}
+                      value={(item.actionType as string) === "Systemic" ? "MOC" : item.actionType}
                       onValueChange={(v) => updateAction(item.id, { actionType: v as RcaAction["actionType"] })}
                     >
                       <SelectTrigger className="!border-0 !bg-transparent !h-auto !py-0 !px-1 min-w-[100px]">
@@ -111,7 +111,7 @@ export function RcaTabSolutions({ actions = [], onChange }: RcaTabSolutionsProps
                       <SelectContent>
                         {ACTION_TYPES.map((s) => (
                           <SelectItem key={s} value={s}>
-                            {s}
+                            {ACTION_TYPE_LABELS[s]}
                           </SelectItem>
                         ))}
                       </SelectContent>

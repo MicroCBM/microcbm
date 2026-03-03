@@ -140,11 +140,11 @@ export interface CreateRcaFormData {
   rcaLeaderId?: string;
   rcaLeaderName?: string;
   severityLevel?: string;
-  productionImpactHours?: number;
-  estimatedCostImpact?: number;
+  averageActualRisk?: "High" | "Medium" | "Low";
+  potentialRiskImpact?: "High" | "Medium" | "Low";
   mapLocation?: string;
   severity?: string;
-  groups?: string;
+  organization?: string;
   notes?: string;
   types?: string;
   tags?: string;
@@ -190,11 +190,11 @@ export function createRcaRecordFromForm(data: CreateRcaFormData): RcaRecord {
     rcaLeaderId: data.rcaLeaderId,
     rcaLeaderName: data.rcaLeaderName,
     severityLevel: data.severityLevel as RcaRecord["severityLevel"],
-    productionImpactHours: data.productionImpactHours,
-    estimatedCostImpact: data.estimatedCostImpact,
+    averageActualRisk: data.averageActualRisk,
+    potentialRiskImpact: data.potentialRiskImpact,
     mapLocation: data.mapLocation,
     severity: data.severity,
-    groups: data.groups,
+    organization: data.organization,
     notes: data.notes,
     types: data.types,
     tags: data.tags,

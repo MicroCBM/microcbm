@@ -17,7 +17,9 @@ interface RcaTabProblemStatementProps {
   onChange: (data: RcaProblemStatement) => void;
 }
 
-const IMPACT_CATEGORIES = ["Safety", "Environmental", "Cost", "Revenue", "Customer Service"];
+const IMPACT_CATEGORIES = ["Personnel Health", "Environmental", "Asset", "Production", "Reputation"];
+const IMPACT_COST_LEVELS = ["Low", "Medium", "High"] as const;
+type ImpactCostLevel = (typeof IMPACT_COST_LEVELS)[number];
 
 export function RcaTabProblemStatement({ data, onChange }: RcaTabProblemStatementProps) {
   const d = data ?? {};
@@ -31,8 +33,8 @@ export function RcaTabProblemStatement({ data, onChange }: RcaTabProblemStatemen
       <Text variant="h6">Problem Statement</Text>
 
       <Input
-        label="Focal Point"
-        placeholder="Enter the focus of this investigation..."
+        label="Problem"
+        placeholder="Enter the problem for this investigation..."
         value={d.focalPoint ?? ""}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ focalPoint: e.target.value })}
       />
@@ -54,24 +56,6 @@ export function RcaTabProblemStatement({ data, onChange }: RcaTabProblemStatemen
             value={d.endDate ?? ""}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ endDate: e.target.value })}
           />
-          <Input
-            label="Start Time"
-            type="time"
-            value={d.startTime ?? ""}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ startTime: e.target.value })}
-          />
-          <Input
-            label="End Time"
-            type="time"
-            value={d.endTime ?? ""}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ endTime: e.target.value })}
-          />
-          <Input
-            label="Unique Timing"
-            value={d.uniqueTiming ?? ""}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ uniqueTiming: e.target.value })}
-            className="col-span-2"
-          />
         </div>
       </div>
 
@@ -81,14 +65,14 @@ export function RcaTabProblemStatement({ data, onChange }: RcaTabProblemStatemen
         </Text>
         <div className="flex flex-col gap-3">
           <Input
-            label="Map Location"
+            label="Location"
             placeholder="Enter an address or general location"
             value={d.mapLocation ?? ""}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ mapLocation: e.target.value })}
           />
           <div className="grid grid-cols-2 gap-3">
             <Select value={d.businessUnit ?? ""} onValueChange={(v) => update({ businessUnit: v })}>
-              <SelectTrigger label="Business Unit">
+              <SelectTrigger label="Organization">
                 <SelectValue placeholder="Choose" />
               </SelectTrigger>
               <SelectContent>
@@ -97,7 +81,7 @@ export function RcaTabProblemStatement({ data, onChange }: RcaTabProblemStatemen
               </SelectContent>
             </Select>
             <Select value={d.location ?? ""} onValueChange={(v) => update({ location: v })}>
-              <SelectTrigger label="Location">
+              <SelectTrigger label="Site">
                 <SelectValue placeholder="Choose" />
               </SelectTrigger>
               <SelectContent>
@@ -106,7 +90,7 @@ export function RcaTabProblemStatement({ data, onChange }: RcaTabProblemStatemen
               </SelectContent>
             </Select>
             <Select value={d.productClass ?? ""} onValueChange={(v) => update({ productClass: v })}>
-              <SelectTrigger label="Product Class">
+              <SelectTrigger label="Asset">
                 <SelectValue placeholder="Choose" />
               </SelectTrigger>
               <SelectContent>
@@ -115,7 +99,7 @@ export function RcaTabProblemStatement({ data, onChange }: RcaTabProblemStatemen
               </SelectContent>
             </Select>
             <Select value={d.resourceType ?? ""} onValueChange={(v) => update({ resourceType: v })}>
-              <SelectTrigger label="Resource Type">
+              <SelectTrigger label="Asset tag number">
                 <SelectValue placeholder="Choose" />
               </SelectTrigger>
               <SelectContent>
@@ -153,21 +137,28 @@ export function RcaTabProblemStatement({ data, onChange }: RcaTabProblemStatemen
                   });
                 }}
               />
-              <Input
-                placeholder="Cost"
-                className="w-24"
-                value={
-                  (d.actualImpact ?? []).find((i) => i.category === cat)?.cost ?? ""
-                }
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              <Select
+                value={(d.actualImpact ?? []).find((i) => i.category === cat)?.cost ?? ""}
+                onValueChange={(v) => {
                   const current = d.actualImpact ?? [];
                   const existing = current.find((i) => i.category === cat);
                   const rest = current.filter((i) => i.category !== cat);
                   update({
-                    actualImpact: [...rest, { category: cat, description: existing?.description, cost: e.target.value }],
+                    actualImpact: [...rest, { category: cat, description: existing?.description, cost: v as ImpactCostLevel }],
                   });
                 }}
-              />
+              >
+                <SelectTrigger className="w-28">
+                  <SelectValue placeholder="Cost" />
+                </SelectTrigger>
+                <SelectContent>
+                  {IMPACT_COST_LEVELS.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           ))}
         </div>
@@ -210,21 +201,28 @@ export function RcaTabProblemStatement({ data, onChange }: RcaTabProblemStatemen
                   });
                 }}
               />
-              <Input
-                placeholder="Cost"
-                className="w-24"
-                value={
-                  (d.potentialImpact ?? []).find((i) => i.category === cat)?.cost ?? ""
-                }
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              <Select
+                value={(d.potentialImpact ?? []).find((i) => i.category === cat)?.cost ?? ""}
+                onValueChange={(v) => {
                   const current = d.potentialImpact ?? [];
                   const existing = current.find((i) => i.category === cat);
                   const rest = current.filter((i) => i.category !== cat);
                   update({
-                    potentialImpact: [...rest, { category: cat, description: existing?.description, cost: e.target.value }],
+                    potentialImpact: [...rest, { category: cat, description: existing?.description, cost: v as ImpactCostLevel }],
                   });
                 }}
-              />
+              >
+                <SelectTrigger className="w-28">
+                  <SelectValue placeholder="Cost" />
+                </SelectTrigger>
+                <SelectContent>
+                  {IMPACT_COST_LEVELS.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           ))}
         </div>
