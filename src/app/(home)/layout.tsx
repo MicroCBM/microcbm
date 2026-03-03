@@ -4,16 +4,22 @@ import Navbar from "@/components/shared/Navbar";
 import Sidebar from "@/components/shared/Sidebar";
 import { cookies } from "next/headers";
 import { SessionUser } from "@/types";
-// import { logoutUserSession } from "@/libs/session";
+
+function parseUserData(raw: string | undefined): SessionUser | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as SessionUser;
+  } catch {
+    return null;
+  }
+}
 
 export default async function HomeLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = (await JSON.parse(
-    (await cookies()).get("userData")?.value || "null"
-  )) as SessionUser;
+  const user = parseUserData((await cookies()).get("userData")?.value);
 
   return (
     <div className="flex flex-col min-h-screen">

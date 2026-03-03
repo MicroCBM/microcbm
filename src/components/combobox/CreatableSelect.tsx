@@ -1,8 +1,11 @@
 "use client";
-"use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useId } from "react";
-import type { SelectComponentsConfig, StylesConfig } from "react-select";
+import type {
+  GroupBase,
+  SelectComponentsConfig,
+  StylesConfig,
+} from "react-select";
 import CreatableReactSelect from "react-select/creatable";
 
 import { cn, Icon } from "@/libs";
@@ -10,17 +13,26 @@ import type { DropdownOption } from "@/types";
 import { Text } from "../text";
 import { ErrorText } from "../error-text";
 
+type SelectChangeEvent = {
+  target: { value: string | undefined; name: string | undefined };
+};
+
 type Props = {
   options?: DropdownOption[];
-  onChange?: any;
-  value?: any;
-  extraOnChange?: (option: any) => void;
+  onChange?: (
+    event: SelectChangeEvent | DropdownOption | readonly DropdownOption[]
+  ) => void;
+  value?: string | DropdownOption[];
+  extraOnChange?: (option: DropdownOption | null) => void;
   error?: string | { message: string } | boolean;
   label?: string;
   className?: string;
   isDropdown?: boolean;
   iconBefore?: string;
-} & React.ComponentProps<typeof CreatableReactSelect>;
+} & Omit<
+  React.ComponentProps<typeof CreatableReactSelect>,
+  "onChange" | "value" | "options"
+>;
 
 export function CreatableCombobox(props: Props) {
   const {
@@ -60,15 +72,17 @@ export function CreatableCombobox(props: Props) {
           instanceId={selectId}
           options={options}
           menuPosition="fixed"
-          onChange={(option: any, { name }) => {
+          onChange={(option, actionMeta) => {
             if (props.isMulti) {
-              onChange(option);
+              onChange?.(option as readonly DropdownOption[]);
             } else {
-              // FIX: Handle both selected and created options properly
-              const value = option?.value ?? option?.label ?? "";
-              onChange({ target: { value, name } });
+              const selected = option as DropdownOption | null;
+              const val = selected?.value ?? selected?.label ?? "";
+              onChange?.({
+                target: { value: val, name: actionMeta.name },
+              });
             }
-            extraOnChange?.(option);
+            extraOnChange?.(option as DropdownOption | null);
           }}
           value={
             props.isMulti
@@ -79,9 +93,12 @@ export function CreatableCombobox(props: Props) {
           isClearable
           isSearchable
           formatCreateLabel={(inputValue) => `Create: "${inputValue}"`}
-          components={{ ...props.components, ...selectComponents }}
+          components={{ ...(props.components ?? {}), ...selectComponents } as React.ComponentProps<typeof CreatableReactSelect>["components"]}
           {...rest}
-          styles={deepMergeStyles(selectStyles, props.styles)}
+          styles={deepMergeStyles(
+            selectStyles as unknown as Record<string, unknown>,
+            props.styles as unknown as Record<string, unknown>
+          ) as React.ComponentProps<typeof CreatableReactSelect>["styles"]}
         />
       </div>
       <ErrorText error={error} />
@@ -89,7 +106,9 @@ export function CreatableCombobox(props: Props) {
   );
 }
 
-const selectComponents: Partial<SelectComponentsConfig<any, any, any>> = {
+const selectComponents: Partial<
+  SelectComponentsConfig<DropdownOption, boolean, GroupBase<DropdownOption>>
+> = {
   LoadingIndicator: () => (
     <div className="flex justify-center items-center">
       <div>
@@ -103,7 +122,7 @@ const selectComponents: Partial<SelectComponentsConfig<any, any, any>> = {
   IndicatorSeparator: () => null,
 };
 
-const selectStyles: StylesConfig<any> = {
+const selectStyles: StylesConfig<DropdownOption, boolean, GroupBase<DropdownOption>> = {
   container: (baseStyles) => ({
     ...baseStyles,
     flexGrow: 1,
@@ -180,7 +199,10 @@ const selectStyles: StylesConfig<any> = {
   }),
 };
 
-const deepMergeStyles = (base: any, overrides: any) => {
+function deepMergeStyles(
+  base: Record<string, unknown>,
+  overrides: Record<string, unknown> | undefined
+): Record<string, unknown> {
   if (!overrides) return base;
   return Object.keys(overrides).reduce(
     (merged, key) => {
@@ -188,22 +210,26 @@ const deepMergeStyles = (base: any, overrides: any) => {
         typeof base[key] === "function" &&
         typeof overrides[key] === "function"
       ) {
-        merged[key] = (baseStyles: any, state: any) => ({
-          ...base[key](baseStyles, state),
-          ...overrides[key](baseStyles, state),
+        const baseFn = base[key] as (...args: unknown[]) => Record<string, unknown>;
+        const overrideFn = overrides[key] as (...args: unknown[]) => Record<string, unknown>;
+        merged[key] = (...args: unknown[]) => ({
+          ...baseFn(...args),
+          ...overrideFn(...args),
         });
       } else if (
         typeof base[key] === "object" &&
         base[key] !== null &&
         !Array.isArray(base[key])
       ) {
-        merged[key] = deepMergeStyles(base[key], overrides[key]);
+        merged[key] = deepMergeStyles(
+          base[key] as Record<string, unknown>,
+          overrides[key] as Record<string, unknown>
+        );
       } else {
         merged[key] = overrides[key];
       }
-
       return merged;
     },
     { ...base }
   );
-};
+}

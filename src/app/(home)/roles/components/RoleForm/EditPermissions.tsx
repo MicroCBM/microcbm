@@ -71,11 +71,8 @@ export function EditPermissions({
       data.forEach((permission) => {
         if (permission.id) {
           assignedPermissionIds.add(permission.id);
-          console.log("Added to assigned set:", permission.id);
         }
       });
-    } else {
-      console.log("ViewPermissions - data is empty/null:", data);
     }
 
     // Group ALL permissions by resource (not just assigned ones)
@@ -89,15 +86,7 @@ export function EditPermissions({
       }
       map.get(permission.resource)?.push(permission);
 
-      // Check if this permission is assigned to the role
-      const isAssigned = assignedPermissionIds.has(permission.id);
-
-      // Debug logging for alarms permissions
-      if (permission.resource === "alarms") {
-        console.log(
-          `Alarms permission "${permission.id}": isAssigned=${isAssigned}`
-        );
-      }
+      
     });
 
     // Transform to PermissionGroup format

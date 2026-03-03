@@ -1,5 +1,5 @@
 export const ENV_VARS = {
-  API_BASE_URL: `${process.env.NEXT_PUBLIC_API_URL}` || "http://localhost:3000",
+  API_BASE_URL: process.env.NEXT_PUBLIC_API_URL ?? "",
 };
 
 export const ENVIRONMENT = process.env.NODE_ENV || "development";

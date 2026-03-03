@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from "react";
 import { AddForm } from "./components";
 import {
@@ -6,6 +7,8 @@ import {
   getSitesService,
   getUsersService,
 } from "@/app/actions";
+
+export const metadata: Metadata = { title: "Add Recommendation" };
 
 export default async function AddRecommendationPage() {
   const sites = (await getSitesService()).data;

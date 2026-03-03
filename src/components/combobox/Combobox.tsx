@@ -1,7 +1,8 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useId } from "react";
 import ReactSelect, {
+  type GroupBase,
   type SelectComponentsConfig,
   type StylesConfig,
 } from "react-select";
@@ -12,18 +13,27 @@ import type { DropdownOption } from "@/types";
 import { Text } from "../text";
 import { ErrorText } from "../error-text";
 
+type SelectChangeEvent = {
+  target: { value: string | undefined; name: string | undefined };
+};
+
 type Props = Readonly<
   {
     options?: DropdownOption[];
-    onChange?: any;
-    value?: any;
-    extraOnChange?: (option: any) => void;
+    onChange?: (
+      event: SelectChangeEvent | DropdownOption | readonly DropdownOption[]
+    ) => void;
+    value?: string | DropdownOption[];
+    extraOnChange?: (option: DropdownOption | null) => void;
     error?: string | { message: string } | boolean;
     label?: string;
     className?: string;
     isDropdown?: boolean;
     iconBefore?: string;
-  } & React.ComponentProps<typeof ReactSelect>
+  } & Omit<
+    React.ComponentProps<typeof ReactSelect>,
+    "onChange" | "value" | "options"
+  >
 >;
 
 export function Combobox(props: Props) {
@@ -64,13 +74,19 @@ export function Combobox(props: Props) {
           instanceId={selectId}
           options={options}
           menuPosition="fixed"
-          onChange={(option: any, { name }) => {
+          onChange={(option, actionMeta) => {
             if (props.isMulti) {
-              onChange(option);
+              onChange?.(option as readonly DropdownOption[]);
             } else {
-              onChange({ target: { value: option?.value, name } });
+              const selected = option as DropdownOption | null;
+              onChange?.({
+                target: {
+                  value: selected?.value,
+                  name: actionMeta.name,
+                },
+              });
             }
-            extraOnChange?.(option);
+            extraOnChange?.(option as DropdownOption | null);
           }}
           value={
             props.isMulti
@@ -79,9 +95,12 @@ export function Combobox(props: Props) {
           }
           isClearable
           isSearchable
-          components={{ ...props.components, ...selectComponents }}
+          components={{ ...(props.components ?? {}), ...selectComponents } as React.ComponentProps<typeof ReactSelect>["components"]}
           {...rest}
-          styles={deepMergeStyles(selectStyles, props.styles)}
+          styles={deepMergeStyles(
+            selectStyles as unknown as Record<string, unknown>,
+            props.styles as unknown as Record<string, unknown>
+          ) as React.ComponentProps<typeof ReactSelect>["styles"]}
         />
       </div>
       <ErrorText error={error} />
@@ -89,7 +108,9 @@ export function Combobox(props: Props) {
   );
 }
 
-const selectComponents: Partial<SelectComponentsConfig<any, any, any>> = {
+const selectComponents: Partial<
+  SelectComponentsConfig<DropdownOption, boolean, GroupBase<DropdownOption>>
+> = {
   LoadingIndicator: () => (
     <div className="flex justify-center items-center">
       <div>
@@ -103,7 +124,7 @@ const selectComponents: Partial<SelectComponentsConfig<any, any, any>> = {
   IndicatorSeparator: () => null,
 };
 
-const selectStyles: StylesConfig<any> = {
+const selectStyles: StylesConfig<DropdownOption, boolean, GroupBase<DropdownOption>> = {
   container: (baseStyles) => ({
     ...baseStyles,
     flexGrow: 1,
@@ -186,33 +207,37 @@ const selectStyles: StylesConfig<any> = {
   }),
 };
 
-const deepMergeStyles = (base: any, overrides: any) => {
-  if (!overrides) return base; // If no custom styles, return base
+function deepMergeStyles(
+  base: Record<string, unknown>,
+  overrides: Record<string, unknown> | undefined
+): Record<string, unknown> {
+  if (!overrides) return base;
   return Object.keys(overrides).reduce(
     (merged, key) => {
       if (
         typeof base[key] === "function" &&
         typeof overrides[key] === "function"
       ) {
-        // Merge functions
-        merged[key] = (baseStyles: any, state: any) => ({
-          ...base[key](baseStyles, state), // Apply base styles first
-          ...overrides[key](baseStyles, state), // Override with custom styles
+        const baseFn = base[key] as (...args: unknown[]) => Record<string, unknown>;
+        const overrideFn = overrides[key] as (...args: unknown[]) => Record<string, unknown>;
+        merged[key] = (...args: unknown[]) => ({
+          ...baseFn(...args),
+          ...overrideFn(...args),
         });
       } else if (
         typeof base[key] === "object" &&
         base[key] !== null &&
         !Array.isArray(base[key])
       ) {
-        // Recursively merge nested objects
-        merged[key] = deepMergeStyles(base[key], overrides[key]);
+        merged[key] = deepMergeStyles(
+          base[key] as Record<string, unknown>,
+          overrides[key] as Record<string, unknown>
+        );
       } else {
-        // Directly override with custom value
         merged[key] = overrides[key];
       }
-
       return merged;
     },
     { ...base }
   );
-};
+}
