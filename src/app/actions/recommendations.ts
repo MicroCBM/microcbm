@@ -81,20 +81,20 @@ async function getRecommendationAnalyticsService(): Promise<
     }
 
     if (!response.ok) {
-      console.error("API Error:", response.status, response.statusText);
-      // Check if response is JSON before parsing
+      console.warn(
+        "Recommendation analytics API error:",
+        response.status,
+        response.statusText
+      );
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(
+        console.warn(
           errorData?.message ||
-            `Failed to fetch recommendation analytics: ${response.status} ${response.statusText}`
-        );
-      } else {
-        throw new Error(
-          `Failed to fetch recommendation analytics: ${response.status} ${response.statusText}`
+            `Failed to retrieve recommendation analytics: ${response.status} ${response.statusText}`
         );
       }
+      return [];
     }
 
     // Check if response is JSON before parsing

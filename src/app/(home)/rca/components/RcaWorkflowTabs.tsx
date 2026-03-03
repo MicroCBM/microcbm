@@ -111,7 +111,7 @@ export function RcaWorkflowTabs({ record, onRecordChange }: RcaWorkflowTabsProps
         </div>
       </div>
       <div className="px-3 pb-2 text-sm text-gray-600">
-        Focal Point: {focalLabel}
+        Problem: {focalLabel}
       </div>
 
       {/* Tab bar */}

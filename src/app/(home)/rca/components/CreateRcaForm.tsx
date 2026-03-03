@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Text, Button } from "@/components";
@@ -14,7 +14,7 @@ import {
 } from "@/components/select/Select";
 import { ROUTES } from "@/utils/route-constants";
 import { createRcaRecordFromForm, saveRca } from "../lib/rca-storage";
-import type { RcaTemplateType } from "@/types";
+import type { Department, RcaTemplateType } from "@/types";
 import type { SessionUser } from "@/types/common";
 import { SEVERITY_LEVELS } from "../lib/rca-constants";
 import { toast } from "sonner";
@@ -42,11 +42,6 @@ interface AssetOption {
   name: string;
 }
 
-interface DepartmentOption {
-  id: string;
-  name: string;
-}
-
 interface UserOption {
   id: string;
   first_name?: string;
@@ -59,9 +54,15 @@ function userDisplayName(u: UserOption): string {
   return u.email ?? u.id;
 }
 
+interface OrganizationOption {
+  id: string;
+  name: string;
+}
+
 interface CreateRcaFormProps {
   assets?: AssetOption[];
-  departments?: DepartmentOption[];
+  departments?: Department[];
+  organizations?: OrganizationOption[];
   users?: UserOption[];
   currentUser?: SessionUser | null;
 }
@@ -69,6 +70,7 @@ interface CreateRcaFormProps {
 export function CreateRcaForm({
   assets = [],
   departments = [],
+  organizations = [],
   users = [],
   currentUser,
 }: CreateRcaFormProps) {
@@ -80,14 +82,29 @@ export function CreateRcaForm({
   const [eventDate, setEventDate] = useState("");
   const [rcaLeaderId, setRcaLeaderId] = useState("");
   const [severityLevel, setSeverityLevel] = useState("");
-  const [productionImpactHours, setProductionImpactHours] = useState("");
-  const [estimatedCostImpact, setEstimatedCostImpact] = useState("");
+  const [averageActualRisk, setAverageActualRisk] = useState("");
+  const [potentialRiskImpact, setPotentialRiskImpact] = useState("");
   const [mapLocation, setMapLocation] = useState("");
-  const [groups, setGroups] = useState("");
+  const [organization, setOrganization] = useState("");
   const [notes, setNotes] = useState("");
   const [types, setTypes] = useState("");
   const [tags, setTags] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const filteredDepartments = useMemo(
+    () =>
+      organization
+        ? (departments ?? []).filter((d) => d.organization?.id === organization)
+        : departments ?? [],
+    [departments, organization]
+  );
+
+  useEffect(() => {
+    if (organization && departmentId) {
+      const stillInList = filteredDepartments.some((d) => d.id === departmentId);
+      if (!stillInList) setDepartmentId("");
+    }
+  }, [organization, departmentId, filteredDepartments]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +115,7 @@ export function CreateRcaForm({
     }
     setSubmitting(true);
     const asset = assets.find((a) => a.id === assetId);
-    const department = departments.find((d) => d.id === departmentId);
+    const department = (departments ?? []).find((d) => d.id === departmentId);
     const leader = users.find((u) => u.id === rcaLeaderId);
     const record = createRcaRecordFromForm({
       name: trimmedName,
@@ -111,10 +128,10 @@ export function CreateRcaForm({
       rcaLeaderId: rcaLeaderId || undefined,
       rcaLeaderName: leader ? userDisplayName(leader) : undefined,
       severityLevel: severityLevel || undefined,
-      productionImpactHours: productionImpactHours ? parseFloat(productionImpactHours) : undefined,
-      estimatedCostImpact: estimatedCostImpact ? parseFloat(estimatedCostImpact) : undefined,
+      averageActualRisk: (averageActualRisk || undefined) as "High" | "Medium" | "Low" | undefined,
+      potentialRiskImpact: (potentialRiskImpact || undefined) as "High" | "Medium" | "Low" | undefined,
       mapLocation: mapLocation || undefined,
-      groups: groups || undefined,
+      organization: organization || undefined,
       notes: notes || undefined,
       types: types || undefined,
       tags: tags || undefined,
@@ -194,18 +211,33 @@ export function CreateRcaForm({
           </SelectContent>
         </Select>
 
+
+        <Select value={organization} onValueChange={setOrganization}>
+          <SelectTrigger label="Organization">
+            <SelectValue placeholder="Select organization" />
+          </SelectTrigger>
+          <SelectContent>
+            {organizations.map((o) => (
+              <SelectItem key={o.id} value={o.id}>
+                {o.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Select value={departmentId} onValueChange={setDepartmentId}>
           <SelectTrigger label="Department *">
             <SelectValue placeholder="Select department" />
           </SelectTrigger>
           <SelectContent>
-            {departments.map((d) => (
+            {filteredDepartments.map((d) => (
               <SelectItem key={d.id} value={d.id}>
                 {d.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
 
         <Input
           label="Event date *"
@@ -240,44 +272,36 @@ export function CreateRcaForm({
           </SelectContent>
         </Select>
 
-        <Input
-          label="Production impact (hours)"
-          type="number"
-          min={0}
-          step={0.5}
-          placeholder="Downtime hours"
-          value={productionImpactHours}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProductionImpactHours(e.target.value)}
-        />
+        <div className="grid grid-cols-2 gap-3">
+        <Select value={averageActualRisk} onValueChange={setAverageActualRisk}>
+          <SelectTrigger label="Average actual risk">
+            <SelectValue placeholder="Select" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="High">High</SelectItem>
+            <SelectItem value="Medium">Medium</SelectItem>
+            <SelectItem value="Low">Low</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={potentialRiskImpact} onValueChange={setPotentialRiskImpact}>
+          <SelectTrigger label="Potential risk impact">
+            <SelectValue placeholder="Select" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="High">High</SelectItem>
+            <SelectItem value="Medium">Medium</SelectItem>
+            <SelectItem value="Low">Low</SelectItem>
+          </SelectContent>
+        </Select>
+        </div>
 
         <Input
-          label="Estimated cost impact"
-          type="number"
-          min={0}
-          step={0.01}
-          placeholder="Currency"
-          value={estimatedCostImpact}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEstimatedCostImpact(e.target.value)}
-        />
-
-        <Input
-          label="Map location"
+          label="Location"
           placeholder="Enter an address or general location"
           value={mapLocation}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMapLocation(e.target.value)}
         />
-
-        <Select value={groups} onValueChange={setGroups}>
-          <SelectTrigger label="Groups">
-            <SelectValue placeholder="Select" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="operations">Operations</SelectItem>
-            <SelectItem value="safety">Safety</SelectItem>
-            <SelectItem value="quality">Quality</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
 
         <Input
           label="Notes"
@@ -288,6 +312,7 @@ export function CreateRcaForm({
           onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setNotes(e.target.value)}
         />
 
+        <div className="grid grid-cols-2 gap-3">
         <Select value={types} onValueChange={setTypes}>
           <SelectTrigger label="Types">
             <SelectValue placeholder="Select" />
@@ -306,6 +331,7 @@ export function CreateRcaForm({
           value={tags}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTags(e.target.value)}
         />
+        </div>
 
         <div className="flex items-center gap-3 pt-2">
           <Button type="submit" variant="primary" loading={submitting} disabled={submitting}>

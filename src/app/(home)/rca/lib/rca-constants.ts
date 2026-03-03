@@ -60,7 +60,12 @@ export const RCA_STATUSES = [
   "Closed",
 ] as const;
 
-export const ACTION_TYPES = ["Corrective", "Preventive", "Systemic"] as const;
+export const ACTION_TYPES = ["Corrective", "Preventive", "MOC"] as const;
+export const ACTION_TYPE_LABELS: Record<(typeof ACTION_TYPES)[number], string> = {
+  Corrective: "Corrective Maintenance (CM)",
+  Preventive: "Preventive Maintenance (PM)",
+  MOC: "Management of Change (MOC)",
+};
 export const ACTION_PRIORITIES = ["Low", "Medium", "High", "Critical"] as const;
 export const ACTION_STATUSES = [
   "Open",

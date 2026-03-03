@@ -103,7 +103,7 @@ export default async function Page() {
   // Extract first recommendation analytics item (or null if empty)
   const recommendationsAnalytics =
     Array.isArray(recommendationsAnalyticsArray) &&
-    recommendationsAnalyticsArray.length > 0
+      recommendationsAnalyticsArray.length > 0
       ? recommendationsAnalyticsArray[0]
       : null;
 
@@ -114,10 +114,10 @@ export default async function Page() {
   const recentRecommendation =
     recommendationsArray.length > 0
       ? recommendationsArray.sort(
-          (a, b) =>
-            new Date(b.created_at_datetime || 0).getTime() -
-            new Date(a.created_at_datetime || 0).getTime()
-        )[0]
+        (a, b) =>
+          new Date(b.created_at_datetime || 0).getTime() -
+          new Date(a.created_at_datetime || 0).getTime()
+      )[0]
       : null;
 
   // Helper function to get recommender name (same logic as RecommendationTable)
@@ -135,8 +135,7 @@ export default async function Page() {
       if (currentUserInList) {
         const fullName =
           currentUserInList.first_name || currentUserInList.last_name
-            ? `${currentUserInList.first_name || ""} ${
-                currentUserInList.last_name || ""
+            ? `${currentUserInList.first_name || ""} ${currentUserInList.last_name || ""
               }`.trim()
             : null;
         if (fullName) {
@@ -165,9 +164,8 @@ export default async function Page() {
     // Then check if recommender object has first_name or last_name directly
     // (the recommender object might be a full user object embedded)
     if (recommenderWithFields?.first_name || recommenderWithFields?.last_name) {
-      const fullName = `${recommenderWithFields.first_name || ""} ${
-        recommenderWithFields.last_name || ""
-      }`.trim();
+      const fullName = `${recommenderWithFields.first_name || ""} ${recommenderWithFields.last_name || ""
+        }`.trim();
       if (fullName) {
         return fullName;
       }
@@ -265,33 +263,33 @@ export default async function Page() {
     severityLevels,
     recommendation: recentRecommendation
       ? {
-          text: (() => {
-            // Check if description is a placeholder or empty
-            const description = recentRecommendation.description?.trim() || "";
-            const isPlaceholder =
-              description.toLowerCase() === "add recommendation" ||
-              description.toLowerCase() === "add recommendation." ||
-              description === "";
+        text: (() => {
+          // Check if description is a placeholder or empty
+          const description = recentRecommendation.description?.trim() || "";
+          const isPlaceholder =
+            description.toLowerCase() === "add recommendation" ||
+            description.toLowerCase() === "add recommendation." ||
+            description === "";
 
-            // If it's a placeholder or empty, use the title instead
-            if (isPlaceholder) {
-              return recentRecommendation.title || "No description available.";
-            }
+          // If it's a placeholder or empty, use the title instead
+          if (isPlaceholder) {
+            return recentRecommendation.title || "No description available.";
+          }
 
-            return (
-              description ||
-              recentRecommendation.title ||
-              "No recommendation available."
-            );
-          })(),
-          author: getRecommenderName(recentRecommendation),
-          role: "Analyst",
-        }
+          return (
+            description ||
+            recentRecommendation.title ||
+            "No recommendation available."
+          );
+        })(),
+        author: getRecommenderName(recentRecommendation),
+        role: "Analyst",
+      }
       : {
-          text: "No recommendations available at this time.",
-          author: "System",
-          role: "Analyst",
-        },
+        text: "No recommendations available at this time.",
+        author: "System",
+        role: "Analyst",
+      },
   };
 
   // Prepare contaminants data for pie chart
