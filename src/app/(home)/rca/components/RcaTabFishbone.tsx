@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
-import Fishbone from "@hophiphip/react-fishbone";
-import type { FishboneNode } from "@hophiphip/react-fishbone";
-import "@hophiphip/react-fishbone/style.css";
+import { FishboneDiagram } from "./FishboneDiagram";
 import { Text } from "@/components";
 import Input from "@/components/input/Input";
 import { Button } from "@/components";
@@ -23,26 +21,22 @@ export function RcaTabFishbone({ entries, onChange, problemLabel }: RcaTabFishbo
     items: entries.filter((e) => e.category === cat),
   }));
 
-  const fishboneItems: FishboneNode = useMemo(() => {
-    const root: FishboneNode = {
-      label: problemLabel || "Problem",
-      children: FISHBONE_CATEGORIES.map((cat) => {
-        const categoryEntries = entries.filter((e) => e.category === cat);
-        return {
-          label: cat,
-          children:
-            categoryEntries.length > 0
-              ? categoryEntries.map((e) => ({
-                  label:
-                    (e.causeDescription?.trim() || "(No description)") +
-                    (e.evidence?.trim() ? " — " + e.evidence.trim() : ""),
-                }))
-              : undefined,
-        };
-      }),
-    };
-    return root;
-  }, [entries, problemLabel]);
+  const diagramData = useMemo(() => {
+    return FISHBONE_CATEGORIES.map((cat) => {
+      const categoryEntries = entries.filter((e) => e.category === cat);
+      return {
+        category: cat,
+        causes:
+          categoryEntries.length > 0
+            ? categoryEntries.map(
+                (e) =>
+                  (e.causeDescription?.trim() || "(No description)") +
+                  (e.evidence?.trim() ? " — " + e.evidence.trim() : "")
+              )
+            : [],
+      };
+    });
+  }, [entries]);
 
   const addEntry = useCallback(
     (category: RcaFishboneCategory) => {
@@ -78,8 +72,12 @@ export function RcaTabFishbone({ entries, onChange, problemLabel }: RcaTabFishbo
         Add causes by category. The diagram updates as you add or edit causes below.
       </p>
 
-      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white h-[420px] w-full">
-        <Fishbone items={fishboneItems} />
+      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white h-[420px] w-full flex items-center justify-center p-4">
+        <FishboneDiagram
+          problemLabel={problemLabel || "Problem"}
+          categories={diagramData}
+          className="max-w-full"
+        />
       </div>
 
       <div className="space-y-4">
