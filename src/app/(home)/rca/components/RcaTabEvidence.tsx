@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef } from "react";
+import Image from "next/image";
 import { Text } from "@/components";
 import Input from "@/components/input/Input";
 import type { RcaEvidenceItem } from "@/types";
@@ -180,9 +181,12 @@ export function RcaTabEvidence({ evidence, onChange }: RcaTabEvidenceProps) {
                     {item.type === "observation" ? (
                       <span className="flex items-center gap-2">
                         {item.attachments?.[0]?.startsWith("data:image/") && (
-                          <img
+                          <Image
                             src={item.attachments[0]}
                             alt=""
+                            width={40}
+                            height={40}
+                            unoptimized
                             className="w-10 h-10 object-cover rounded border border-gray-200"
                           />
                         )}

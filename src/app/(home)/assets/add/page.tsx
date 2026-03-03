@@ -1,6 +1,7 @@
-"use server";
 import { getSitesService, getUsersService, getOrganizationsService } from "@/app/actions";
 import { AddAssetForm } from "./components/AddAssetForm";
+
+export const dynamic = "force-dynamic";
 
 export default async function AddAssetPage() {
   const [sitesResult, users, organizationsResult] = await Promise.all([

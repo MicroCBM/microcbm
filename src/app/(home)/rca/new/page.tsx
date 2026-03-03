@@ -5,6 +5,7 @@ import { getAssetsService, getDepartmentsService, getOrganizationsService, getUs
 import { getCurrentUser } from "@/libs/session";
 
 export const metadata: Metadata = { title: "New RCA" };
+export const dynamic = "force-dynamic";
 
 export default async function NewRcaPage() {
   const [assetsResult, departmentsResult, organizationsResult, usersResult, currentUser] = await Promise.all([
