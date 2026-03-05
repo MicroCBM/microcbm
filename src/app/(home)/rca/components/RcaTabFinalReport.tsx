@@ -4,6 +4,7 @@ import React from "react";
 import { Text } from "@/components";
 import Input from "@/components/input/Input";
 import { Button } from "@/components";
+import { ComponentGuard } from "@/components/content-guard";
 import type { RcaFinalReport } from "@/types";
 
 interface RcaTabFinalReportProps {
@@ -40,9 +41,11 @@ export function RcaTabFinalReport({ data, onChange, onSubmit }: RcaTabFinalRepor
           <Button variant="outline" size="small" type="button">
             Create Word Doc
           </Button>
+          <ComponentGuard permissions="rcas:update" unauthorizedFallback={null}>
           <Button variant="primary" size="small" type="button" onClick={handleSubmit}>
             Submit
           </Button>
+        </ComponentGuard>
         </div>
       </div>
 

@@ -112,7 +112,7 @@ const menuItems: MenuItem[] = [
         name: "RCAs",
         icon: "solar:diagram-up-bold-duotone",
         path: "/rca",
-        permission: "dashboard:read",
+        permission: "rcas:read",
       },
     ],
   },

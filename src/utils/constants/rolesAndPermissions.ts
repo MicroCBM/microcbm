@@ -3,6 +3,7 @@ export const PERMISSION_MODULES = [
   "alarms",
   "assets",
   "organizations",
+  "rcas",
   "recommendations",
   "reports",
   "samples",

@@ -128,7 +128,7 @@ export function CreateRcaForm({
     const methodMap: Record<RcaTemplateType, string> = {
       "5whys": "FiveWhys",
       "logic-tree": "LogicTree",
-      fishbone: "Fishbone",
+      fishbone: "FishBone",
       sologic: "Sologic",
     };
     const eventDateOnly = eventDate?.includes("T")

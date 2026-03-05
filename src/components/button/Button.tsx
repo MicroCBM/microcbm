@@ -10,10 +10,10 @@ const buttonClasses = cva(
   {
     variants: {
       variant: {
-        primary: "bg-black text-white hover:bg-brand-primary/80",
-        outline: "border border-grey hover:bg-black hover:text-white",
+        primary: "bg-[#194a73] text-white hover:bg-[#194a73]/90",
+        outline: "border border-grey hover:bg-[#194a73] hover:text-white",
         danger: "bg-red text-white hover:bg-red-400",
-        secondary: "text-white bg-black",
+        secondary: "text-white bg-[#194a73] hover:bg-[#194a73]/90",
         warning: "bg-yellow-100 text-white hover:bg-yellow-100/80",
         ghost: "bg-transparent text-black",
       },

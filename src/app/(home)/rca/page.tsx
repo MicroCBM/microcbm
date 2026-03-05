@@ -25,8 +25,6 @@ export default async function RcaPage({
   const apiList = body && Array.isArray(body.data) ? body.data : [];
   const list = apiList.map(apiItemToRow);
 
-  console.log("list", list)
-
   return (
     <main className="flex flex-col gap-4">
       <RcaContent initialList={list} initialSearchName={name ?? ""} />

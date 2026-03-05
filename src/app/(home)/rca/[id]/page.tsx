@@ -22,7 +22,6 @@ export default function RcaViewPage() {
       return;
     }
     getRcaByIdService(id).then((response) => {
-      console.log("response lemme check", response)
       if (response.success && response.data) {
         const body = response.data as { data?: RcaApiListItem };
         const apiRca = body?.data;

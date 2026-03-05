@@ -223,9 +223,10 @@ export async function postRcaFishBoneService(
 export type LogicTreeEvidenceStatus = "Evidence" | "Pending" | "Rejected";
 
 /** Payload for POST {{base_url}}rcas/logic-trees (requires rcas:create). */
+/** Omit parent_node for root-level causes; only include when parent is an existing logic-tree node. */
 export interface PostRcaLogicTreePayload {
   rca_id: string;
-  parent_node: { id: string };
+  parent_node?: { id: string };
   hypothesis: string;
   evidence_status: LogicTreeEvidenceStatus;
   supporting_evidence: string;
@@ -258,6 +259,32 @@ export async function postRcaFiveWhysService(
   payload: PostRcaFiveWhysPayload
 ): Promise<ApiResponse> {
   return handleApiRequest(`${commonEndpoint}rcas/five-whys`, payload, "POST");
+}
+
+/**
+ * PUT {{base_url}}/api/v1/rcas/five-whys/:entryId
+ * Update a 5 Whys entry.
+ */
+export async function putRcaFiveWhysService(
+  entryId: string,
+  payload: PostRcaFiveWhysPayload
+): Promise<ApiResponse> {
+  return handleApiRequest(`${commonEndpoint}rcas/five-whys/${entryId}`, payload, "PUT");
+}
+
+/**
+ * DELETE {{base_url}}/api/v1/rcas/:rcaId/five-whys/:entryId
+ * Delete a 5 Whys entry.
+ */
+export async function deleteRcaFiveWhysService(
+  rcaId: string,
+  entryId: string
+): Promise<ApiResponse> {
+  return handleApiRequest(
+    `${commonEndpoint}rcas/${rcaId}/five-whys/${entryId}`,
+    undefined,
+    "DELETE"
+  );
 }
 
 /** Action type for POST rcas/:id/actions. API: Corrective|Preventive|Systemic */

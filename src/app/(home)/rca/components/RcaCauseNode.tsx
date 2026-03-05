@@ -20,7 +20,7 @@ const COLORS = [
 
 function RcaCauseNodeComponent({ data, selected, id }: NodeProps<RcaNode>) {
   const nodeData = data;
-  const [label, setLabel] = useState(nodeData.label ?? "Cause");
+  const [label, setLabel] = useState(nodeData.label ?? (nodeData.type === "why" ? "" : "Cause"));
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showSolutions, setShowSolutions] = useState(false);
   const [newSolutionText, setNewSolutionText] = useState("");
@@ -62,8 +62,17 @@ function RcaCauseNodeComponent({ data, selected, id }: NodeProps<RcaNode>) {
     nodeData.type === "problem"
       ? "Event / Problem"
       : nodeData.type === "why"
-        ? "Why?"
+        ? (() => {
+            const m = id.match(/why-(\d+)/);
+            const n = m ? parseInt(m[1], 10) : 1;
+            const ord =
+              n === 1 ? "1st" : n === 2 ? "2nd" : n === 3 ? "3rd" : n === 4 ? "4th" : n === 5 ? "5th" : `${n}th`;
+            return `${ord} Why?`;
+          })()
         : "Cause";
+
+  const inputPlaceholder =
+    nodeData.type === "why" ? "Why?" : "Enter focus or cause...";
 
   return (
     <>
@@ -94,7 +103,7 @@ function RcaCauseNodeComponent({ data, selected, id }: NodeProps<RcaNode>) {
             onChange={(e) => setLabel(e.target.value)}
             onBlur={(e) => updateData({ label: e.target.value })}
             className="w-full bg-transparent border-none outline-none text-sm font-semibold text-slate-800 placeholder-slate-400 focus:ring-0"
-            placeholder="Enter focus or cause..."
+            placeholder={inputPlaceholder}
           />
         </div>
 

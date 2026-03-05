@@ -12,6 +12,7 @@ import type { RcaListRow } from "../lib/rca-list";
 import { toast } from "sonner";
 import { DeleteRcaModal } from "./DeleteRcaModal";
 import { ViewRcaModal } from "./ViewRcaModal";
+import { ComponentGuard } from "@/components/content-guard";
 
 export type { RcaListRow } from "../lib/rca-list";
 
@@ -74,9 +75,11 @@ export function RcaContent({ initialList, initialSearchName = "" }: RcaContentPr
             Create and manage cause-and-effect charts
           </Text>
         </div>
-        <Link href={ROUTES.RCA_NEW}>
-          <Button variant="primary">Create RCA</Button>
-        </Link>
+        <ComponentGuard permissions="rcas:create" unauthorizedFallback={null}>
+          <Link href={ROUTES.RCA_NEW}>
+            <Button variant="primary">Create RCA</Button>
+          </Link>
+        </ComponentGuard>
       </div>
 
       <form onSubmit={handleSearch} className="flex flex-wrap items-center gap-3">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import React from "react";
 import { CreateRcaForm } from "../components/CreateRcaForm";
+import { RcaCreateGuard } from "../components/RcaCreateGuard";
 import { getAssetsService, getDepartmentsService, getOrganizationsService, getUsersService } from "@/app/actions";
 import { getCurrentUser } from "@/libs/session";
 
@@ -22,14 +23,16 @@ export default async function NewRcaPage() {
   const users = Array.isArray(usersResult) ? usersResult : [];
 
   return (
-    <main className="flex flex-col gap-4">
-      <CreateRcaForm
-        assets={assets}
-        departments={departments}
-        organizations={organizations}
-        users={users}
-        currentUser={currentUser}
-      />
-    </main>
+    <RcaCreateGuard>
+      <main className="flex flex-col gap-4">
+        <CreateRcaForm
+          assets={assets}
+          departments={departments}
+          organizations={organizations}
+          users={users}
+          currentUser={currentUser}
+        />
+      </main>
+    </RcaCreateGuard>
   );
 }

@@ -6,6 +6,8 @@ import type {
   RcaStatus,
   RcaAction,
   RcaProblemStatement,
+  RcaFishboneEntry,
+  RcaFishboneCategory,
 } from "@/types";
 import type { RcaApiListItem } from "@/app/actions/rcas";
 
@@ -57,33 +59,38 @@ export function deleteRca(id: string): void {
   saveRcaList(getRcaList().filter((r) => r.id !== id));
 }
 
-/** 5 Whys template: focal point + Why? chain (top) + Cause chain (bottom) */
+/** 5 Whys template: Problem Statement → 1st Why? → 2nd Why? → Root Cause by default; user can add more Why's */
 function defaultNodesAndEdges5Whys(): { nodes: RcaChartNode[]; edges: RcaChartEdge[] } {
+  const indentStep = 48;
+  const yStep = 100;
   const nodes: RcaChartNode[] = [
     {
       id: "focal",
       type: "cause",
-      position: { x: 80, y: 180 },
+      position: { x: 60, y: 40 },
       data: {
-        label: "Enter the focus of this investigation...",
+        label: "Problem Statement",
         type: "problem",
         color: "#fef3c7",
       },
     },
-    { id: "why-1", type: "cause", position: { x: 380, y: 60 }, data: { label: "Why?", type: "why", color: "#e0f2fe" } },
-    { id: "why-2", type: "cause", position: { x: 580, y: 60 }, data: { label: "Why?", type: "why", color: "#e0f2fe" } },
-    { id: "why-3", type: "cause", position: { x: 780, y: 60 }, data: { label: "Why?", type: "why", color: "#e0f2fe" } },
-    { id: "why-4", type: "cause", position: { x: 980, y: 60 }, data: { label: "Why?", type: "why", color: "#e0f2fe" } },
-    { id: "cause-1", type: "cause", position: { x: 380, y: 280 }, data: { label: "Cause", type: "cause", color: "#d1fae5" } },
-    { id: "cause-2", type: "cause", position: { x: 580, y: 280 }, data: { label: "Cause 2", type: "cause", color: "#d1fae5" } },
+    { id: "why-1", type: "cause", position: { x: 60 + indentStep, y: 40 + yStep }, data: { label: "", type: "why", color: "#e0f2fe" } },
+    { id: "why-2", type: "cause", position: { x: 60 + indentStep * 2, y: 40 + yStep * 2 }, data: { label: "", type: "why", color: "#e0f2fe" } },
+    {
+      id: "root-cause",
+      type: "cause",
+      position: { x: 60 + indentStep * 3, y: 40 + yStep * 3 },
+      data: {
+        label: "Root Cause",
+        type: "cause",
+        color: "#d1fae5",
+      },
+    },
   ];
   const edges: RcaChartEdge[] = [
     { id: "e-focal-why1", source: "focal", target: "why-1" },
     { id: "e-why1-why2", source: "why-1", target: "why-2" },
-    { id: "e-why2-why3", source: "why-2", target: "why-3" },
-    { id: "e-why3-why4", source: "why-3", target: "why-4" },
-    { id: "e-focal-cause1", source: "focal", target: "cause-1" },
-    { id: "e-cause1-cause2", source: "cause-1", target: "cause-2" },
+    { id: "e-why2-root", source: "why-2", target: "root-cause" },
   ];
   return { nodes, edges };
 }
@@ -172,6 +179,33 @@ function mapAnalysisEntriesToLogicTree(
     }
   }
   return { nodes, edges };
+}
+
+const FISHBONE_CATEGORY_SET: Set<string> = new Set([
+  "Man",
+  "Machine",
+  "Method",
+  "Material",
+  "Measurement",
+  "Environment",
+]);
+
+/** API fishbone analysis entry (from GET rcas/:id analysis_entries when method is FishBone). */
+type FishboneAnalysisEntry = {
+  id?: string;
+  category?: string;
+  cause?: string;
+  evidence?: string;
+};
+
+/** Map API analysis_entries to fishbone entries for the Fishbone tab. */
+function mapAnalysisEntriesToFishbone(entries: unknown[]): RcaFishboneEntry[] {
+  return (entries as FishboneAnalysisEntry[]).map((e, i) => ({
+    id: (e.id as string) ?? `fb-${Date.now()}-${i}`,
+    category: (FISHBONE_CATEGORY_SET.has(e.category ?? "") ? e.category : "Man") as RcaFishboneCategory,
+    causeDescription: (e.cause as string) ?? "",
+    evidence: (e.evidence as string) ?? "",
+  }));
 }
 
 export function getDefaultNodesForTemplate(template: RcaTemplateType | undefined): RcaChartNode[] {
@@ -270,6 +304,7 @@ export function mapApiRcaToRecord(api: RcaApiListItem): RcaRecord {
     FiveWhys: "5whys",
     LogicTree: "logic-tree",
     Fishbone: "fishbone",
+    FishBone: "fishbone",
     Sologic: "sologic",
   };
   const template = methodToTemplate[api.method ?? ""] ?? "5whys";
@@ -282,6 +317,13 @@ export function mapApiRcaToRecord(api: RcaApiListItem): RcaRecord {
   const { nodes, edges } = hasAnalysisEntries
     ? mapAnalysisEntriesToLogicTree(api.analysis_entries as unknown[])
     : { nodes: defaultNodes, edges: defaultEdges };
+  const isFishBone =
+    (api.method === "FishBone" || api.method === "Fishbone") &&
+    Array.isArray(api.analysis_entries) &&
+    api.analysis_entries.length > 0;
+  const fishboneEntries = isFishBone
+    ? mapAnalysisEntriesToFishbone(api.analysis_entries as unknown[])
+    : undefined;
   const leader = api.rca_leader;
   const leaderName =
     leader && (leader.first_name || leader.last_name || leader.email)
@@ -388,6 +430,7 @@ export function mapApiRcaToRecord(api: RcaApiListItem): RcaRecord {
           };
         })
       : undefined,
+    fishboneEntries,
   };
 }
 

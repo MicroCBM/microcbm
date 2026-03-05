@@ -6,6 +6,7 @@ import { RcaChart } from "./RcaChart";
 import { RcaTabFishbone } from "./RcaTabFishbone";
 import {
   postRcaFiveWhysService,
+  putRcaFiveWhysService,
   postRcaLogicTreeService,
   type LogicTreeEvidenceStatus,
 } from "@/app/actions/rcas";
@@ -84,22 +85,71 @@ export function RcaTabAnalysis({ record, onRecordChange }: RcaTabAnalysisProps) 
           const levelB = parseInt((b.id.match(/why-(\d+)/) ?? [])[1] ?? "0", 10);
           return levelA - levelB;
         });
-      whyNodes.forEach((node) => {
+      const payloadFor = (node: RcaRecord["nodes"][0]) => {
+        const data = node.data as RcaNodeData & { evidenceReference?: string };
         const levelMatch = node.id.match(/why-(\d+)/);
         const level = levelMatch ? levelMatch[1] : "1";
-        const data = node.data as RcaNodeData & { evidenceReference?: string };
         const label = (data?.label ?? "").trim();
-        if (!label || label === "Why?") return;
-        postRcaFiveWhysService({
+        return {
           rca_id: record.id,
           level,
           statement: [label],
-          evidence_reference: (data?.evidenceReference ?? "").trim(),
+          evidence_reference: String(data?.evidenceReference ?? "").trim(),
           created_by: { id: record.initiatedById! },
-        }).then((res) => {
-          if (!res.success) toast.error(res.message ?? "Failed to save 5 Whys entry.");
-        });
-      });
+        };
+      };
+      const createdIds = new Map<string, string>();
+      let index = 0;
+      const runNext = () => {
+        if (index >= whyNodes.length) {
+          if (createdIds.size > 0) {
+            const updatedNodes = nodes.map((n) => {
+              const entryId = createdIds.get(n.id);
+              if (!entryId) return n;
+              return { ...n, data: { ...n.data, fiveWhysEntryId: entryId } };
+            });
+            onRecordChange({
+              ...record,
+              nodes: updatedNodes,
+              edges: record.edges,
+              updatedAt: new Date().toISOString(),
+            });
+          }
+          return;
+        }
+        const node = whyNodes[index];
+        const data = node.data as RcaNodeData & { evidenceReference?: string };
+        const label = (data?.label ?? "").trim();
+        const isPlaceholder = !label || label === "Why?" || /^\d+(st|nd|rd|th) Why\?$/.test(label);
+        if (isPlaceholder) {
+          index += 1;
+          runNext();
+          return;
+        }
+        const payload = payloadFor(node);
+        const entryId = (node.data as RcaNodeData).fiveWhysEntryId;
+        const request = entryId
+          ? putRcaFiveWhysService(entryId, payload)
+          : postRcaFiveWhysService(payload);
+        request
+          .then((res) => {
+            if (!res.success) {
+              toast.error(res.message ?? "Failed to save 5 Whys entry.");
+            } else if (!entryId && res.data) {
+              const body = res.data as { data?: { id?: string } };
+              const id = body?.data?.id;
+              if (id) createdIds.set(node.id, id);
+            }
+            index += 1;
+            runNext();
+          })
+          .catch(() => {
+            toast.error("Failed to save 5 Whys entry.");
+            index += 1;
+            runNext();
+          });
+      };
+      runNext();
     }
 
     if (template === "logic-tree" && record.id) {
@@ -117,23 +167,23 @@ export function RcaTabAnalysis({ record, onRecordChange }: RcaTabAnalysisProps) 
       }
       console.log("[Logic tree] Calling endpoint for", causeNodesOrdered.length, "cause node(s).");
       const clientToBackendId = new Map<string, string>();
-      // Backend root is the RCA id; use it as parent for first-level causes.
-      if (problemId) clientToBackendId.set(problemId, record.id!);
+      // Do not map problem node to RCA id — parent_node is only for existing logic-tree entries.
 
       const postNext = (index: number) => {
         if (index >= causeNodesOrdered.length) return;
         const node = causeNodesOrdered[index];
         const data = node.data as RcaNodeData;
         const parentClientId = parentByChild.get(node.id) ?? problemId;
-        const parentBackendId = clientToBackendId.get(parentClientId ?? "") ?? parentClientId;
+        const parentBackendId = clientToBackendId.get(parentClientId ?? "");
         const hypothesis = (data?.hypothesis ?? data?.label ?? "").trim();
-        const payload = {
+        // Only include parent_node when parent is an existing logic-tree node (not the problem/root).
+        const payload: Parameters<typeof postRcaLogicTreeService>[0] = {
           rca_id: record.id!,
-          parent_node: { id: parentBackendId ?? problemId! },
           hypothesis: hypothesis || "Cause",
           evidence_status: toLogicTreeEvidenceStatus(data?.evidenceStatus),
           supporting_evidence: (data?.supportingEvidence ?? "").trim(),
         };
+        if (parentBackendId) payload.parent_node = { id: parentBackendId };
         console.log("[Logic tree Save] payload (node " + (index + 1) + "/" + causeNodesOrdered.length + "):", payload);
         postRcaLogicTreeService(payload)
           .then((res) => {

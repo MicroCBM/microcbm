@@ -22,6 +22,7 @@ import {
   ACTION_STATUS_LABELS,
 } from "../lib/rca-constants";
 import { toast } from "sonner";
+import { ComponentGuard } from "@/components/content-guard";
 
 const NONE_USER_VALUE = "__none__";
 
@@ -304,9 +305,11 @@ export function RcaTabSolutions({ actions = [], onChange, rcaId, createdById, us
           </div>
         </div>
         <div className="mt-3 flex justify-end">
-          <Button type="button" variant="primary" size="small" onClick={addAction} disabled={adding}>
-            {adding ? "Adding…" : "Add action"}
-          </Button>
+          <ComponentGuard permissions="rcas:create" unauthorizedFallback={null}>
+            <Button type="button" variant="primary" size="small" onClick={addAction} disabled={adding}>
+              {adding ? "Adding…" : "Add action"}
+            </Button>
+          </ComponentGuard>
         </div>
       </div>
       <div className="text-sm text-gray-500">Showing {list.length} of {list.length} records</div>
@@ -487,9 +490,11 @@ export function RcaTabSolutions({ actions = [], onChange, rcaId, createdById, us
           </table>
         )}
       </div>
-      <Button variant="outline" size="small" onClick={addAction} disabled={adding}>
-        + Add New
-      </Button>
+      <ComponentGuard permissions="rcas:create" unauthorizedFallback={null}>
+        <Button variant="outline" size="small" onClick={addAction} disabled={adding}>
+          + Add New
+        </Button>
+      </ComponentGuard>
     </div>
   );
 }

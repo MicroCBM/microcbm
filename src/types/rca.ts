@@ -22,6 +22,10 @@ export interface RcaNodeData extends Record<string, unknown> {
   evidenceStatus?: "Confirmed" | "Rejected" | "Pending";
   /** Logic Tree: supporting evidence */
   supportingEvidence?: string;
+  /** 5 Whys: backend entry id (for PUT updates) */
+  fiveWhysEntryId?: string;
+  /** 5 Whys: evidence reference */
+  evidenceReference?: string;
 }
 
 export interface RcaChartNode {
