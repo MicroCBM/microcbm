@@ -11,5 +11,6 @@ export * from "./sampling-points";
 export * from "./sampling-routes";
 export * from "./samples";
 export * from "./image-upload";
+export * from "./rcas";
 // Re-export types only
 export type { ApiResponse } from "./helpers";

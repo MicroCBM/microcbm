@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -15,10 +15,13 @@ import {
   type Edge,
 } from "@xyflow/react";
 import { RcaCauseNode } from "./RcaCauseNode";
+import { postRcaLogicTreeService } from "@/app/actions/rcas";
 import type { RcaNodeData, RcaChartNode, RcaChartEdge } from "@/types";
+import type { RcaTemplateType } from "@/types";
 import { Button, Text } from "@/components";
 import Link from "next/link";
 import { ROUTES } from "@/utils/route-constants";
+import { toast } from "sonner";
 import "@xyflow/react/dist/style.css";
 
 const nodeTypes = { cause: RcaCauseNode };
@@ -41,6 +44,8 @@ export interface RcaChartProps {
   initialEdges?: RcaChartEdge[];
   onSave?: (nodes: RcaChartNode[], edges: RcaChartEdge[]) => void;
   rcaId?: string;
+  /** When set to "logic-tree", adding a node will POST to rcas/logic-trees when rcaId is present */
+  template?: RcaTemplateType;
   title?: string;
   /** When true, hide the top bar (title + Back to list); for embedding in workflow tabs */
   hideHeader?: boolean;
@@ -50,9 +55,12 @@ function RcaChartInner({
   initialNodes = [],
   initialEdges = [],
   onSave,
+  rcaId,
+  template,
   title = "New RCA",
   hideHeader = false,
 }: RcaChartProps) {
+  const [addingNode, setAddingNode] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState(
     initialNodes.length > 0 ? initialNodes.map(toFlowNode) : [
       {
@@ -73,17 +81,50 @@ function RcaChartInner({
   );
 
   const onAddNode = useCallback(() => {
-    const id = `node-${Date.now()}`;
-    setNodes((nds) => [
-      ...nds,
-      {
-        id,
-        type: "cause",
-        position: { x: 250 + Math.random() * 100, y: 200 + Math.random() * 80 },
-        data: { label: "Cause", color: "#d1fae5" },
-      },
-    ]);
-  }, [setNodes]);
+    const parentId = nodes[0]?.id ?? "problem-1";
+    const defaultId = `node-${Date.now()}`;
+    const newPosition = { x: 250 + Math.random() * 100, y: 200 + Math.random() * 80 };
+    const newNode = {
+      id: defaultId,
+      type: "cause" as const,
+      position: newPosition,
+      data: { label: "Cause", type: "cause", color: "#d1fae5" } as RcaNodeData,
+    };
+    const addNodeAndEdge = (nodeId: string) => {
+      setNodes((nds) => [...nds, { ...newNode, id: nodeId }]);
+      setEdges((eds) => [...eds, { id: `e-${parentId}-${nodeId}`, source: parentId, target: nodeId }]);
+    };
+
+    if (template === "logic-tree" && rcaId) {
+      setAddingNode(true);
+      const payload = {
+        rca_id: rcaId,
+        parent_node: { id: rcaId },
+        hypothesis: "",
+        evidence_status: "Pending" as const,
+        supporting_evidence: "",
+      };
+      console.log("[Logic tree Add cause] payload:", payload);
+      postRcaLogicTreeService(payload)
+        .then((res) => {
+          if (res.success && res.data) {
+            const body = res.data as { data?: { id?: string } };
+            const id = body?.data?.id ?? defaultId;
+            addNodeAndEdge(id);
+          } else {
+            toast.error(res.message ?? "Failed to add node.");
+            addNodeAndEdge(defaultId);
+          }
+        })
+        .catch(() => {
+          toast.error("Could not sync to server. Cause added locally—click Save to sync.");
+          addNodeAndEdge(defaultId);
+        })
+        .finally(() => setAddingNode(false));
+    } else {
+      addNodeAndEdge(defaultId);
+    }
+  }, [setNodes, setEdges, nodes, template, rcaId]);
 
   const onDeleteSelected = useCallback(() => {
     setNodes((nds) => nds.filter((n) => !n.selected));
@@ -111,8 +152,8 @@ function RcaChartInner({
         <div className="flex items-center justify-between gap-4 p-2 border-b bg-white">
           <Text variant="h6">{title}</Text>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="small" onClick={onAddNode}>
-              Add cause
+            <Button variant="outline" size="small" onClick={onAddNode} disabled={addingNode}>
+              {addingNode ? "Adding…" : "Add cause"}
             </Button>
             <Button variant="outline" size="small" onClick={onDeleteSelected}>
               Delete selected
@@ -132,8 +173,8 @@ function RcaChartInner({
       )}
       {hideHeader && (
         <div className="flex items-center justify-end gap-2 p-2 border-b bg-white">
-          <Button variant="outline" size="small" onClick={onAddNode}>
-            Add cause
+          <Button variant="outline" size="small" onClick={onAddNode} disabled={addingNode}>
+            {addingNode ? "Adding…" : "Add cause"}
           </Button>
           <Button variant="outline" size="small" onClick={onDeleteSelected}>
             Delete selected

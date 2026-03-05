@@ -1,21 +1,26 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { FishboneDiagram } from "./FishboneDiagram";
 import { Text } from "@/components";
 import Input from "@/components/input/Input";
 import { Button } from "@/components";
+import { postRcaFishBoneService } from "@/app/actions/rcas";
 import type { RcaFishboneEntry, RcaFishboneCategory } from "@/types";
 import { FISHBONE_CATEGORIES } from "../lib/rca-constants";
+import { toast } from "sonner";
 
 interface RcaTabFishboneProps {
   entries: RcaFishboneEntry[];
   onChange: (entries: RcaFishboneEntry[]) => void;
   /** Problem/focus label for the diagram root (e.g. from Problem Statement) */
   problemLabel?: string;
+  /** RCA id for POST rcas/fish-bones (optional; when set, new causes are created via API) */
+  rcaId?: string;
 }
 
-export function RcaTabFishbone({ entries, onChange, problemLabel }: RcaTabFishboneProps) {
+export function RcaTabFishbone({ entries, onChange, problemLabel, rcaId }: RcaTabFishboneProps) {
+  const [addingCategory, setAddingCategory] = useState<RcaFishboneCategory | null>(null);
   const byCategory = FISHBONE_CATEGORIES.map((cat) => ({
     category: cat,
     items: entries.filter((e) => e.category === cat),
@@ -40,15 +45,48 @@ export function RcaTabFishbone({ entries, onChange, problemLabel }: RcaTabFishbo
 
   const addEntry = useCallback(
     (category: RcaFishboneCategory) => {
-      const newEntry: RcaFishboneEntry = {
-        id: `fb-${Date.now()}`,
-        category,
-        causeDescription: "",
-        evidence: "",
-      };
-      onChange([...entries, newEntry]);
+      if (rcaId) {
+        setAddingCategory(category);
+        postRcaFishBoneService({
+          rca_id: rcaId,
+          cause: "",
+          evidence: "",
+          category,
+          is_root_cause: false,
+        }).then((res) => {
+          setAddingCategory(null);
+          if (res.success && res.data) {
+            const body = res.data as { data?: { id?: string } };
+            const id = body?.data?.id ?? `fb-${Date.now()}`;
+            const newEntry: RcaFishboneEntry = {
+              id,
+              category,
+              causeDescription: "",
+              evidence: "",
+            };
+            onChange([...entries, newEntry]);
+          } else {
+            toast.error(res.message ?? "Failed to add cause.");
+            const newEntry: RcaFishboneEntry = {
+              id: `fb-${Date.now()}`,
+              category,
+              causeDescription: "",
+              evidence: "",
+            };
+            onChange([...entries, newEntry]);
+          }
+        });
+      } else {
+        const newEntry: RcaFishboneEntry = {
+          id: `fb-${Date.now()}`,
+          category,
+          causeDescription: "",
+          evidence: "",
+        };
+        onChange([...entries, newEntry]);
+      }
     },
-    [entries, onChange]
+    [entries, onChange, rcaId]
   );
 
   const updateEntry = useCallback(
@@ -95,8 +133,9 @@ export function RcaTabFishbone({ entries, onChange, problemLabel }: RcaTabFishbo
                 variant="outline"
                 size="small"
                 onClick={() => addEntry(category)}
+                disabled={addingCategory === category}
               >
-                + Add cause
+                {addingCategory === category ? "Adding…" : "+ Add cause"}
               </Button>
             </div>
             {items.length === 0 ? (

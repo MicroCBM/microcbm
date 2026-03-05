@@ -9,13 +9,24 @@ import type { RcaFinalReport } from "@/types";
 interface RcaTabFinalReportProps {
   data: RcaFinalReport | undefined;
   onChange: (data: RcaFinalReport) => void;
+  /** Called when user clicks Submit to persist summaries (e.g. to API) */
+  onSubmit?: (data: RcaFinalReport) => void;
 }
 
-export function RcaTabFinalReport({ data, onChange }: RcaTabFinalReportProps) {
+export function RcaTabFinalReport({ data, onChange, onSubmit }: RcaTabFinalReportProps) {
   const d = data ?? {};
 
   const update = (updates: Partial<RcaFinalReport>) => {
     onChange({ ...d, ...updates });
+  };
+
+  const handleSubmit = () => {
+    const payload: RcaFinalReport = {
+      executiveSummary: d.executiveSummary ?? "",
+      causeAndEffectSummary: d.causeAndEffectSummary ?? "",
+    };
+    onChange(payload);
+    onSubmit?.(payload);
   };
 
   return (
@@ -28,6 +39,9 @@ export function RcaTabFinalReport({ data, onChange }: RcaTabFinalReportProps) {
           </Button>
           <Button variant="outline" size="small" type="button">
             Create Word Doc
+          </Button>
+          <Button variant="primary" size="small" type="button" onClick={handleSubmit}>
+            Submit
           </Button>
         </div>
       </div>
@@ -49,22 +63,9 @@ export function RcaTabFinalReport({ data, onChange }: RcaTabFinalReportProps) {
       </div>
 
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <Text variant="p" className="font-medium text-gray-700">
-            Cause and Effect Summary
-          </Text>
-          <div className="flex gap-1">
-            <Button variant="ghost" size="small" type="button">
-              Add from chart
-            </Button>
-            <Button variant="ghost" size="small" type="button">
-              Outline
-            </Button>
-            <Button variant="ghost" size="small" type="button">
-              Paragraph
-            </Button>
-          </div>
-        </div>
+        <Text variant="p" className="font-medium text-gray-700 mb-2">
+          Cause and Effect Summary
+        </Text>
         <Input
           type="textarea"
           rows={10}

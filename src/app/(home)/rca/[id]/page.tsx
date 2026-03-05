@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { RcaWorkflowTabs } from "../components/RcaWorkflowTabs";
-import { getRcaById } from "../lib/rca-storage";
+import { getRcaById, mapApiRcaToRecord, saveRca } from "../lib/rca-storage";
+import { getRcaByIdService } from "@/app/actions/rcas";
+import type { RcaApiListItem } from "@/app/actions/rcas";
 import type { RcaRecord } from "@/types";
 import { ROUTES } from "@/utils/route-constants";
 
@@ -12,11 +14,30 @@ export default function RcaViewPage() {
   const router = useRouter();
   const id = typeof params?.id === "string" ? params.id : "";
   const [record, setRecord] = useState<RcaRecord | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !id) return;
-    const r = getRcaById(id);
-    setRecord(r ?? null);
+    if (typeof window === "undefined" || !id) {
+      if (!id) setLoading(false);
+      return;
+    }
+    getRcaByIdService(id).then((response) => {
+      console.log("response lemme check", response)
+      if (response.success && response.data) {
+        const body = response.data as { data?: RcaApiListItem };
+        const apiRca = body?.data;
+        if (apiRca) {
+          const mapped = mapApiRcaToRecord(apiRca);
+          saveRca(mapped);
+          setRecord(mapped);
+        } else {
+          setRecord(getRcaById(id) ?? null);
+        }
+      } else {
+        setRecord(getRcaById(id) ?? null);
+      }
+      setLoading(false);
+    });
   }, [id]);
 
   if (!id) {
@@ -24,7 +45,7 @@ export default function RcaViewPage() {
     return null;
   }
 
-  if (record === undefined) return <div className="p-4">Loading...</div>;
+  if (loading) return <div className="p-4">Loading...</div>;
   if (record === null) {
     return (
       <div className="p-4">

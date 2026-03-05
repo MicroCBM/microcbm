@@ -113,7 +113,7 @@ export function OrganizationTable({
     } catch (error) {
       toast.error(
         (error as Error).message ||
-          "Failed to delete organization. Please try again."
+        "Failed to delete organization. Please try again."
       );
     } finally {
       setIsDeleting(false);
@@ -294,76 +294,76 @@ export function OrganizationTable({
       <div className="border border-b-0 border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-          {/* Header */}
-          <thead>
-            <tr className="bg-white-50">
-              {table.getHeaderGroups().map((headerGroup) =>
-                headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-r border-gray-200 last:border-r-0"
-                    style={{ width: header.getSize() }}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
+            {/* Header */}
+            <thead>
+              <tr className="bg-white-50">
+                {table.getHeaderGroups().map((headerGroup) =>
+                  headerGroup.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-r border-gray-200 last:border-r-0"
+                      style={{ width: header.getSize() }}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
                           header.column.columnDef.header,
                           header.getContext()
                         )}
-                  </th>
-                ))
-              )}
-            </tr>
-          </thead>
+                    </th>
+                  ))
+                )}
+              </tr>
+            </thead>
 
-          <tbody className="bg-white">
-            {groupOrder.map((groupKey) => {
-              const groupData = groupedData[groupKey];
-              if (!groupData || groupData.length === 0) return null;
+            <tbody className="bg-white">
+              {groupOrder.map((groupKey) => {
+                const groupData = groupedData[groupKey];
+                if (!groupData || groupData.length === 0) return null;
 
-              return (
-                <React.Fragment key={groupKey}>
-                  {/* Group Header */}
-                  <tr className="bg-gray-100">
-                    <td
-                      colSpan={columns.length}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 uppercase tracking-wide"
-                    >
-                      {groupKey}
-                    </td>
-                  </tr>
-
-                  {/* Group Data Rows */}
-                  {groupData.map((organization) => {
-                    const row = table
-                      .getRowModel()
-                      .rows.find((r) => r.original.id === organization.id);
-                    if (!row) return null;
-
-                    return (
-                      <tr
-                        key={organization.id}
-                        className="border-t border-gray-200 hover:bg-gray-50 transition-colors"
+                return (
+                  <React.Fragment key={groupKey}>
+                    {/* Group Header */}
+                    <tr className="bg-gray-100">
+                      <td
+                        colSpan={columns.length}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 uppercase tracking-wide"
                       >
-                        {row.getVisibleCells().map((cell) => (
-                          <td
-                            key={cell.id}
-                            className="px-4 py-3 border-r border-gray-200 last:border-r-0"
-                            style={{ width: cell.column.getSize() }}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
+                        {groupKey}
+                      </td>
+                    </tr>
+
+                    {/* Group Data Rows */}
+                    {groupData.map((organization) => {
+                      const row = table
+                        .getRowModel()
+                        .rows.find((r) => r.original.id === organization.id);
+                      if (!row) return null;
+
+                      return (
+                        <tr
+                          key={organization.id}
+                          className="border-t border-gray-200 hover:bg-gray-50 transition-colors"
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <td
+                              key={cell.id}
+                              className="px-4 py-3 border-r border-gray-200 last:border-r-0"
+                              style={{ width: cell.column.getSize() }}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
           </table>
         </div>
       </div>

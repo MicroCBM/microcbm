@@ -1,5 +1,9 @@
 export type RcaNodeType = "problem" | "why" | "cause" | "effect";
 
+/** RCA type for API: type field on GET/POST rcas (Incident|NearMiss|Audit|Others) */
+export const RCA_TYPES = ["Incident", "NearMiss", "Audit", "Others"] as const;
+export type RcaTypeApi = (typeof RCA_TYPES)[number];
+
 /** Solution attached to a cause node in the chart */
 export interface RcaNodeSolution {
   id: string;
@@ -64,19 +68,32 @@ export interface RcaEvidenceItem {
   type?: "text" | "observation";
   /** For observations: original file name */
   fileName?: string;
-  /** For observations: file content as data URL (e.g. data:image/png;base64,...) or image URL */
+  /** For observations: data URL (data:image/...) when just added, or file key (e.g. rca-evidence/xxx.webp) when from API */
   attachments?: string[];
 }
 
-/** Corrective Action (spec: rca_actions): CM, PM, or MoC */
-export type RcaActionType = "Corrective" | "Preventive" | "MOC";
+/** True if the attachment value is an inline data URL; false if it's a storage file key. */
+export function isEvidenceDataUrl(value: string | undefined): value is string {
+  return typeof value === "string" && value.startsWith("data:");
+}
+
+/** API evidence_type enum for POST rcas/:id/evidence (must match backend). */
+export const RCA_EVIDENCE_TYPES = [
+  "Vibration Report",
+  "Oil Analysis",
+  "Thermal Image",
+  "Inspection Photo",
+  "Maintenance Log",
+  "SCADA Trend",
+  "Other",
+] as const;
+export type RcaEvidenceType = (typeof RCA_EVIDENCE_TYPES)[number];
+
+/** Corrective Action (spec: rca_actions). API: Corrective|Preventive|Systemic */
+export type RcaActionType = "Corrective" | "Preventive" | "Systemic";
 export type RcaActionPriority = "Low" | "Medium" | "High" | "Critical";
-export type RcaActionStatus =
-  | "Open"
-  | "In Progress"
-  | "Completed"
-  | "Verified"
-  | "Overdue";
+/** API: Open|InProgress|Completed|Verified|Overdue */
+export type RcaActionStatus = "Open" | "InProgress" | "Completed" | "Verified" | "Overdue";
 
 export interface RcaAction {
   id: string;
@@ -218,6 +235,8 @@ export interface RcaRecord {
   severity?: string;
   groups?: string;
   organization?: string;
+  /** Asset tag from create form (locked in Problem Statement when set) */
+  assetTag?: string;
   notes?: string;
   types?: string;
   tags?: string;
@@ -226,6 +245,8 @@ export interface RcaRecord {
   teamMembers?: string[];
   evidence?: RcaEvidenceItem[];
   problemStatementDetails?: RcaProblemStatement;
+  /** Backend id for problem statement (used for POST impacts) */
+  problemStatementId?: string;
   /** Legacy: solutions (if no actions, migrate to actions) */
   solutions?: RcaSolutionItem[];
   finalReport?: RcaFinalReport;

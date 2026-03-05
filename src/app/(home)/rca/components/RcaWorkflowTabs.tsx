@@ -12,6 +12,7 @@ import {
 } from "@/components/select/Select";
 import { ROUTES } from "@/utils/route-constants";
 import { saveRca } from "../lib/rca-storage";
+import { putRcaSummariesService } from "@/app/actions/rcas";
 import type { RcaRecord, RcaTabId, RcaStatus } from "@/types";
 import { RCA_STATUSES } from "../lib/rca-constants";
 import { RcaTabEvidence } from "./RcaTabEvidence";
@@ -19,6 +20,7 @@ import { RcaTabProblemStatement } from "./RcaTabProblemStatement";
 import { RcaTabAnalysis } from "./RcaTabAnalysis";
 import { RcaTabSolutions } from "./RcaTabSolutions";
 import { RcaTabFinalReport } from "./RcaTabFinalReport";
+import { toast } from "sonner";
 
 const TABS: { id: RcaTabId; label: string }[] = [
   { id: "evidence", label: "Evidence" },
@@ -47,6 +49,19 @@ export function RcaWorkflowTabs({ record, onRecordChange }: RcaWorkflowTabsProps
       onRecordChange(next);
     },
     [record, onRecordChange]
+  );
+
+  const submitSummaries = useCallback(
+    (data: { executiveSummary?: string; causeAndEffectSummary?: string }) => {
+      putRcaSummariesService(record.id, {
+        executive_summary: data.executiveSummary ?? "",
+        cause_and_effective_summary: data.causeAndEffectSummary ?? "",
+      }).then((res) => {
+        if (res.success) toast.success("Summaries updated.");
+        else toast.error(res.message ?? "Failed to save summaries.");
+      });
+    },
+    [record.id]
   );
 
   const changeStatus = useCallback(
@@ -142,14 +157,23 @@ export function RcaWorkflowTabs({ record, onRecordChange }: RcaWorkflowTabsProps
           <RcaTabEvidence
             evidence={record.evidence ?? []}
             onChange={(evidence) => updateRecord({ evidence })}
+            rcaId={record.id}
           />
         )}
         {activeTab === "problem-statement" && (
           <RcaTabProblemStatement
-            data={record.problemStatementDetails}
+            data={record.problemStatementDetails ?? {}}
             onChange={(problemStatementDetails) =>
               updateRecord({ problemStatementDetails })
             }
+            rcaId={record.id}
+            problemStatementId={record.problemStatementId}
+            onProblemStatementCreated={(psId) =>
+              updateRecord({ problemStatementId: psId })
+            }
+            lockedOrganizationId={record.organization}
+            lockedAssetTag={record.assetTag}
+            lockedAssetId={record.assetId}
           />
         )}
         {activeTab === "analysis" && (
@@ -164,12 +188,15 @@ export function RcaWorkflowTabs({ record, onRecordChange }: RcaWorkflowTabsProps
           <RcaTabSolutions
             actions={record.actions ?? []}
             onChange={(actions) => updateRecord({ actions })}
+            rcaId={record.id}
+            createdById={record.initiatedById}
           />
         )}
         {activeTab === "final-report" && (
           <RcaTabFinalReport
             data={record.finalReport}
             onChange={(finalReport) => updateRecord({ finalReport })}
+            onSubmit={submitSummaries}
           />
         )}
       </div>

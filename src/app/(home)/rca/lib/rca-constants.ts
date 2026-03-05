@@ -60,20 +60,23 @@ export const RCA_STATUSES = [
   "Closed",
 ] as const;
 
-export const ACTION_TYPES = ["Corrective", "Preventive", "MOC"] as const;
+/** API: Corrective|Preventive|Systemic */
+export const ACTION_TYPES = ["Corrective", "Preventive", "Systemic"] as const;
 export const ACTION_TYPE_LABELS: Record<(typeof ACTION_TYPES)[number], string> = {
   Corrective: "Corrective Maintenance (CM)",
   Preventive: "Preventive Maintenance (PM)",
-  MOC: "Management of Change (MOC)",
+  Systemic: "Management of Change (MOC)",
 };
 export const ACTION_PRIORITIES = ["Low", "Medium", "High", "Critical"] as const;
-export const ACTION_STATUSES = [
-  "Open",
-  "In Progress",
-  "Completed",
-  "Verified",
-  "Overdue",
-] as const;
+/** API: Open|InProgress|Completed|Verified|Overdue */
+export const ACTION_STATUSES = ["Open", "InProgress", "Completed", "Verified", "Overdue"] as const;
+export const ACTION_STATUS_LABELS: Record<(typeof ACTION_STATUSES)[number], string> = {
+  Open: "Open",
+  InProgress: "In Progress",
+  Completed: "Completed",
+  Verified: "Verified",
+  Overdue: "Overdue",
+};
 
 export const FISHBONE_CATEGORIES = [
   "Man",

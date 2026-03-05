@@ -14,6 +14,8 @@ import {
 } from "@/components/select/Select";
 import { ROUTES } from "@/utils/route-constants";
 import { createRcaRecordFromForm, saveRca } from "../lib/rca-storage";
+import { createRcaService, type CreateRcaApiPayload } from "@/app/actions/rcas";
+import type { RcaTypeApi } from "@/types/rca";
 import type { Department, RcaTemplateType } from "@/types";
 import type { SessionUser } from "@/types/common";
 import { SEVERITY_LEVELS } from "../lib/rca-constants";
@@ -40,6 +42,7 @@ const TEMPLATES: { value: RcaTemplateType; label: string; description: string }[
 interface AssetOption {
   id: string;
   name: string;
+  tag?: string;
 }
 
 interface UserOption {
@@ -87,7 +90,7 @@ export function CreateRcaForm({
   const [mapLocation, setMapLocation] = useState("");
   const [organization, setOrganization] = useState("");
   const [notes, setNotes] = useState("");
-  const [types, setTypes] = useState("");
+  const [types, setTypes] = useState<RcaTypeApi>("Incident");
   const [tags, setTags] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -106,17 +109,63 @@ export function CreateRcaForm({
     }
   }, [organization, departmentId, filteredDepartments]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = name.trim();
     if (!trimmedName) {
       toast.error("Please enter an RCA title.");
       return;
     }
+    if (!assetId || !departmentId || !rcaLeaderId || !severityLevel) {
+      toast.error("Please fill in all required fields (Asset, Department, RCA Leader, Severity).");
+      return;
+    }
     setSubmitting(true);
     const asset = assets.find((a) => a.id === assetId);
     const department = (departments ?? []).find((d) => d.id === departmentId);
     const leader = users.find((u) => u.id === rcaLeaderId);
+
+    const methodMap: Record<RcaTemplateType, string> = {
+      "5whys": "FiveWhys",
+      "logic-tree": "LogicTree",
+      fishbone: "Fishbone",
+      sologic: "Sologic",
+    };
+    const eventDateOnly = eventDate?.includes("T")
+      ? eventDate.slice(0, 10)
+      : eventDate || new Date().toISOString().slice(0, 10);
+
+    const payload: CreateRcaApiPayload = {
+      title: trimmedName,
+      method: methodMap[template] ?? "FiveWhys",
+      type: types,
+      severity: severityLevel || "Low",
+      parent_asset: { id: assetId },
+      parent_department: { id: departmentId },
+      department: { id: departmentId },
+      ...(organization ? { organization: { id: organization } } : {}),
+      rca_leader: { id: rcaLeaderId },
+      event_date: eventDateOnly,
+      production_impact_in_hours: "0",
+      estimated_cost_impact: "0",
+      physical_location: mapLocation || "None",
+      notes: notes || "None",
+      tags: tags || "None",
+      executive_summary: "None",
+      cause_and_effective_summary: "None",
+    };
+
+    const result = await createRcaService(payload);
+    if (!result.success) {
+      toast.error(result.message ?? "Failed to create RCA.");
+      setSubmitting(false);
+      return;
+    }
+
+    const apiId =
+      (result.data as { data?: { id?: string }; id?: string })?.data?.id ??
+      (result.data as { id?: string })?.id;
+
     const record = createRcaRecordFromForm({
       name: trimmedName,
       template,
@@ -137,7 +186,12 @@ export function CreateRcaForm({
       tags: tags || undefined,
       initiatedById: currentUser?.user_id,
       initiatedByName: currentUser?.email,
+      assetTag: asset?.tag,
     });
+
+    if (apiId && typeof apiId === "string") {
+      record.id = apiId;
+    }
     saveRca(record);
     toast.success("RCA created. Opening...");
     router.push(ROUTES.RCA_VIEW(record.id));
@@ -313,15 +367,15 @@ export function CreateRcaForm({
         />
 
         <div className="grid grid-cols-2 gap-3">
-        <Select value={types} onValueChange={setTypes}>
-          <SelectTrigger label="Types">
+        <Select value={types} onValueChange={(v) => setTypes(v as RcaTypeApi)}>
+          <SelectTrigger label="Type">
             <SelectValue placeholder="Select" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="incident">Incident</SelectItem>
-            <SelectItem value="near-miss">Near Miss</SelectItem>
-            <SelectItem value="audit">Audit</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
+            <SelectItem value="Incident">Incident</SelectItem>
+            <SelectItem value="NearMiss">Near Miss</SelectItem>
+            <SelectItem value="Audit">Audit</SelectItem>
+            <SelectItem value="Others">Others</SelectItem>
           </SelectContent>
         </Select>
 
